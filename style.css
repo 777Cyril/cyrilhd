@@ -165,12 +165,14 @@ body.dark-mode a {
 /* Hide visualization on smaller screens */
 @media (max-width: 900px) {
     .hero {
-        flex-direction: column;
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 24px;
     }
 
     .llm-viz-container {
-        width: 248px;
-        height: 248px;
+        width: 160px;
+        height: 160px;
     }
 }
 
