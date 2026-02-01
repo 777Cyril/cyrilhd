@@ -147,7 +147,7 @@ export function initProgramState(canvasEl: HTMLCanvasElement, fontAtlasData: IFo
         native: null,
         wasmGptModel: null,
         render: render!,
-        inWalkthrough: true,
+        inWalkthrough: false,
         walkthrough,
         camera,
         shape: shape,
@@ -164,7 +164,7 @@ export function initProgramState(canvasEl: HTMLCanvasElement, fontAtlasData: IFo
         },
         examples: [{
             name: 'GPT-2 (small)',
-            enabled: true,
+            enabled: false,
             shape: gpt2ShapeSmall,
             offset: delta.mul(-5),
             modelCardOffset: delta.mul(-2.0),
@@ -172,7 +172,7 @@ export function initProgramState(canvasEl: HTMLCanvasElement, fontAtlasData: IFo
             camera: makeCamera(new Vec3(-65141.321, 0.000, -69843.439), new Vec3(224.459, 24.501, 1574.240)),
         }, {
             name: 'GPT-2 (XL)',
-            enabled: true,
+            enabled: false,
             shape: gpt2ShapeLarge,
             offset: delta.mul(20),
             modelCardOffset: delta.mul(0.5),
