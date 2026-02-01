@@ -11,6 +11,8 @@
     --bg-dark: #1a1a1a;
     --text-light: #2c2c2c;
     --text-dark: #e0e0e0;
+    --link-light: #92BCEA;
+    --link-dark: #CF8BA9;
     --link-underline: currentColor;
 }
 
@@ -101,14 +103,18 @@ li:before {
 
 /* Links */
 a {
-    color: #CF8BA9;
+    color: var(--link-light);
     text-decoration: underline;
     text-underline-offset: 2px;
-    transition: opacity 0.2s ease;
+    transition: opacity 0.2s ease, color 0.3s ease;
 }
 
 a:hover {
     opacity: 0.7;
+}
+
+body.dark-mode a {
+    color: var(--link-dark);
 }
 
 /* Footer */
