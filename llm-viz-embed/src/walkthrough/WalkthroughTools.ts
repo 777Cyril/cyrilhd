@@ -6,6 +6,7 @@ import { Vec3, Vec4 } from "../utils/vector";
 import { IWalkthrough, Phase, PhaseGroup } from "./Walkthrough";
 import { IProgramState } from "../Program";
 import { ICameraPos } from "../Camera";
+import { getHexColor, getWeightColor } from "../utils/theme";
 
 export interface IWalkthroughArgs {
     state: IProgramState;
@@ -374,24 +375,24 @@ export function dimStyleColor(style: DimStyle) {
      switch (style) {
         case DimStyle.t:
         case DimStyle.T:
-            return Vec4.fromHexColor('#359da8');
+            return Vec4.fromHexColor(getHexColor('#359da8'));
         case DimStyle.A:
-            return Vec4.fromHexColor('#d368a4');
+            return Vec4.fromHexColor(getHexColor('#d368a4'));
         case DimStyle.C:
         case DimStyle.C4:
-            return Vec4.fromHexColor('#ce2983');
+            return Vec4.fromHexColor(getHexColor('#ce2983'));
         case DimStyle.Token:
             return new Vec4(0.3, 0.7, 0.3, 1);
         case DimStyle.TokenIdx:
-            return Vec4.fromHexColor('#1b495d');
+            return Vec4.fromHexColor(getHexColor('#1b495d'));
         case DimStyle.n_vocab:
-            return Vec4.fromHexColor('#7c3c8d'); // new Vec4(0.8, 0.6, 0.3, 1);
+            return Vec4.fromHexColor(getHexColor('#7c3c8d')); // new Vec4(0.8, 0.6, 0.3, 1);
         case DimStyle.Intermediates:
-            return Vec4.fromHexColor('#00ad00');
+            return Vec4.fromHexColor(getHexColor('#00ad00'));
         case DimStyle.Weights:
             return Colors.Weights;
         case DimStyle.Aggregates:
-            return Vec4.fromHexColor('#e3a300');
+            return Vec4.fromHexColor(getHexColor('#e3a300'));
     }
     return new Vec4(0,0,0);
 }
@@ -416,7 +417,7 @@ export function dimStyleTextShort(style: DimStyle) {
 }
 
 export const Colors = {
-    Weights: new Vec4(0.3, 0.3, 1.0),
+    get Weights() { return getWeightColor(); },
     Intermediates: new Vec4(0.4, 0.8, 0.4),
     Aggregates: new Vec4(1.0, 0.8, 0.3), // a yellowish color
 

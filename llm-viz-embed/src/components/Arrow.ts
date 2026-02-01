@@ -30,14 +30,15 @@ import { addPrimitiveRestart, addQuad, addVert } from "../render/triRender";
 import { bezierCurveBuild } from "../utils/bezier";
 import { Mat4f } from "../utils/matrix";
 import { Vec3, Vec3Buf, Vec4 } from "../utils/vector";
+import { getHexColor } from "../utils/theme";
 
 export function drawAllArrows(state: IRenderState, layout: IGptModelLayout) {
 
     let pad = 2.0;
     let prevResid = layout.residual0;
     let residWidth = 6;
-    let weightColor = Vec4.fromHexColor('#3333aa');
-    let dataColor = Vec4.fromHexColor('#33aa33');
+    let weightColor = Vec4.fromHexColor(getHexColor('#3333aa'));
+    let dataColor = Vec4.fromHexColor(getHexColor('#33aa33'));
 
     drawVertArrow(layout.idxObj, layout.residual0);
     drawHorizArrow(layout.tokEmbedObj, layout.residual0);

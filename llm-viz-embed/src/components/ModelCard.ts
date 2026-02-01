@@ -12,6 +12,7 @@ import { DimStyle, dimStyleColor } from "../walkthrough/WalkthroughTools";
 import { lineHeight } from "./TextLayout";
 import { IColorMix } from "../Annotations";
 import { clamp } from "../utils/data";
+import { getHexColor } from "../utils/theme";
 
 export function drawModelCard(state: IProgramState, layout: IGptModelLayout, title: string, offset: Vec3) {
     let { render } = state;
@@ -25,9 +26,9 @@ export function drawModelCard(state: IProgramState, layout: IGptModelLayout, tit
         .mul(Mat4f.fromTranslation(new Vec3(0, -pinY, 0)));
 
     let thick = 1.0 / 10.0 * scale;
-    let borderColor = Vec4.fromHexColor("#555599", 0.8);
-    let backgroundColor = Vec4.fromHexColor("#93c5fd", 0.3);
-    let titleColor = Vec4.fromHexColor("#000000", 1.0);
+    let borderColor = Vec4.fromHexColor(getHexColor("#555599"), 0.8);
+    let backgroundColor = Vec4.fromHexColor(getHexColor("#93c5fd"), 0.3);
+    let titleColor = Vec4.fromHexColor(getHexColor("#000000"), 1.0);
     let n = new Vec3(0, 0, 1);
 
     let lineOpts: ILineOpts = { color: borderColor, mtx, thick, n };
@@ -113,8 +114,8 @@ export function renderInputBoxes(state: IProgramState, layout: IGptModelLayout, 
     let { T } = layout.shape;
     let inCellH = br.y - tl.y;
 
-    let tokTextOpts: IFontOpts = { color: Vec4.fromHexColor("#000000", 1.0), mtx: lineOpts.mtx, size: fontSize };
-    let idxTextOpts: IFontOpts = { color: Vec4.fromHexColor("#666666", 1.0), mtx: lineOpts.mtx, size: fontSize * 0.6 };
+    let tokTextOpts: IFontOpts = { color: Vec4.fromHexColor(getHexColor("#000000"), 1.0), mtx: lineOpts.mtx, size: fontSize };
+    let idxTextOpts: IFontOpts = { color: Vec4.fromHexColor(getHexColor("#666666"), 1.0), mtx: lineOpts.mtx, size: fontSize * 0.6 };
 
     let dimmedTokTextOpts: IFontOpts = { ...tokTextOpts, color: tokTextOpts.color.mul(0.3) };
     let dimmedIdxTextOpts: IFontOpts = { ...idxTextOpts, color: idxTextOpts.color.mul(0.3) };
@@ -163,8 +164,8 @@ export function renderOutputBoxes(state: IProgramState, layout: IGptModelLayout,
     let boldLast = opts?.boldLast ?? true;
 
     lineOpts = { ...lineOpts, color: lineOpts.color.mul(opacity ?? 1.0) };
-    let tokTextOpts: IFontOpts = { color: Vec4.fromHexColor("#000000", opacity), mtx: lineOpts.mtx, size: fontSize };
-    let idxTextOpts: IFontOpts = { color: Vec4.fromHexColor("#666666", opacity), mtx: lineOpts.mtx, size: fontSize * 0.6 };
+    let tokTextOpts: IFontOpts = { color: Vec4.fromHexColor(getHexColor("#000000"), opacity), mtx: lineOpts.mtx, size: fontSize };
+    let idxTextOpts: IFontOpts = { color: Vec4.fromHexColor(getHexColor("#666666"), opacity), mtx: lineOpts.mtx, size: fontSize * 0.6 };
 
     let dimmedTokTextOpts: IFontOpts = { ...tokTextOpts, color: tokTextOpts.color.mul(0.3) };
     let dimmedIdxTextOpts: IFontOpts = { ...idxTextOpts, color: idxTextOpts.color.mul(0.3) };
@@ -278,8 +279,8 @@ function renderInputAtTop(state: IProgramState) {
 
     let outputOpacity = state.display.topOutputOpacity ?? 1.0;
 
-    let lineOpts = makeLineOpts({ color: Vec4.fromHexColor("#000000", 0.2), mtx: new Mat4f(), thick: 1.5 });
-    let titleTextOpts: IFontOpts = { color: Vec4.fromHexColor("#666666", 1.0), mtx: lineOpts.mtx, size: 1.9 };
+    let lineOpts = makeLineOpts({ color: Vec4.fromHexColor(getHexColor("#000000"), 0.2), mtx: new Mat4f(), thick: 1.5 });
+    let titleTextOpts: IFontOpts = { color: Vec4.fromHexColor(getHexColor("#666666"), 1.0), mtx: lineOpts.mtx, size: 1.9 };
 
     renderInputBoxes(state, layout, tl, br, inCellW, 4, lineOpts, { tokMixes: state.display.tokenColors, idxMixes: state.display.tokenIdxColors });
 
@@ -337,7 +338,7 @@ function renderOutputAtBottom(state: IProgramState) {
     let tl = new Vec3(topMid.x - outCellW * nCells / 2, topMid.y);
     let br = new Vec3(topMid.x + outCellW * nCells / 2, topMid.y + outCellH);
 
-    let lineOpts = makeLineOpts({ color: Vec4.fromHexColor("#000000", 0.2), mtx: new Mat4f(), thick: 1.5 });
+    let lineOpts = makeLineOpts({ color: Vec4.fromHexColor(getHexColor("#000000"), 0.2), mtx: new Mat4f(), thick: 1.5 });
 
     renderOutputBoxes(state, layout, tl, br, outCellW, 4, lineOpts, { boldLast: true, tokMixes: state.display.tokenOutputColors });
 

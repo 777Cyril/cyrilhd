@@ -346,7 +346,7 @@ export function renderBlocksSimple(blockRender: IBlockRender, cubes: IBlkDef[]) 
     for (let cube of cubes) {
         gl.uniform3f(locs.u_size, cube.dx, cube.dy, cube.dz);
         gl.uniform3f(locs.u_offset, cube.x, cube.y, cube.z);
-        let baseColor = (cube.t === 'w' ? new Vec4(0.3, 0.3, 1.0, 1) : new Vec4(0.4, 0.8, 0.4, 1)).mul(cube.highlight);
+        let baseColor = (cube.t === 'w' ? Colors.Weights : new Vec4(0.4, 0.8, 0.4, 1)).mul(cube.highlight);
         gl.uniform4f(locs.u_baseColor, baseColor.x, baseColor.y, baseColor.z, baseColor.w);
         gl.drawArrays(geom.type, 0, geom.numVerts);
     }
