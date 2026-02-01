@@ -21,9 +21,26 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header>
-        <img src="assets/Cyril Cryptopunk Avi.PNG" alt="cyril h dowuona" class="avatar">
-        <h1>cyril h dowuona</h1>
+    <header class="hero">
+        <div class="hero-left">
+            <img src="assets/Cyril Cryptopunk Avi.PNG" alt="cyril h dowuona" class="avatar">
+            <h1>cyril h dowuona</h1>
+        </div>
+        <!-- LLM Visualization -->
+        <div class="llm-viz-container">
+            <a
+                class="llm-viz-link"
+                href="https://bbycroft.net/llm"
+                target="_blank"
+                rel="noopener"
+                aria-label="Visualization by Brendan Bycroft">
+                <canvas
+                    id="llm-viz"
+                    class="llm-viz"
+                    aria-label="LLM Visualization">
+                </canvas>
+            </a>
+        </div>
     </header>
 
     <main>
@@ -64,6 +81,13 @@
         <p><a href="mailto:cyril@llmxai.co">email</a>, <a href="">X</a>
     </main>
 
+    <script>
+        window.LLM_VIZ_ASSET_BASE = '/llm-viz';
+        window.LLM_VIZ_AUTO_ROTATE = true;
+        window.LLM_VIZ_ASPECT_SCALE = 0.85;
+        window.LLM_VIZ_MODEL_SCALE = 0.9;
+    </script>
+    <script src="/llm-viz/llm-viz.iife.js"></script>
     <script src="scripts.js"></script>
 </body>
 </html>

@@ -45,8 +45,15 @@ body.dark-mode {
 }
 
 /* Header */
-header {
+.hero {
+    display: flex;
+    align-items: flex-start;
+    gap: 40px;
     margin-bottom: 60px;
+}
+
+.hero-left {
+    flex: 0 0 auto;
 }
 
 .avatar {
@@ -115,6 +122,56 @@ a:hover {
 
 body.dark-mode a {
     color: var(--link-dark);
+}
+
+/* LLM Visualization */
+.llm-viz-container {
+    margin: -6px 0 0;
+    width: 236px;
+    height: 236px;
+    flex: 0 0 auto;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.llm-viz-link {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.llm-viz {
+    width: 120%;
+    height: 120%;
+    margin-left: -10%;
+    margin-top: -10%;
+    border: none;
+    background: transparent;
+}
+
+.viz-credit {
+    font-size: 12px;
+    margin-top: 8px;
+    text-align: center;
+    opacity: 0.7;
+}
+
+.viz-credit a {
+    color: inherit;
+}
+
+/* Hide visualization on smaller screens */
+@media (max-width: 900px) {
+    .hero {
+        flex-direction: column;
+    }
+
+    .llm-viz-container {
+        width: 248px;
+        height: 248px;
+    }
 }
 
 /* Footer */
