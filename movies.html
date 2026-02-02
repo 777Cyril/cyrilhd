@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="cyril h dowuona - favorite movies and shows">
+    <title>movies - cyril h dowuona</title>
+    <link rel="stylesheet" href="style.css">
+    <script>
+      // Critical theme logic - runs synchronously before render
+      (function() {
+        const hour = new Date().getHours();
+        const isDarkTime = hour >= 19 || hour < 7;
+
+        if (isDarkTime) {
+          document.documentElement.classList.add('dark-mode');
+        }
+
+        document.documentElement.classList.add('no-transition');
+
+        window.addEventListener('load', function() {
+          setTimeout(function() {
+            document.documentElement.classList.remove('no-transition');
+          }, 100);
+        });
+      })();
+    </script>
+</head>
+<body>
+    <main>
+        <p style="margin-bottom: 0.8em;"><a href="index.html"><<</a></p>
+        <h2>top 10 movies</h2>
+        <ul>
+            <li>300</li>
+            <li>troy</li>
+            <li>parasite</li>
+            <li>rush hour</li>
+            <li>ocean's 11</li>
+            <li>saving private ryan</li>
+            <li>the dark knight</li>
+            <li>ex machina</li>
+            <li>the social network</li>
+            <li>inception</li>
+        </ul>
+
+        <h2>honorable mentions</h2>
+        <ul>
+            <li>the lord of the rings</li>
+            <li>weapons</li>
+            <li>interstellar</li>
+            <li>bugonia</li>
+            <li>american sniper</li>
+            <li>black hawk down</li>
+        </ul>
+
+        <h2>top 10 shows</h2>
+        <ul>
+            <li>game of thrones</li>
+            <li>house of cards</li>
+            <li>succession</li>
+            <li>breaking bad</li>
+            <li>black mirror</li>
+        </ul>
+
+        <h2>honorable mentions</h2>
+        <ul>
+            <li>xxx</li>
+            <li>xxx</li>
+            <li>xxx</li>
+        </ul>
+    </main>
+
+    <script src="scripts.js"></script>
+</body>
+</html>
