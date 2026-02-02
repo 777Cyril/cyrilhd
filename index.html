@@ -19,6 +19,27 @@
 
     <title>cyril h dowuona</title>
     <link rel="stylesheet" href="style.css">
+    <script>
+      // Critical theme logic - runs synchronously before render
+      (function() {
+        const hour = new Date().getHours();
+        const isDarkTime = hour >= 19 || hour < 7; // 7pm (19:00) to 7am
+
+        if (isDarkTime) {
+          document.documentElement.classList.add('dark-mode');
+        }
+
+        // Add class to disable transitions during initial load
+        document.documentElement.classList.add('no-transition');
+
+        // Remove no-transition class after page load to enable smooth manual transitions
+        window.addEventListener('load', function() {
+          setTimeout(function() {
+            document.documentElement.classList.remove('no-transition');
+          }, 100);
+        });
+      })();
+    </script>
 </head>
 <body>
     <header class="hero">
@@ -87,7 +108,7 @@
         window.LLM_VIZ_ASPECT_SCALE = 0.85;
         window.LLM_VIZ_MODEL_SCALE = 0.9;
     </script>
-    <script src="/llm-viz/llm-viz.iife.js"></script>
+    <script async src="/llm-viz/llm-viz.iife.js"></script>
     <script src="scripts.js"></script>
 </body>
 </html>

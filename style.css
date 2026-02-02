@@ -16,6 +16,22 @@
     --link-underline: currentColor;
 }
 
+/* Support theme class on html element for pre-render application */
+html.dark-mode,
+html.dark-mode body {
+    background-color: var(--bg-dark);
+    color: var(--text-dark);
+}
+
+/* Disable transitions during initial load to prevent flash */
+html.no-transition,
+html.no-transition *,
+html.no-transition *::before,
+html.no-transition *::after {
+    transition: none !important;
+    animation: none !important;
+}
+
 /* Font Face Declaration */
 @font-face {
     font-family: 'Delius';
@@ -120,6 +136,7 @@ a:hover {
     opacity: 0.7;
 }
 
+html.dark-mode a,
 body.dark-mode a {
     color: var(--link-dark);
 }
