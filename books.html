@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="cyril h dowuona - favorite books">
+    <title>books - cyril h dowuona</title>
+    <link rel="stylesheet" href="style.css">
+    <script>
+      // Critical theme logic - runs synchronously before render
+      (function() {
+        const hour = new Date().getHours();
+        const isDarkTime = hour >= 19 || hour < 7;
+
+        if (isDarkTime) {
+          document.documentElement.classList.add('dark-mode');
+        }
+
+        document.documentElement.classList.add('no-transition');
+
+        window.addEventListener('load', function() {
+          setTimeout(function() {
+            document.documentElement.classList.remove('no-transition');
+          }, 100);
+        });
+      })();
+    </script>
+</head>
+<body>
+    <main>
+        <p style="margin-bottom: 0.8em;"><a href="index.html"><<</a></p>
+
+        <h2>in no particular order</h2>
+        <ul>
+            <li>east of eden</li>
+            <li>count of monte christo</li>
+            <li>anna karenina</li>
+            <li>crime & punishment</li>
+        </ul>
+
+        <h2>reading list</h2>
+        <ul>
+            <li>war and peace</li>
+            <li>the brothers karamazov</li>
+            <li>middlemarch</li>
+        </ul>
+    </main>
+
+    <script src="scripts.js"></script>
+</body>
+</html>
