@@ -31,6 +31,50 @@ document.addEventListener('DOMContentLoaded', function() {
 
     avi.style.cursor = 'pointer';
 
+    const defaultSrc = 'assets/songs/Clairo Juna Live Ending.mp3';
+    const hourlySources = {
+        // Example: 19: 'assets/songs/Your-7pm-Track.mp3',
+    };
+
+    const specialRange = {
+        startHour: 19, // 7pm
+        endHour: 20,   // 8pm
+        src: 'assets/songs/My Search Is Over.mp3',
+    };
+
+    const timeZone = 'America/New_York';
+
+    function getHourInTimeZone() {
+        const parts = new Intl.DateTimeFormat('en-US', {
+            hour: '2-digit',
+            hour12: false,
+            timeZone,
+        }).formatToParts(new Date());
+        const hourPart = parts.find(function(p) { return p.type === 'hour'; });
+        return hourPart ? parseInt(hourPart.value, 10) : new Date().getHours();
+    }
+
+    function getHourlySource() {
+        const hour = getHourInTimeZone();
+        if (hour >= specialRange.startHour && hour < specialRange.endHour) {
+            return specialRange.src;
+        }
+        return hourlySources[hour] || defaultSrc;
+    }
+
+    function updateAudioSourceIfNeeded() {
+        const nextSrc = getHourlySource();
+        if (audio.dataset.currentSrc !== nextSrc) {
+            audio.pause();
+            audio.src = nextSrc;
+            audio.load();
+            audio.dataset.currentSrc = nextSrc;
+        }
+    }
+
+    updateAudioSourceIfNeeded();
+    setInterval(updateAudioSourceIfNeeded, 60000);
+
     avi.addEventListener('click', function() {
         if (audio.paused) {
             audio.play();
