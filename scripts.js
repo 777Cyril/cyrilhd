@@ -21,3 +21,21 @@ updateDarkMode();
 
 // Check every minute for seamless transitions
 setInterval(updateDarkMode, 60000);
+
+document.addEventListener('DOMContentLoaded', function() {
+    const avi = document.querySelector('.avatar');
+    const audio = document.getElementById('avi-audio');
+    if (!avi || !audio) {
+        return;
+    }
+
+    avi.style.cursor = 'pointer';
+
+    avi.addEventListener('click', function() {
+        if (audio.paused) {
+            audio.play();
+        } else {
+            audio.pause();
+        }
+    });
+});
