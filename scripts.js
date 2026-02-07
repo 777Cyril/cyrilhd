@@ -68,6 +68,11 @@ document.addEventListener('DOMContentLoaded', function() {
             src: 'assets/songs/muimui.mp3',
         },
         {
+            startHour: 15, // 3pm
+            endHour: 16,   // 4pm
+            src: 'assets/songs/atlanta v2.mp3',
+        },
+        {
             startHour: 17, // 5pm
             endHour: 18,   // 6pm
             src: 'assets/songs/Playboi Carti - Place.mp3',
