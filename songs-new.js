@@ -25,6 +25,7 @@ const experience = document.getElementById('experience');
 const backgroundLayer = document.getElementById('backgroundLayer');
 const foregroundLayer = document.getElementById('foregroundLayer');
 const sections = document.querySelectorAll('.song-section');
+const backdropPane = backgroundLayer.querySelector('.backdrop-pane');
 const audioElements = Array.from(document.querySelectorAll('audio[id^="audio"]'));
 const songCount = Math.min(sections.length, audioElements.length);
 
@@ -60,6 +61,8 @@ for (let i = 0; i < songCount; i++) {
             );
             section.style.minHeight = `${height}px`;
         }
+
+        populate777Tags();
     });
 
     // When audio plays naturally (not scrolling), update progress
@@ -312,3 +315,26 @@ function applyFadeOut(index) {
         song.audio.volume = 1;
     }
 }
+
+// Populate 777 producer tags in the backdrop pane
+function populate777Tags() {
+    const totalHeight = foregroundLayer.scrollHeight;
+    if (totalHeight <= 0) return;
+
+    backgroundLayer.style.height = totalHeight + 'px';
+    backdropPane.style.height = totalHeight + 'px';
+    backdropPane.innerHTML = '';
+
+    const tagCount = songCount + 1;
+    const spacing = totalHeight / (tagCount + 1);
+
+    for (let i = 0; i < tagCount; i++) {
+        const tag = document.createElement('div');
+        tag.className = 'seven-tag';
+        tag.innerHTML = '<span>7</span><span>7</span><span>7</span>';
+        tag.style.top = Math.round(spacing * (i + 1)) + 'px';
+        backdropPane.appendChild(tag);
+    }
+}
+
+window.addEventListener('resize', populate777Tags);

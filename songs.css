@@ -67,20 +67,50 @@ html, body {
     background: #fff;
 }
 
-/* Background layer (journal/texture) */
+/* Background layer (777 backdrop) */
 .background-layer {
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0;
     width: 100%;
-    height: 100vh;
-    background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+    min-height: 100%;
     z-index: 1;
-    transition: z-index 0.3s ease;
+    pointer-events: none;
+    display: flex;
+    justify-content: center;
 }
 
 .background-layer.front {
     z-index: 3;
+}
+
+/* Centered black pane */
+.backdrop-pane {
+    width: 35vw;
+    max-width: 400px;
+    min-width: 200px;
+    background: #000;
+    min-height: 100%;
+    position: relative;
+}
+
+/* 777 producer tag */
+.seven-tag {
+    color: #fff;
+    font-family: 'Delius', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-style: italic;
+    font-size: clamp(48px, 8vw, 96px);
+    line-height: 0.85;
+    text-align: center;
+    user-select: none;
+    letter-spacing: 0.02em;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%) translateY(-50%);
+}
+
+.seven-tag span {
+    display: block;
 }
 
 /* Foreground layer (collage) */
@@ -88,7 +118,6 @@ html, body {
     position: relative;
     width: 100%;
     z-index: 2;
-    transition: z-index 0.3s ease;
 }
 
 .foreground-layer.back {
@@ -104,6 +133,7 @@ html, body {
     align-items: flex-start;
     justify-content: center;
     padding: 100vh 20px; /* Padding to center content in viewport */
+    background: transparent;
 }
 
 /* Collage styling */
@@ -128,7 +158,7 @@ html, body {
     border-radius: 12px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     transition: transform 0.4s ease, box-shadow 0.4s ease;
-    mix-blend-mode: multiply;
+    mix-blend-mode: normal;
 }
 
 .cover-art.main {
@@ -146,15 +176,6 @@ html, body {
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
 }
 
-/* Parallax effects */
-.song-section:nth-child(odd) {
-    background: linear-gradient(180deg, #fff 0%, #fafafa 100%);
-}
-
-.song-section:nth-child(even) {
-    background: linear-gradient(180deg, #fafafa 0%, #fff 100%);
-}
-
 /* Mobile responsive */
 @media (max-width: 768px) {
     .splash-image {
@@ -168,5 +189,14 @@ html, body {
 
     .cover-art {
         max-width: 100%;
+    }
+
+    .backdrop-pane {
+        width: 50vw;
+        min-width: 160px;
+    }
+
+    .seven-tag {
+        font-size: clamp(36px, 10vw, 64px);
     }
 }
