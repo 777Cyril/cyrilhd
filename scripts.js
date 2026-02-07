@@ -72,6 +72,11 @@ document.addEventListener('DOMContentLoaded', function() {
             endHour: 2,   // 2am
             src: 'assets/songs/old habits - swapa.mp3',
         },
+        {
+            startHour: 4, // 4am
+            endHour: 5,   // 5am
+            src: 'assets/songs/use to care - swapa.mp3',
+        },
     ];
 
     const timeZone = 'America/New_York';
