@@ -32,6 +32,12 @@ html.no-transition *::after {
     animation: none !important;
 }
 
+@keyframes flash {
+    50% {
+        opacity: 0;
+    }
+}
+
 /* Font Face Declaration */
 @font-face {
     font-family: 'Delius';
@@ -78,6 +84,11 @@ body.dark-mode {
     object-fit: cover;
     margin-bottom: 20px;
     display: block;
+}
+
+.avatar:hover {
+    animation: flash .2s step-start infinite;
+    cursor: crosshair !important;
 }
 
 h1 {
