@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function() {
         {
             startHour: 19, // 7pm
             endHour: 20,   // 8pm
-            src: 'assets/songs/My Search Is Over.mp3',
+            src: 'assets/songs/Playboi Carti - Place.mp3',
         },
         {
             startHour: 20, // 8pm
