@@ -58,6 +58,11 @@ document.addEventListener('DOMContentLoaded', function() {
             src: "assets/songs/Pz' - Havana  (prod. rue.de.sevres).mp3",
         },
         {
+            startHour: 19, // 7pm
+            endHour: 20,   // 8pm
+            src: 'assets/songs/Hiatus Kaiyote Building A Ladder Live.mp3',
+        },
+        {
             startHour: 22, // 10pm
             endHour: 23,   // 11pm
             src: 'assets/songs/Long Time (Intro).mp3',
