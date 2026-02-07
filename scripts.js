@@ -63,6 +63,11 @@ document.addEventListener('DOMContentLoaded', function() {
             src: 'assets/songs/Swapa - Meeting God.mp3',
         },
         {
+            startHour: 14, // 2pm
+            endHour: 15,   // 3pm
+            src: 'assets/songs/muimui.mp3',
+        },
+        {
             startHour: 17, // 5pm
             endHour: 18,   // 6pm
             src: 'assets/songs/Playboi Carti - Place.mp3',
