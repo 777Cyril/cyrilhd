@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function() {
         {
             startHour: 23, // 11pm
             endHour: 24,   // midnight
-            src: 'assets/songs/Texako & Tony Shhnow - About you Prod. Texako.mp3',
+            src: 'assets/songs/old habits - swapa.mp3',
         },
         {
             startHour: 1, // 1am
