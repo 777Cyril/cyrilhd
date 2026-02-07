@@ -62,7 +62,7 @@ for (let i = 0; i < songCount; i++) {
             section.style.minHeight = `${height}px`;
         }
 
-        populate777Tags();
+        checkAllLoaded();
     });
 
     // When audio plays naturally (not scrolling), update progress
@@ -115,11 +115,8 @@ splash.addEventListener('click', () => {
 // Auto-scroll
 function autoScroll() {
     if (!state.autoScrolling || state.paused || state.isScrolling) {
-        if (state.autoScrolling && !state.paused) {
-            state.lastAutoScrollTime = null;
-            requestAnimationFrame(autoScroll);
-        }
-        return;
+        state.lastAutoScrollTime = null;
+        return; // Stop the loop — scroll end handler or unpause will restart
     }
 
     const now = performance.now();
@@ -135,30 +132,38 @@ function autoScroll() {
 
 // Detect manual scrolling
 let scrollTimeout;
+
+function resumeFromScroll() {
+    state.isScrolling = false;
+
+    // Ensure audio is playing when scroll ends
+    const currentSong = state.songs[state.currentSongIndex];
+    if (currentSong && currentSong.loaded && !state.paused && currentSong.audio.paused) {
+        currentSong.audio.play().catch(e => console.error('Play error:', e));
+    }
+
+    // Resume auto-scroll
+    if (state.autoScrolling && !state.paused) {
+        state.lastAutoScrollTime = null;
+        requestAnimationFrame(autoScroll);
+    }
+}
+
 experience.addEventListener('wheel', () => {
     state.isScrolling = true;
-    state.lastAutoScrollTime = null;
     clearTimeout(scrollTimeout);
-    scrollTimeout = setTimeout(() => {
-        state.isScrolling = false;
-        // Resume auto-scroll
-        if (state.autoScrolling && !state.paused) {
-            requestAnimationFrame(autoScroll);
-        }
-    }, 150);
+    scrollTimeout = setTimeout(resumeFromScroll, 150);
 }, { passive: true });
 
 // Touch devices: treat touch scroll as manual scrolling
 experience.addEventListener('touchstart', () => {
     state.isScrolling = true;
-    state.lastAutoScrollTime = null;
+    clearTimeout(scrollTimeout);
 }, { passive: true });
 
 experience.addEventListener('touchend', () => {
-    state.isScrolling = false;
-    if (state.autoScrolling && !state.paused) {
-        requestAnimationFrame(autoScroll);
-    }
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(resumeFromScroll, 150);
 }, { passive: true });
 
 // Main scroll handler - matches lostscribe pattern
@@ -218,21 +223,26 @@ experience.addEventListener('scroll', () => {
 
         state.scrollProgress = progress;
 
-        // ONLY update audio.currentTime when user is scrolling (q flag)
+        // DJ scrub: update audio.currentTime when user is manually scrolling
         if (state.isScrolling) {
             const targetTime = progress * currentSong.duration;
             if (Number.isFinite(targetTime) && targetTime >= 0 && targetTime <= currentSong.duration) {
-                currentSong.audio.currentTime = targetTime;
+                // Only update if delta > 50ms to avoid thrashing playback
+                if (Math.abs(currentSong.audio.currentTime - targetTime) > 0.05) {
+                    currentSong.audio.currentTime = targetTime;
+                }
                 if (targetTime < currentSong.duration - CONFIG.fadeOutSeconds) {
                     currentSong.audio.volume = 1;
                 }
             }
         }
 
-        // Ensure audio is playing
-        const nearEnd = currentSong.audio.currentTime >= Math.max(0, currentSong.duration - 0.05);
-        if (currentSong.audio.paused && !state.paused && (state.isScrolling || !nearEnd)) {
-            currentSong.audio.play().catch(e => console.error('Play error:', e));
+        // Only restart audio during auto-scroll (not during manual scrub)
+        if (!state.isScrolling) {
+            const nearEnd = currentSong.audio.currentTime >= Math.max(0, currentSong.duration - 0.05);
+            if (currentSong.audio.paused && !state.paused && !nearEnd) {
+                currentSong.audio.play().catch(e => console.error('Play error:', e));
+            }
         }
     }
 
@@ -316,6 +326,15 @@ function applyFadeOut(index) {
     }
 }
 
+// Wait for all audio to load before sizing backdrop
+function checkAllLoaded() {
+    if (state.songs.every(song => song.loaded)) {
+        populate777Tags();
+        // Recompute after layout settles
+        setTimeout(populate777Tags, 100);
+    }
+}
+
 // Populate 777 producer tags in the backdrop pane
 function populate777Tags() {
     const totalHeight = foregroundLayer.scrollHeight;
@@ -337,4 +356,8 @@ function populate777Tags() {
     }
 }
 
-window.addEventListener('resize', populate777Tags);
+window.addEventListener('resize', () => {
+    if (state.songs.every(song => song.loaded)) {
+        populate777Tags();
+    }
+});

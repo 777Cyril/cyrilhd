@@ -5,6 +5,7 @@ export default defineConfig({
   plugins: [react()],
   base: '/songs/',
   build: {
-    outDir: '../songs-dist'
+    outDir: '../songs',
+    emptyOutDir: false
   }
 })
