@@ -38,8 +38,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const specialRanges = [
         {
-            startHour: 19, // 7pm
-            endHour: 20,   // 8pm
+            startHour: 18, // 6pm
+            endHour: 19,   // 7pm
+            src: 'assets/songs/Taliban Music.mp3',
+        },
+        {
+            startHour: 17, // 5pm
+            endHour: 18,   // 6pm
             src: 'assets/songs/Playboi Carti - Place.mp3',
         },
         {
@@ -51,6 +56,11 @@ document.addEventListener('DOMContentLoaded', function() {
             startHour: 22, // 10pm
             endHour: 23,   // 11pm
             src: 'assets/songs/Long Time (Intro).mp3',
+        },
+        {
+            startHour: 23, // 11pm
+            endHour: 24,   // midnight
+            src: 'assets/songs/Texako & Tony Shhnow - About you Prod. Texako.mp3',
         },
     ];
 
