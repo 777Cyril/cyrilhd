@@ -30,6 +30,21 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     avi.style.cursor = 'pointer';
+    let flashTimeoutId = null;
+
+    function triggerTapFlash() {
+        avi.classList.remove('tap-flash');
+        // Force reflow so the animation restarts on repeated taps.
+        void avi.offsetWidth;
+        avi.classList.add('tap-flash');
+
+        if (flashTimeoutId) {
+            clearTimeout(flashTimeoutId);
+        }
+        flashTimeoutId = setTimeout(function() {
+            avi.classList.remove('tap-flash');
+        }, 650);
+    }
 
     const defaultSrc = 'assets/songs/Clairo Juna Live Ending.mp3';
     const hourlySources = {
@@ -121,6 +136,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setInterval(updateAudioSourceIfNeeded, 60000);
 
     avi.addEventListener('click', function() {
+        triggerTapFlash();
         if (audio.paused) {
             audio.play();
         } else {
