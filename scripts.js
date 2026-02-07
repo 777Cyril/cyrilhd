@@ -43,6 +43,11 @@ document.addEventListener('DOMContentLoaded', function() {
             src: 'assets/songs/Taliban Music.mp3',
         },
         {
+            startHour: 16, // 4pm
+            endHour: 17,   // 5pm
+            src: 'assets/songs/Swapa - Meeting God.mp3',
+        },
+        {
             startHour: 17, // 5pm
             endHour: 18,   // 6pm
             src: 'assets/songs/Playboi Carti - Place.mp3',
@@ -61,6 +66,11 @@ document.addEventListener('DOMContentLoaded', function() {
             startHour: 23, // 11pm
             endHour: 24,   // midnight
             src: 'assets/songs/Texako & Tony Shhnow - About you Prod. Texako.mp3',
+        },
+        {
+            startHour: 1, // 1am
+            endHour: 2,   // 2am
+            src: 'assets/songs/old habits - swapa.mp3',
         },
     ];
 
