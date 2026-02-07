@@ -344,8 +344,9 @@ function populate777Tags() {
     backdropPane.style.height = totalHeight + 'px';
     backdropPane.innerHTML = '';
 
-    const tagCount = songCount + 1;
-    const spacing = totalHeight / (tagCount + 1);
+    // One 777 tag per half viewport so at least one is always visible
+    const spacing = window.innerHeight / 2;
+    const tagCount = Math.floor(totalHeight / spacing);
 
     for (let i = 0; i < tagCount; i++) {
         const tag = document.createElement('div');
