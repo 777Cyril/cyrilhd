@@ -46,90 +46,78 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 650);
     }
 
-    const defaultSrc = 'assets/songs/Clairo Juna Live Ending.mp3';
-    const hourlySources = {
-        // Example: 19: 'assets/songs/Your-7pm-Track.mp3',
+    const fallbackSchedule = {
+        timeZone: 'America/New_York',
+        default: 'assets/songs/Clairo Juna Live Ending.mp3',
+        ranges: [],
+        slots: {},
     };
+    let schedule = fallbackSchedule;
 
-    const specialRanges = [
-        {
-            startHour: 18, // 6pm
-            endHour: 19,   // 7pm
-            src: 'assets/songs/Taliban Music.mp3',
-        },
-        {
-            startHour: 16, // 4pm
-            endHour: 17,   // 5pm
-            src: 'assets/songs/Swapa - Meeting God.mp3',
-        },
-        {
-            startHour: 14, // 2pm
-            endHour: 15,   // 3pm
-            src: 'assets/songs/muimui.mp3',
-        },
-        {
-            startHour: 15, // 3pm
-            endHour: 16,   // 4pm
-            src: 'assets/songs/atlanta v2.mp3',
-        },
-        {
-            startHour: 17, // 5pm
-            endHour: 18,   // 6pm
-            src: 'assets/songs/Playboi Carti - Place.mp3',
-        },
-        {
-            startHour: 20, // 8pm
-            endHour: 21,   // 9pm
-            src: "assets/songs/Pz' - Havana  (prod. rue.de.sevres).mp3",
-        },
-        {
-            startHour: 19, // 7pm
-            endHour: 20,   // 8pm
-            src: 'assets/songs/Hiatus Kaiyote Building A Ladder Live.mp3',
-        },
-        {
-            startHour: 22, // 10pm
-            endHour: 23,   // 11pm
-            src: 'assets/songs/Long Time (Intro).mp3',
-        },
-        {
-            startHour: 23, // 11pm
-            endHour: 24,   // midnight
-            src: 'assets/songs/old habits - swapa.mp3',
-        },
-        {
-            startHour: 1, // 1am
-            endHour: 2,   // 2am
-            src: 'assets/songs/old habits - swapa.mp3',
-        },
-        {
-            startHour: 4, // 4am
-            endHour: 5,   // 5am
-            src: 'assets/songs/use to care - swapa.mp3',
-        },
-    ];
-
-    const timeZone = 'America/New_York';
-
-    function getHourInTimeZone() {
+    function getTimePartsInTimeZone() {
         const parts = new Intl.DateTimeFormat('en-US', {
             hour: '2-digit',
+            minute: '2-digit',
             hour12: false,
-            timeZone,
+            timeZone: schedule.timeZone || fallbackSchedule.timeZone,
         }).formatToParts(new Date());
         const hourPart = parts.find(function(p) { return p.type === 'hour'; });
-        return hourPart ? parseInt(hourPart.value, 10) : new Date().getHours();
+        const minutePart = parts.find(function(p) { return p.type === 'minute'; });
+        return {
+            hour: hourPart ? parseInt(hourPart.value, 10) : new Date().getHours(),
+            minute: minutePart ? parseInt(minutePart.value, 10) : new Date().getMinutes(),
+        };
+    }
+
+    function parseTimeToMinutes(value) {
+        if (!value || typeof value !== 'string') {
+            return null;
+        }
+        const parts = value.split(':');
+        if (parts.length !== 2) {
+            return null;
+        }
+        const hour = parseInt(parts[0], 10);
+        const minute = parseInt(parts[1], 10);
+        if (Number.isNaN(hour) || Number.isNaN(minute)) {
+            return null;
+        }
+        if (hour < 0 || hour > 24 || minute < 0 || minute > 59) {
+            return null;
+        }
+        if (hour === 24 && minute !== 0) {
+            return null;
+        }
+        return hour * 60 + minute;
     }
 
     function getHourlySource() {
-        const hour = getHourInTimeZone();
-        for (let i = 0; i < specialRanges.length; i += 1) {
-            const range = specialRanges[i];
-            if (hour >= range.startHour && hour < range.endHour) {
-                return range.src;
+        const timeParts = getTimePartsInTimeZone();
+        const minuteOfDay = timeParts.hour * 60 + timeParts.minute;
+        const slotKey = String(timeParts.hour).padStart(2, '0') + ':' + String(timeParts.minute).padStart(2, '0');
+        if (schedule.slots && schedule.slots[slotKey]) {
+            return schedule.slots[slotKey];
+        }
+        if (Array.isArray(schedule.ranges)) {
+            for (let i = 0; i < schedule.ranges.length; i += 1) {
+                const range = schedule.ranges[i];
+                const start = parseTimeToMinutes(range.start);
+                const end = parseTimeToMinutes(range.end);
+                if (start === null || end === null) {
+                    continue;
+                }
+                if (start === end) {
+                    continue;
+                }
+                if (start < end && minuteOfDay >= start && minuteOfDay < end) {
+                    return range.src;
+                }
+                if (start > end && (minuteOfDay >= start || minuteOfDay < end)) {
+                    return range.src;
+                }
             }
         }
-        return hourlySources[hour] || defaultSrc;
+        return schedule.default || fallbackSchedule.default;
     }
 
     function updateAudioSourceIfNeeded() {
@@ -142,8 +130,30 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    updateAudioSourceIfNeeded();
-    setInterval(updateAudioSourceIfNeeded, 60000);
+    fetch('assets/songs/schedule.json', { cache: 'no-store' })
+        .then(function(res) {
+            if (!res.ok) {
+                throw new Error('schedule fetch failed');
+            }
+            return res.json();
+        })
+        .then(function(data) {
+            if (data && typeof data === 'object') {
+                schedule = {
+                    timeZone: data.timeZone || fallbackSchedule.timeZone,
+                    default: data.default || fallbackSchedule.default,
+                    ranges: Array.isArray(data.ranges) ? data.ranges : [],
+                    slots: data.slots && typeof data.slots === 'object' ? data.slots : {},
+                };
+            }
+        })
+        .catch(function() {
+            schedule = fallbackSchedule;
+        })
+        .finally(function() {
+            updateAudioSourceIfNeeded();
+            setInterval(updateAudioSourceIfNeeded, 60000);
+        });
 
     avi.addEventListener('click', function() {
         triggerTapFlash();
