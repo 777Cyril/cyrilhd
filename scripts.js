@@ -36,11 +36,23 @@ document.addEventListener('DOMContentLoaded', function() {
         // Example: 19: 'assets/songs/Your-7pm-Track.mp3',
     };
 
-    const specialRange = {
-        startHour: 19, // 7pm
-        endHour: 20,   // 8pm
-        src: 'assets/songs/My Search Is Over.mp3',
-    };
+    const specialRanges = [
+        {
+            startHour: 19, // 7pm
+            endHour: 20,   // 8pm
+            src: 'assets/songs/My Search Is Over.mp3',
+        },
+        {
+            startHour: 20, // 8pm
+            endHour: 21,   // 9pm
+            src: "assets/songs/Pz' - Havana  (prod. rue.de.sevres).mp3",
+        },
+        {
+            startHour: 22, // 10pm
+            endHour: 23,   // 11pm
+            src: 'assets/songs/Long Time (Intro).mp3',
+        },
+    ];
 
     const timeZone = 'America/New_York';
 
@@ -56,8 +68,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function getHourlySource() {
         const hour = getHourInTimeZone();
-        if (hour >= specialRange.startHour && hour < specialRange.endHour) {
-            return specialRange.src;
+        for (let i = 0; i < specialRanges.length; i += 1) {
+            const range = specialRanges[i];
+            if (hour >= range.startHour && hour < range.endHour) {
+                return range.src;
+            }
         }
         return hourlySources[hour] || defaultSrc;
     }
