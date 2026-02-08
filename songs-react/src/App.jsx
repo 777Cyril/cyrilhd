@@ -188,6 +188,15 @@ function App() {
     const count = COVER_POOL.length
     const spacing = duration && count > 1 ? Math.min(5, duration / (count - 1)) : 5
 
+    const cols = Math.max(2, Math.ceil(Math.sqrt(count * 1.1)))
+    const rows = Math.ceil(count / cols)
+    const xSpan = 90
+    const ySpan = 80
+    const xStart = -xSpan / 2
+    const yStart = -ySpan / 2
+    const xStep = cols > 1 ? xSpan / (cols - 1) : 0
+    const yStep = rows > 1 ? ySpan / (rows - 1) : 0
+
     const layout = COVER_POOL.map((src, idx) => {
       const seed = (songIndex + 1) * 1000 + idx * 97
       const r1 = seededRandom(seed)
@@ -195,11 +204,16 @@ function App() {
       const r3 = seededRandom(seed + 2)
       const r4 = seededRandom(seed + 3)
 
-      // spread across the canvas, slight rotation
-      const x = Math.round((r1 * 140) - 70) // -70% to 70%
-      const y = Math.round((r2 * 120) - 60) // -60% to 60%
-      const rot = Math.round((r3 * 16) - 8) // -8deg to 8deg
-      const scale = 0.7 + r4 * 0.5 // 0.7 to 1.2
+      const col = idx % cols
+      const row = Math.floor(idx / cols)
+      const baseX = xStart + (col * xStep)
+      const baseY = yStart + (row * yStep)
+      const jitterX = (r1 - 0.5) * 10
+      const jitterY = (r2 - 0.5) * 10
+      const x = Math.round(baseX + jitterX)
+      const y = Math.round(baseY + jitterY)
+      const rot = Math.round((r3 * 10) - 5) // -5deg to 5deg
+      const scale = 0.65 + r4 * 0.35 // 0.65 to 1.0
       const revealSeconds = idx * spacing
 
       return { src, x, y, rot, scale, revealSeconds, z: idx + 1 }
