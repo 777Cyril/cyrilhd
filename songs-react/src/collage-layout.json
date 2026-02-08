@@ -7,7 +7,8 @@
     { "src": "/assets/covers/cyril w abla.jpg", "x": 12, "y": 8, "scale": 0.8, "rot": 1, "z": 5 },
     { "src": "/assets/covers/yillz alt 1.PNG", "x": -6, "y": 34, "scale": 0.7, "rot": -4, "z": 6 },
     { "src": "/assets/covers/Play4 Keeps delux cover.jpeg", "x": 28, "y": 30, "scale": 0.72, "rot": 3, "z": 7 },
-    { "src": "/assets/covers/p4k pixelated.PNG", "x": -28, "y": 32, "scale": 0.68, "rot": 5, "z": 8 }
+    { "src": "/assets/covers/p4k pixelated.PNG", "x": -28, "y": 32, "scale": 0.68, "rot": 5, "z": 8 },
+    { "src": "/assets/covers/rise-anew.jpg", "x": 40, "y": 6, "scale": 0.74, "rot": -2, "z": 9 }
   ],
   "overrides": {
     "0": [],
