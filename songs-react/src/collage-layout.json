@@ -1,0 +1,21 @@
+{
+  "base": [
+    { "src": "/assets/covers/hideout.png", "x": -32, "y": -22, "scale": 0.86, "rot": -3, "z": 1 },
+    { "src": "/assets/covers/junya.png", "x": 8, "y": -26, "scale": 0.9, "rot": 2, "z": 2 },
+    { "src": "/assets/covers/nebula.png", "x": 34, "y": -18, "scale": 0.82, "rot": 4, "z": 3 },
+    { "src": "/assets/covers/Motorola Cover Art Final.JPEG", "x": -30, "y": 10, "scale": 0.78, "rot": -2, "z": 4 },
+    { "src": "/assets/covers/cyril w abla.jpg", "x": 12, "y": 8, "scale": 0.8, "rot": 1, "z": 5 },
+    { "src": "/assets/covers/yillz alt 1.PNG", "x": -6, "y": 34, "scale": 0.7, "rot": -4, "z": 6 },
+    { "src": "/assets/covers/Play4 Keeps delux cover.jpeg", "x": 28, "y": 30, "scale": 0.72, "rot": 3, "z": 7 },
+    { "src": "/assets/covers/p4k pixelated.PNG", "x": -28, "y": 32, "scale": 0.68, "rot": 5, "z": 8 }
+  ],
+  "overrides": {
+    "0": [],
+    "1": [],
+    "2": [],
+    "3": [],
+    "4": [],
+    "5": [],
+    "6": []
+  }
+}

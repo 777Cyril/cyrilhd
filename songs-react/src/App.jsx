@@ -1,16 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-
-const COVER_POOL = [
-  '/assets/covers/hideout.png',
-  '/assets/covers/junya.png',
-  '/assets/covers/nebula.png',
-  '/assets/covers/Motorola Cover Art Final.JPEG',
-  '/assets/covers/cyril w abla.jpg',
-  '/assets/covers/yillz alt 1.PNG',
-  '/assets/covers/Play4 Keeps delux cover.jpeg',
-  '/assets/covers/p4k pixelated.PNG',
-  '/assets/covers/opening scene.png'
-]
+import collageLayout from './collage-layout.json'
 
 const songs = [
   {
@@ -177,48 +166,24 @@ function App() {
     }
   }, [])
 
-  const seededRandom = (seed) => {
-    let t = seed + 0x6D2B79F5
-    t = Math.imul(t ^ (t >>> 15), t | 1)
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
-  }
+  const buildCollageLayout = useCallback((songIndex) => {
+    const base = Array.isArray(collageLayout.base) ? collageLayout.base : []
+    const overrides = collageLayout.overrides?.[String(songIndex)] || []
+    const overrideMap = new Map(overrides.map(item => [item.src, item]))
 
-  const buildCollageLayout = useCallback((songIndex, duration) => {
-    const count = COVER_POOL.length
-    const spacing = duration && count > 1 ? Math.min(5, duration / (count - 1)) : 5
+    const merged = base.map(item => ({
+      ...item,
+      ...(overrideMap.get(item.src) || {})
+    }))
 
-    const cols = Math.max(2, Math.ceil(Math.sqrt(count * 1.1)))
-    const rows = Math.ceil(count / cols)
-    const xSpan = 90
-    const ySpan = 80
-    const xStart = -xSpan / 2
-    const yStart = -ySpan / 2
-    const xStep = cols > 1 ? xSpan / (cols - 1) : 0
-    const yStep = rows > 1 ? ySpan / (rows - 1) : 0
-
-    const layout = COVER_POOL.map((src, idx) => {
-      const seed = (songIndex + 1) * 1000 + idx * 97
-      const r1 = seededRandom(seed)
-      const r2 = seededRandom(seed + 1)
-      const r3 = seededRandom(seed + 2)
-      const r4 = seededRandom(seed + 3)
-
-      const col = idx % cols
-      const row = Math.floor(idx / cols)
-      const baseX = xStart + (col * xStep)
-      const baseY = yStart + (row * yStep)
-      const jitterX = (r1 - 0.5) * 10
-      const jitterY = (r2 - 0.5) * 10
-      const x = Math.round(baseX + jitterX)
-      const y = Math.round(baseY + jitterY)
-      const rot = Math.round((r3 * 10) - 5) // -5deg to 5deg
-      const scale = 0.65 + r4 * 0.35 // 0.65 to 1.0
-      const revealSeconds = idx * spacing
-
-      return { src, x, y, rot, scale, revealSeconds, z: idx + 1 }
+    // Allow per-song additions not in base
+    overrides.forEach(item => {
+      if (!merged.find(entry => entry.src === item.src)) {
+        merged.push(item)
+      }
     })
-    collageLayouts.current[songIndex] = layout
+
+    collageLayouts.current[songIndex] = merged
   }, [])
 
   // Handle scroll — find current section, sync audio
@@ -393,13 +358,22 @@ function App() {
     }
   }, [])
 
+  // Initialize collage layouts once
+  useEffect(() => {
+    songs.forEach((_, index) => {
+      if (!collageLayouts.current[index]) {
+        buildCollageLayout(index)
+      }
+    })
+  }, [buildCollageLayout])
+
   // Audio metadata loaded handler
   const handleMetadata = useCallback((index, e) => {
     durations.current[index] = e.target.duration
     loadedCount.current++
 
     if (!collageLayouts.current[index]) {
-      buildCollageLayout(index, e.target.duration)
+      buildCollageLayout(index)
     }
 
     if (loadedCount.current >= songs.length) {
@@ -467,14 +441,17 @@ function App() {
                     <img
                       key={`${song.id}-${itemIndex}`}
                       src={item.src}
-                      alt={song.title}
+                      alt=""
+                      aria-hidden="true"
                       className="cover-art collage-item"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none'
+                      }}
                       style={{
                         '--x': `${item.x}%`,
                         '--y': `${item.y}%`,
                         '--r': `${item.rot}deg`,
                         '--s': item.scale,
-                        '--reveal-seconds': item.revealSeconds,
                         '--z': item.z
                       }}
                     />

@@ -137,7 +137,7 @@ html, body, #root {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: min(420px, 52vw);
+  width: min(380px, 46vw);
   height: auto;
   object-fit: contain;
   border-radius: 0;
