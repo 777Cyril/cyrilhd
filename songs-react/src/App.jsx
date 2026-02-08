@@ -3,47 +3,47 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 const songs = [
   {
     id: 0,
-    title: 'Motorola',
-    audio: '/assets/songs/Motorola.wav',
+    title: 'Muimui',
+    audio: '/assets/songs/muimui.mp3',
     covers: [
-      '/assets/covers/Motorola-Cover-Art-Final.JPEG',
-      '/assets/covers/cyril-w-abla.jpg'
+      '/assets/covers/hideout.jpg',
+      '/assets/covers/junya.jpg'
     ]
   },
   {
     id: 1,
-    title: 'Good Company',
-    audio: '/assets/songs/goodcompany.mp3',
+    title: 'Motorola',
+    audio: '/assets/songs/Motorola.wav',
     covers: [
-      '/assets/covers/yillz-alt-1.PNG',
-      '/assets/covers/Motorola-Cover-Art-Final.JPEG'
+      '/assets/covers/Motorola Cover Art Final.JPEG',
+      '/assets/covers/cyril w abla.jpg'
     ]
   },
   {
     id: 2,
-    title: 'Atlanta v2',
-    audio: '/assets/songs/atlanta v2.mp3',
+    title: 'Good Company',
+    audio: '/assets/songs/goodcompany.mp3',
     covers: [
-      '/assets/covers/cyril-w-abla.jpg',
-      '/assets/covers/junya-sticker.jpg'
+      '/assets/covers/yillz alt 1.PNG',
+      '/assets/covers/Motorola Cover Art Final.JPEG'
     ]
   },
   {
     id: 3,
-    title: 'Muimui',
-    audio: '/assets/songs/muimui.mp3',
+    title: 'Atlanta v2',
+    audio: '/assets/songs/atlanta v2.mp3',
     covers: [
-      '/assets/covers/yillz-alt-1.PNG',
-      '/assets/covers/Play4-Keeps-delux-cover.jpeg'
+      '/assets/covers/cyril w abla.jpg',
+      '/assets/covers/junya.jpg'
     ]
   },
   {
     id: 4,
     title: 'Melotron RSQ8 v1',
-    audio: '/assets/songs/Melotron-RSQ8-v1.mp3',
+    audio: '/assets/songs/Melotron RSQ8 v1.mp3',
     covers: [
-      '/assets/covers/junya-sticker.jpg',
-      '/assets/covers/Play4-Keeps-delux-cover.jpeg'
+      '/assets/covers/junya.jpg',
+      '/assets/covers/Play4 Keeps delux cover.jpeg'
     ]
   },
   {
@@ -51,17 +51,17 @@ const songs = [
     title: 'Rubies',
     audio: '/assets/songs/Rubies.mp3',
     covers: [
-      '/assets/covers/Play4-Keeps-delux-cover.jpeg',
-      '/assets/covers/cyril-w-abla.jpg'
+      '/assets/covers/Play4 Keeps delux cover.jpeg',
+      '/assets/covers/cyril w abla.jpg'
     ]
   },
   {
     id: 6,
     title: 'IMMATURE',
-    audio: '/assets/songs/IMMATURE-.wav',
+    audio: '/assets/songs/IMMATURE .wav',
     covers: [
-      '/assets/covers/p4k-pixelated.PNG',
-      '/assets/covers/junya-sticker.jpg'
+      '/assets/covers/p4k pixelated.PNG',
+      '/assets/covers/junya.jpg'
     ]
   }
 ]
@@ -392,8 +392,8 @@ function App() {
       {/* Splash screen */}
       <div className={`splash ${started ? 'hidden' : ''}`} onClick={handleStart}>
         <img
-          src="/assets/covers/Motorola-Cover-Art-Final.JPEG"
-          alt="Motorola"
+          src="/assets/covers/opening scene.png"
+          alt="Opening scene"
           className="splash-image"
         />
       </div>
