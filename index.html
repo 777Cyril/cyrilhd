@@ -93,7 +93,32 @@
             <li>originally from ghana</li>
             <li>studied @ <a href="https://dh.howard.edu/cgi/viewcontent.cgi?params=/context/hugradpro/article/1163/&path_info=dhu_hua_commence_0162.pdf" target="_blank" rel="noopener noreferrer">howard</a></li>
             <li>helped redesign <a href="https://www.apple.com/newsroom/2022/11/apple-music-launches-new-replay-experience-reveals-2022s-top-charts/" target="_blank" rel="noopener noreferrer">apple music replay</a> during my stint at <a href="https://work.co/" target="_blank" rel="noopener noreferrer">Work & Co</a></li>
-            <li><a href="/songs">songs</a> i produced + <a href="https://open.spotify.com/playlist/3S0Y1mq6M2DNdG7VkoVdr0?si=pkSFiDRCQKSOCkISAK-8Mg&pi=DyXKaWejRrKF8" target="_blank" rel="noopener noreferrer">playlist</a> i curate</li>
+            <li class="songs-item">
+                <a class="songs-trigger" id="songsLink">songs</a> i produced + <a href="https://open.spotify.com/playlist/3S0Y1mq6M2DNdG7VkoVdr0?si=pkSFiDRCQKSOCkISAK-8Mg&pi=DyXKaWejRrKF8" target="_blank" rel="noopener noreferrer">playlist</a> i curate
+                <div class="music-controls" id="musicControls">
+                    <div class="controls-inner">
+                        <button class="control-btn" id="prevBtn" aria-label="Previous track">
+                            <svg class="mc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M19 20L9 12l10-8v16zM5 19V5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                        <button class="control-btn" id="playPauseBtn" aria-label="Play/Pause">
+                            <svg class="mc-icon play-icon" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M8 5v14l11-7z"/>
+                            </svg>
+                            <svg class="mc-icon pause-icon" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
+                                <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+                            </svg>
+                        </button>
+                        <button class="control-btn" id="nextBtn" aria-label="Next track">
+                            <svg class="mc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M5 4l10 8-10 8V4zM19 5v14" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                        <span class="now-playing" id="nowPlaying"></span>
+                    </div>
+                </div>
+            </li>
         </ul>
 
         <h2>contact</h2>
