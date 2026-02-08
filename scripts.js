@@ -174,8 +174,8 @@ document.addEventListener('DOMContentLoaded', function() {
     var mcIsOpen = false;
     var mcTypewriterTimeout = null;
     var mcTracks = [
+        { title: '4u', src: 'assets/songs/atlanta v2.mp3' },
         { title: 'motorola', src: 'assets/songs/Motorola.wav' },
-        { title: 'atlanta', src: 'assets/songs/atlanta v2.mp3' },
         { title: 'good company', src: 'assets/songs/goodcompany.mp3' },
         { title: 'miu miu', src: 'assets/songs/muimui.mp3' }
     ];
