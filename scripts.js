@@ -188,6 +188,7 @@ document.addEventListener('DOMContentLoaded', function() {
         { title: 'hella options', src: 'assets/songs/hella options @lifecrzy @fggy.mp3' },
         { title: 'good company', src: 'assets/songs/goodcompany.mp3' },
         { title: 'nicaraguay', src: 'assets/songs/nicaraguay v2 @lifecrzy.mp3' },
+        { title: 'you send me', src: 'assets/songs/you send me v3.mp3' },
         { title: 'in order', src: 'assets/songs/in order.mp3' },
         { title: 'miu miu', src: 'assets/songs/muimui.mp3' },
         { title: 'money dance', src: 'assets/songs/01 Khalil.Lifestyle - Money Dance.mp3' }
