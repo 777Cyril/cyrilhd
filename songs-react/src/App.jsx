@@ -18,18 +18,18 @@ const songs = [
   },
   {
     id: 1,
+    title: 'Atlanta',
+    audio: assetUrl('assets/songs/atlanta v2.mp3')
+  },
+  {
+    id: 2,
     title: 'Motorola',
     audio: assetUrl('assets/songs/Motorola.wav')
   },
   {
-    id: 2,
+    id: 3,
     title: 'Good Company',
     audio: assetUrl('assets/songs/goodcompany.mp3')
-  },
-  {
-    id: 3,
-    title: 'Atlanta v2',
-    audio: assetUrl('assets/songs/atlanta v2.mp3')
   },
   {
     id: 4,
