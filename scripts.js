@@ -163,4 +163,118 @@ document.addEventListener('DOMContentLoaded', function() {
             audio.pause();
         }
     });
+
+    // ── Inline Music Controls ──
+    var mcIsPlaying = false;
+    var mcCurrentTrack = 0;
+    var mcIsOpen = false;
+    var mcTypewriterTimeout = null;
+    var mcTracks = [
+        'cyril - midnight thoughts',
+        'cyril - brooklyn summer',
+        'cyril - late night sessions',
+        'cyril - metro reflections'
+    ];
+
+    var songsLink = document.getElementById('songsLink');
+    var mcControls = document.getElementById('musicControls');
+    var playPauseBtn = document.getElementById('playPauseBtn');
+    var prevBtn = document.getElementById('prevBtn');
+    var nextBtn = document.getElementById('nextBtn');
+    var nowPlaying = document.getElementById('nowPlaying');
+
+    if (songsLink && mcControls && playPauseBtn && prevBtn && nextBtn && nowPlaying) {
+        var playIcon = playPauseBtn.querySelector('.play-icon');
+        var pauseIcon = playPauseBtn.querySelector('.pause-icon');
+
+        function mcTypewriter(text, startDelay) {
+            if (mcTypewriterTimeout) {
+                clearTimeout(mcTypewriterTimeout);
+            }
+            nowPlaying.textContent = '';
+            nowPlaying.classList.add('typing');
+            var charIndex = 0;
+
+            function typeNext() {
+                if (charIndex < text.length && mcIsOpen) {
+                    nowPlaying.textContent = text.substring(0, charIndex + 1);
+                    charIndex++;
+                    mcTypewriterTimeout = setTimeout(typeNext, 35);
+                } else {
+                    nowPlaying.classList.remove('typing');
+                }
+            }
+
+            mcTypewriterTimeout = setTimeout(typeNext, startDelay || 400);
+        }
+
+        function mcUpdateNowPlaying(useTypewriter) {
+            var text;
+            if (mcIsPlaying) {
+                text = mcTracks[mcCurrentTrack];
+            } else if (mcCurrentTrack > 0 || mcIsOpen) {
+                text = mcTracks[mcCurrentTrack] + ' (paused)';
+            } else {
+                text = 'no track loaded';
+            }
+
+            if (useTypewriter && mcIsOpen) {
+                mcTypewriter(text);
+            } else if (!mcIsOpen) {
+                nowPlaying.textContent = '';
+            } else {
+                nowPlaying.textContent = text;
+                nowPlaying.classList.remove('typing');
+            }
+        }
+
+        function mcClose() {
+            mcControls.classList.add('closing');
+            mcControls.classList.remove('active');
+            nowPlaying.textContent = '';
+            nowPlaying.classList.remove('typing');
+            if (mcTypewriterTimeout) {
+                clearTimeout(mcTypewriterTimeout);
+            }
+            setTimeout(function() {
+                mcControls.classList.remove('closing');
+            }, 500);
+            mcIsOpen = false;
+        }
+
+        songsLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (mcIsOpen) {
+                mcClose();
+            } else {
+                mcControls.classList.remove('closing');
+                mcControls.classList.add('active');
+                mcIsOpen = true;
+                mcUpdateNowPlaying(true);
+            }
+        });
+
+        playPauseBtn.addEventListener('click', function() {
+            mcIsPlaying = !mcIsPlaying;
+            playIcon.style.display = mcIsPlaying ? 'none' : 'block';
+            pauseIcon.style.display = mcIsPlaying ? 'block' : 'none';
+            mcUpdateNowPlaying(true);
+        });
+
+        prevBtn.addEventListener('click', function() {
+            mcCurrentTrack = (mcCurrentTrack - 1 + mcTracks.length) % mcTracks.length;
+            mcUpdateNowPlaying(true);
+        });
+
+        nextBtn.addEventListener('click', function() {
+            mcCurrentTrack = (mcCurrentTrack + 1) % mcTracks.length;
+            mcUpdateNowPlaying(true);
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.songs-item') && mcIsOpen) {
+                mcClose();
+            }
+        });
+    }
 });

@@ -259,3 +259,171 @@ footer {
         height: auto;
     }
 }
+
+/* ── Inline Music Controls ── */
+.songs-item {
+    position: relative;
+}
+
+.songs-trigger {
+    cursor: pointer;
+}
+
+.music-controls {
+    margin-top: 10px;
+    pointer-events: none;
+    overflow: visible;
+}
+
+.music-controls.active {
+    pointer-events: all;
+}
+
+.controls-inner {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding: 8px 0;
+}
+
+.control-btn {
+    background: rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    color: var(--text-light);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 14px;
+    opacity: 0;
+    transform: translateX(-80px);
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+html.dark-mode .control-btn,
+body.dark-mode .control-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: var(--text-dark);
+}
+
+.mc-icon {
+    width: 16px;
+    height: 16px;
+}
+
+/* Sequential elastic slide-in */
+.music-controls.active .control-btn {
+    animation: elasticSlideIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards,
+               mcMotionBlur 0.4s ease-out forwards;
+}
+
+.music-controls.active .control-btn:nth-child(1) {
+    animation-delay: 0s, 0s;
+}
+
+.music-controls.active .control-btn:nth-child(2) {
+    animation-delay: 0.08s, 0.08s;
+}
+
+.music-controls.active .control-btn:nth-child(3) {
+    animation-delay: 0.16s, 0.16s;
+}
+
+@keyframes elasticSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateX(-80px);
+    }
+    60% {
+        opacity: 1;
+        transform: translateX(12px);
+    }
+    80% {
+        transform: translateX(-4px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes mcMotionBlur {
+    0% { filter: blur(0px); }
+    30% { filter: blur(2px); }
+    100% { filter: blur(0px); }
+}
+
+/* Reverse slide out */
+.music-controls.closing .control-btn:nth-child(1) {
+    animation: elasticSlideOut 0.35s cubic-bezier(0.55, 0.085, 0.68, 0.53) 0.16s forwards;
+}
+
+.music-controls.closing .control-btn:nth-child(2) {
+    animation: elasticSlideOut 0.35s cubic-bezier(0.55, 0.085, 0.68, 0.53) 0.08s forwards;
+}
+
+.music-controls.closing .control-btn:nth-child(3) {
+    animation: elasticSlideOut 0.35s cubic-bezier(0.55, 0.085, 0.68, 0.53) 0s forwards;
+}
+
+@keyframes elasticSlideOut {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(-60px);
+    }
+}
+
+.control-btn:hover {
+    background: rgba(0, 0, 0, 0.1);
+    border-color: rgba(0, 0, 0, 0.18);
+    transform: translateX(0) scale(1.05);
+}
+
+html.dark-mode .control-btn:hover,
+body.dark-mode .control-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+.control-btn:active {
+    transform: translateX(0) scale(0.95);
+}
+
+/* Now playing text with typewriter effect */
+.now-playing {
+    font-size: 13px;
+    color: rgba(0, 0, 0, 0.5);
+    margin-left: 8px;
+    font-style: italic;
+    opacity: 0;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+html.dark-mode .now-playing,
+body.dark-mode .now-playing {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.music-controls.active .now-playing {
+    opacity: 1;
+}
+
+.now-playing.typing::after {
+    content: '|';
+    animation: mcBlink 0.7s step-end infinite;
+    margin-left: 2px;
+}
+
+@keyframes mcBlink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
