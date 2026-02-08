@@ -170,10 +170,9 @@ document.addEventListener('DOMContentLoaded', function() {
     var mcIsOpen = false;
     var mcTypewriterTimeout = null;
     var mcTracks = [
-        'cyril - midnight thoughts',
-        'cyril - brooklyn summer',
-        'cyril - late night sessions',
-        'cyril - metro reflections'
+        { title: 'motorola', src: 'assets/songs/Motorola.wav' },
+        { title: 'good company', src: 'assets/songs/goodcompany.mp3' },
+        { title: 'muimui', src: 'assets/songs/muimui.mp3' }
     ];
 
     var songsLink = document.getElementById('songsLink');
@@ -186,6 +185,20 @@ document.addEventListener('DOMContentLoaded', function() {
     if (songsLink && mcControls && playPauseBtn && prevBtn && nextBtn && nowPlaying) {
         var playIcon = playPauseBtn.querySelector('.play-icon');
         var pauseIcon = playPauseBtn.querySelector('.pause-icon');
+        var mcAudio = new Audio();
+        mcAudio.preload = 'none';
+
+        function mcLoadTrack() {
+            mcAudio.src = mcTracks[mcCurrentTrack].src;
+            mcAudio.load();
+        }
+
+        mcAudio.addEventListener('ended', function() {
+            mcCurrentTrack = (mcCurrentTrack + 1) % mcTracks.length;
+            mcLoadTrack();
+            mcAudio.play();
+            mcUpdateNowPlaying(true);
+        });
 
         function mcTypewriter(text, startDelay) {
             if (mcTypewriterTimeout) {
@@ -211,9 +224,9 @@ document.addEventListener('DOMContentLoaded', function() {
         function mcUpdateNowPlaying(useTypewriter) {
             var text;
             if (mcIsPlaying) {
-                text = mcTracks[mcCurrentTrack];
+                text = mcTracks[mcCurrentTrack].title;
             } else if (mcCurrentTrack > 0 || mcIsOpen) {
-                text = mcTracks[mcCurrentTrack] + ' (paused)';
+                text = mcTracks[mcCurrentTrack].title + ' (paused)';
             } else {
                 text = 'no track loaded';
             }
@@ -258,16 +271,32 @@ document.addEventListener('DOMContentLoaded', function() {
             mcIsPlaying = !mcIsPlaying;
             playIcon.style.display = mcIsPlaying ? 'none' : 'block';
             pauseIcon.style.display = mcIsPlaying ? 'block' : 'none';
+            if (mcIsPlaying) {
+                if (!mcAudio.src || mcAudio.src === location.href) {
+                    mcLoadTrack();
+                }
+                mcAudio.play();
+            } else {
+                mcAudio.pause();
+            }
             mcUpdateNowPlaying(true);
         });
 
         prevBtn.addEventListener('click', function() {
             mcCurrentTrack = (mcCurrentTrack - 1 + mcTracks.length) % mcTracks.length;
+            mcLoadTrack();
+            if (mcIsPlaying) {
+                mcAudio.play();
+            }
             mcUpdateNowPlaying(true);
         });
 
         nextBtn.addEventListener('click', function() {
             mcCurrentTrack = (mcCurrentTrack + 1) % mcTracks.length;
+            mcLoadTrack();
+            if (mcIsPlaying) {
+                mcAudio.play();
+            }
             mcUpdateNowPlaying(true);
         });
 
