@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import collageLayout from './collage-layout.json'
+import CONFIG from './config.js'
+import { computeSectionHeight } from './scroll-utils.js'
 
 const assetUrl = (path) => {
   // Keep absolute shared asset paths stable in production.
@@ -45,13 +47,6 @@ const songs = [
     audio: assetUrl('assets/songs/IMMATURE .wav')
   }
 ]
-
-const CONFIG = {
-  autoScrollSpeed: 150, // pixels per second
-  pixelsPerSecond: 150,
-  fadeOutSeconds: 1.2,
-  scrollResumeDelay: 150 // ms before resuming auto-scroll after manual scroll
-}
 
 function App() {
   const [started, setStarted] = useState(false)
@@ -427,11 +422,7 @@ function App() {
 
   // Compute section height from duration
   const getSectionHeight = (index) => {
-    const dur = durations.current[index]
-    if (dur) {
-      return Math.max(window.innerHeight * 2, dur * CONFIG.pixelsPerSecond)
-    }
-    return window.innerHeight * 2
+    return computeSectionHeight(durations.current[index], window.innerHeight * 2)
   }
 
   return (
