@@ -175,11 +175,11 @@ document.addEventListener('DOMContentLoaded', function() {
     var mcTypewriterTimeout = null;
     var mcTracks = [
         { title: 'get it together', src: 'assets/songs/Get it together v2 pitched up.mp3' },
-        { title: 'all the way', src: 'assets/songs/All the way (so crazy) v2 @lifecrzy.mp3' },
+        { title: '4u', src: 'assets/songs/atlanta v2.mp3' },
         { title: '50 Stater', src: 'assets/songs/50 Stater.mp3' },
         { title: 'caught up', src: 'assets/songs/SOF v2.mp3' },
         { title: 'doin me dirty', src: 'assets/songs/doin me dirty @lifecrzy.mp3' },
-        { title: '4u', src: 'assets/songs/atlanta v2.mp3' },
+        { title: 'all the way', src: 'assets/songs/All the way (so crazy) v2 @lifecrzy.mp3' },
         { title: 'roxanne', src: 'assets/songs/roxannne v2 @lifecrzy.mp3' },
         { title: 'mulino prime', src: 'assets/songs/MULINO PRIME @lifecrzy.mp3' },
         { title: 'touchdown', src: 'assets/songs/Khalil Lifestyle x Boofinesse - Touchdown Prod. LIFECRZY.mp3' },
