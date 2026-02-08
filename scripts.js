@@ -175,9 +175,17 @@ document.addEventListener('DOMContentLoaded', function() {
     var mcTypewriterTimeout = null;
     var mcTracks = [
         { title: '4u', src: 'assets/songs/atlanta v2.mp3' },
+        { title: 'touchdown', src: 'assets/songs/Khalil Lifestyle x Boofinesse - Touchdown Prod. LIFECRZY.mp3' },
+        { title: 'diamond', src: 'assets/songs/DIAMOND v2.mp3' },
+        { title: 'share', src: 'assets/songs/share.mp3' },
+        { title: 'in the garden', src: 'assets/songs/sex in the garden.mp3' },
+        { title: 'choosey lover', src: 'assets/songs/choosey lover (atlanta).mp3' },
         { title: 'motorola', src: 'assets/songs/Motorola.wav' },
+        { title: 'love me no more', src: 'assets/songs/love me nomore (mixed and mastered).m4a' },
         { title: 'good company', src: 'assets/songs/goodcompany.mp3' },
-        { title: 'miu miu', src: 'assets/songs/muimui.mp3' }
+        { title: 'in order', src: 'assets/songs/in order.mp3' },
+        { title: 'miu miu', src: 'assets/songs/muimui.mp3' },
+        { title: 'money dance', src: 'assets/songs/01 Khalil.Lifestyle - Money Dance.mp3' }
     ];
 
     var songsLink = document.getElementById('songsLink');
