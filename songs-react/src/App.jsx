@@ -392,8 +392,8 @@ function App() {
       {/* Splash screen */}
       <div className={`splash ${started ? 'hidden' : ''}`} onClick={handleStart}>
         <img
-          src="/assets/covers/opening scene.png"
-          alt="Opening scene"
+          src="/assets/covers/hideout.png"
+          alt="Hideout"
           className="splash-image"
         />
       </div>
