@@ -270,7 +270,8 @@ footer {
 }
 
 .music-controls {
-    margin-top: 16px;
+    margin-top: 8px;
+    margin-bottom: -12px;
     pointer-events: none;
     overflow: visible;
 }
