@@ -158,6 +158,9 @@ document.addEventListener('DOMContentLoaded', function() {
     avi.addEventListener('click', function() {
         triggerTapFlash();
         if (audio.paused) {
+            if (typeof mcStopAndClose === 'function') {
+                mcStopAndClose();
+            }
             audio.play();
         } else {
             audio.pause();
@@ -165,6 +168,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ── Inline Music Controls ──
+    var mcStopAndClose;
     var mcIsPlaying = false;
     var mcCurrentTrack = 0;
     var mcIsOpen = false;
@@ -253,6 +257,27 @@ document.addEventListener('DOMContentLoaded', function() {
             mcIsOpen = false;
         }
 
+        function mcResetPlayback() {
+            mcAudio.pause();
+            mcAudio.currentTime = 0;
+            mcIsPlaying = false;
+            playIcon.style.display = 'block';
+            pauseIcon.style.display = 'none';
+        }
+
+        // Exposed so avi click can stop music controls and close them
+        mcStopAndClose = function() {
+            mcResetPlayback();
+            if (mcIsOpen) {
+                mcClose();
+            }
+        };
+
+        function stopAviAudio() {
+            audio.pause();
+            audio.currentTime = 0;
+        }
+
         songsLink.addEventListener('click', function(e) {
             e.preventDefault();
             if (mcIsOpen) {
@@ -270,6 +295,7 @@ document.addEventListener('DOMContentLoaded', function() {
             playIcon.style.display = mcIsPlaying ? 'none' : 'block';
             pauseIcon.style.display = mcIsPlaying ? 'block' : 'none';
             if (mcIsPlaying) {
+                stopAviAudio();
                 if (!mcAudio.src || mcAudio.src === location.href) {
                     mcLoadTrack();
                 }
