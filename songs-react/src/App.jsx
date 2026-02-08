@@ -69,8 +69,8 @@ function App() {
   const foregroundRef = useRef(null)
   const audioRefs = useRef([])
   const sectionRefs = useRef([])
-  const collageRefs = useRef([])
-  const collageState = useRef([])
+
+  const collageLayouts = useRef([])
 
   const isAutoScrolling = useRef(false)
   const isPaused = useRef(false)
@@ -177,40 +177,33 @@ function App() {
     }
   }, [])
 
-  const getRandomCover = useCallback((exclude) => {
-    if (COVER_POOL.length === 0) return ''
-    if (COVER_POOL.length === 1) return COVER_POOL[0]
-    let next = exclude
-    while (next === exclude) {
-      next = COVER_POOL[Math.floor(Math.random() * COVER_POOL.length)]
-    }
-    return next
+  const seededRandom = (seed) => {
+    let t = seed + 0x6D2B79F5
+    t = Math.imul(t ^ (t >>> 15), t | 1)
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+
+  const buildCollageLayout = useCallback((songIndex) => {
+    const layout = COVER_POOL.map((src, idx) => {
+      const seed = (songIndex + 1) * 1000 + idx * 97
+      const r1 = seededRandom(seed)
+      const r2 = seededRandom(seed + 1)
+      const r3 = seededRandom(seed + 2)
+      const r4 = seededRandom(seed + 3)
+      const r5 = seededRandom(seed + 4)
+
+      // spread across the canvas, slight rotation
+      const x = Math.round((r1 * 140) - 70) // -70% to 70%
+      const y = Math.round((r2 * 120) - 60) // -60% to 60%
+      const rot = Math.round((r3 * 16) - 8) // -8deg to 8deg
+      const scale = 0.7 + r4 * 0.5 // 0.7 to 1.2
+      const reveal = Math.min(0.85, Math.max(0.05, r5)) // 0.05 to 0.85
+
+      return { src, x, y, rot, scale, reveal, z: idx + 1 }
+    })
+    collageLayouts.current[songIndex] = layout
   }, [])
-
-  const ensureCollageState = useCallback((index, currentTime = 0) => {
-    if (!collageState.current[index]) {
-      const initial = getRandomCover('')
-      collageState.current[index] = {
-        current: initial,
-        nextSwap: currentTime + (4 + Math.random() * 6) // 4–10s
-      }
-      const img = collageRefs.current[index]
-      if (img) img.src = initial
-    }
-  }, [getRandomCover])
-
-  const updateCollage = useCallback((index, currentTime) => {
-    ensureCollageState(index, currentTime)
-    const state = collageState.current[index]
-    if (!state) return
-    if (currentTime >= state.nextSwap) {
-      const next = getRandomCover(state.current)
-      state.current = next
-      state.nextSwap = currentTime + (4 + Math.random() * 6)
-      const img = collageRefs.current[index]
-      if (img) img.src = next
-    }
-  }, [ensureCollageState, getRandomCover])
 
   // Handle scroll — find current section, sync audio
   const handleScroll = useCallback(() => {
@@ -268,12 +261,11 @@ function App() {
       const scrollInSection = scrollTop - sectionStart
       const progress = Math.max(0, Math.min(1, scrollInSection / sectionHeight))
 
-      const currentTime = progress * currentDur
-      updateCollage(section, currentTime)
+      sectionEl.style.setProperty('--section-progress', String(progress))
 
       // DJ scrub: only update currentTime during manual scroll
       if (isManualScrolling.current) {
-        const targetTime = currentTime
+        const targetTime = progress * currentDur
         if (Number.isFinite(targetTime) && targetTime >= 0 && targetTime <= currentDur) {
           // Throttle: only update if delta > 50ms to avoid thrashing
           if (Math.abs(currentAudio.currentTime - targetTime) > 0.05) {
@@ -295,7 +287,7 @@ function App() {
 
       applyFadeOut(currentAudio, currentDur)
     }
-  }, [applyFadeOut, updateCollage])
+  }, [applyFadeOut])
 
   // Start experience on splash click
   const handleStart = useCallback(() => {
@@ -400,9 +392,7 @@ function App() {
         setTimeout(populate777Tags, 100)
       })
     }
-
-    ensureCollageState(index, 0)
-  }, [populate777Tags, ensureCollageState])
+  }, [populate777Tags])
 
   // Compute section height from duration
   const getSectionHeight = (index) => {
@@ -455,12 +445,27 @@ function App() {
               style={{ minHeight: getSectionHeight(index) }}
             >
               <div className="collage">
-                <img
-                  ref={el => collageRefs.current[index] = el}
-                  src=""
-                  alt={song.title}
-                  className="cover-art main"
-                />
+                {(() => {
+                  if (!collageLayouts.current[index]) {
+                    buildCollageLayout(index)
+                  }
+                  return (collageLayouts.current[index] || []).map((item, itemIndex) => (
+                    <img
+                      key={`${song.id}-${itemIndex}`}
+                      src={item.src}
+                      alt={song.title}
+                      className="cover-art collage-item"
+                      style={{
+                        '--x': `${item.x}%`,
+                        '--y': `${item.y}%`,
+                        '--r': `${item.rot}deg`,
+                        '--s': item.scale,
+                        '--reveal': item.reveal,
+                        '--z': item.z
+                      }}
+                    />
+                  ))
+                })()}
               </div>
             </section>
           ))}

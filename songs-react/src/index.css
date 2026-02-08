@@ -127,29 +127,34 @@ html, body, #root {
   position: relative;
   width: 90vw;
   max-width: 1200px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  height: 80vh;
+  display: block;
   padding: 40px;
 }
 
 .cover-art {
-  width: 100%;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(520px, 70vw);
   height: auto;
   object-fit: contain;
   border-radius: 0;
   box-shadow: none;
   transition: none;
-  mix-blend-mode: multiply;
-  opacity: 0.95;
-  filter: contrast(1.05) saturate(0.95);
-  -webkit-mask-image: radial-gradient(closest-side at 50% 50%, #000 72%, transparent 100%);
-  mask-image: radial-gradient(closest-side at 50% 50%, #000 72%, transparent 100%);
+  mix-blend-mode: normal;
+  opacity: 1;
+  filter: none;
 }
 
-.cover-art.main {
-  max-width: 600px;
-  justify-self: center;
+.cover-art.collage-item {
+  transform:
+    translate(-50%, -50%)
+    translate(var(--x), var(--y))
+    rotate(var(--r))
+    scale(var(--s));
+  z-index: var(--z);
+  opacity: clamp(0, calc((var(--section-progress, 0) - var(--reveal, 0)) * 9999), 1);
 }
 
 
@@ -161,10 +166,11 @@ html, body, #root {
 
   .collage {
     width: 90vw;
+    height: 70vh;
   }
 
-  .cover-art.main {
-    max-width: 90vw;
+  .cover-art {
+    width: min(460px, 85vw);
   }
 
   .backdrop-pane {
