@@ -203,6 +203,17 @@ document.addEventListener('DOMContentLoaded', function() {
         { title: 'money dance', src: 'assets/songs/01 Khalil.Lifestyle - Money Dance.mp3' }
     ];
 
+    // Fisher-Yates shuffle
+    function mcShuffle() {
+        for (var i = mcTracks.length - 1; i > 0; i--) {
+            var j = Math.floor(Math.random() * (i + 1));
+            var temp = mcTracks[i];
+            mcTracks[i] = mcTracks[j];
+            mcTracks[j] = temp;
+        }
+    }
+    mcShuffle();
+
     var songsLink = document.getElementById('songsLink');
     var mcControls = document.getElementById('musicControls');
     var playPauseBtn = document.getElementById('playPauseBtn');
@@ -222,7 +233,18 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         mcAudio.addEventListener('ended', function() {
-            mcCurrentTrack = (mcCurrentTrack + 1) % mcTracks.length;
+            mcCurrentTrack = mcCurrentTrack + 1;
+            if (mcCurrentTrack >= mcTracks.length) {
+                var lastTrack = mcTracks[mcTracks.length - 1];
+                mcShuffle();
+                // Avoid repeating the same song across shuffle boundary
+                if (mcTracks[0] === lastTrack && mcTracks.length > 1) {
+                    var swap = 1 + Math.floor(Math.random() * (mcTracks.length - 1));
+                    mcTracks[0] = mcTracks[swap];
+                    mcTracks[swap] = lastTrack;
+                }
+                mcCurrentTrack = 0;
+            }
             mcLoadTrack();
             mcAudio.play();
             mcUpdateNowPlaying(true);
