@@ -179,6 +179,7 @@ document.addEventListener('DOMContentLoaded', function() {
         { title: 'caught up', src: 'assets/songs/SOF v2.mp3' },
         { title: 'doin me dirty', src: 'assets/songs/doin me dirty @lifecrzy.mp3' },
         { title: '4u', src: 'assets/songs/atlanta v2.mp3' },
+        { title: 'mulino prime', src: 'assets/songs/MULINO PRIME @lifecrzy.mp3' },
         { title: 'touchdown', src: 'assets/songs/Khalil Lifestyle x Boofinesse - Touchdown Prod. LIFECRZY.mp3' },
         { title: 'diamond', src: 'assets/songs/DIAMOND v2.mp3' },
         { title: 'share', src: 'assets/songs/share.mp3' },
