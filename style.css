@@ -270,7 +270,7 @@ footer {
 }
 
 .music-controls {
-    margin-top: 10px;
+    margin-top: 16px;
     pointer-events: none;
     overflow: visible;
 }
@@ -281,38 +281,36 @@ footer {
 
 .controls-inner {
     display: flex;
-    gap: 12px;
+    gap: 20px;
     align-items: center;
-    padding: 8px 0;
+    padding: 12px 0;
 }
 
 .control-btn {
-    background: rgba(0, 0, 0, 0.06);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    color: var(--text-light);
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
+    background: none;
+    border: none;
+    color: rgba(0, 0, 0, 0.4);
+    width: 24px;
+    height: 24px;
+    padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    font-size: 14px;
+    transition: all 0.3s ease;
+    filter: drop-shadow(0 0 0 transparent);
     opacity: 0;
     transform: translateX(-80px);
-    transition: background 0.2s ease, border-color 0.2s ease;
 }
 
 html.dark-mode .control-btn,
 body.dark-mode .control-btn {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.15);
-    color: var(--text-dark);
+    color: rgba(255, 255, 255, 0.5);
 }
 
 .mc-icon {
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
 }
 
 /* Sequential elastic slide-in */
@@ -352,9 +350,9 @@ body.dark-mode .control-btn {
 }
 
 @keyframes mcMotionBlur {
-    0% { filter: blur(0px); }
-    30% { filter: blur(2px); }
-    100% { filter: blur(0px); }
+    0% { filter: blur(0px) drop-shadow(0 0 0 transparent); }
+    30% { filter: blur(2px) drop-shadow(0 0 0 transparent); }
+    100% { filter: blur(0px) drop-shadow(0 0 0 transparent); }
 }
 
 /* Reverse slide out */
@@ -381,16 +379,16 @@ body.dark-mode .control-btn {
     }
 }
 
+/* Glow aura hover */
 .control-btn:hover {
-    background: rgba(0, 0, 0, 0.1);
-    border-color: rgba(0, 0, 0, 0.18);
-    transform: translateX(0) scale(1.05);
+    color: rgba(0, 0, 0, 0.9);
+    filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.3));
 }
 
 html.dark-mode .control-btn:hover,
 body.dark-mode .control-btn:hover {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 255, 255, 0.25);
+    color: rgba(255, 255, 255, 1);
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.5));
 }
 
 .control-btn:active {
@@ -401,7 +399,7 @@ body.dark-mode .control-btn:hover {
 .now-playing {
     font-size: 13px;
     color: rgba(0, 0, 0, 0.5);
-    margin-left: 8px;
+    margin-left: 12px;
     font-style: italic;
     opacity: 0;
     white-space: nowrap;
