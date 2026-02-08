@@ -1,41 +1,43 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import collageLayout from './collage-layout.json'
 
+const assetUrl = (path) => `${import.meta.env.BASE_URL}${path.replace(/^\/+/, '')}`
+
 const songs = [
   {
     id: 0,
     title: 'Muimui',
-    audio: '/assets/songs/muimui.mp3'
+    audio: assetUrl('assets/songs/muimui.mp3')
   },
   {
     id: 1,
     title: 'Motorola',
-    audio: '/assets/songs/Motorola.wav'
+    audio: assetUrl('assets/songs/Motorola.wav')
   },
   {
     id: 2,
     title: 'Good Company',
-    audio: '/assets/songs/goodcompany.mp3'
+    audio: assetUrl('assets/songs/goodcompany.mp3')
   },
   {
     id: 3,
     title: 'Atlanta v2',
-    audio: '/assets/songs/atlanta v2.mp3'
+    audio: assetUrl('assets/songs/atlanta v2.mp3')
   },
   {
     id: 4,
     title: 'Melotron RSQ8 v1',
-    audio: '/assets/songs/Melotron RSQ8 v1.mp3'
+    audio: assetUrl('assets/songs/Melotron RSQ8 v1.mp3')
   },
   {
     id: 5,
     title: 'Rubies',
-    audio: '/assets/songs/Rubies.mp3'
+    audio: assetUrl('assets/songs/Rubies.mp3')
   },
   {
     id: 6,
     title: 'IMMATURE',
-    audio: '/assets/songs/IMMATURE .wav'
+    audio: assetUrl('assets/songs/IMMATURE .wav')
   }
 ]
 
@@ -49,7 +51,6 @@ const CONFIG = {
 function App() {
   const [started, setStarted] = useState(false)
   const [layersFlipped, setLayersFlipped] = useState(false)
-  const [allLoaded, setAllLoaded] = useState(false)
 
   // Refs for performance-critical values (avoid state re-renders on scroll)
   const containerRef = useRef(null)
@@ -70,6 +71,9 @@ function App() {
   const scrollTimeout = useRef(null)
   const durations = useRef({})
   const loadedCount = useRef(0)
+  const audioHandled = useRef({})
+
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
 
   // Unlock audio for iOS/Safari
   const unlockAudio = useCallback((audio) => {
@@ -90,12 +94,12 @@ function App() {
 
   // Populate 777 tags in the backdrop pane
   const populate777Tags = useCallback(() => {
-    const fg = foregroundRef.current
+    const container = containerRef.current
     const bg = backgroundRef.current
     const pane = backdropRef.current
-    if (!fg || !bg || !pane) return
+    if (!container || !bg || !pane) return
 
-    const totalHeight = fg.scrollHeight
+    const totalHeight = Math.max(container.scrollHeight, container.clientHeight)
     if (totalHeight <= 0) return
 
     bg.style.height = totalHeight + 'px'
@@ -114,6 +118,35 @@ function App() {
       pane.appendChild(tag)
     }
   }, [])
+
+  const markAudioHandled = useCallback((index) => {
+    if (audioHandled.current[index]) return false
+    audioHandled.current[index] = true
+    loadedCount.current++
+    return true
+  }, [])
+
+  const playSafely = useCallback((audio, label) => {
+    if (!audio) return
+    audio.play().catch((err) => {
+      console.error(`Play error (${label}):`, err)
+    })
+  }, [])
+
+  const playExclusive = useCallback((index, startAt = 0, label = 'exclusive-play') => {
+    audioRefs.current.forEach((audio, i) => {
+      if (!audio) return
+      if (i !== index) {
+        audio.pause()
+        audio.currentTime = 0
+        return
+      }
+      audio.volume = 1
+      audio.muted = false
+      audio.currentTime = startAt
+      playSafely(audio, label)
+    })
+  }, [playSafely])
 
   // Auto-scroll using RAF with delta-time
   const autoScroll = useCallback(() => {
@@ -143,7 +176,7 @@ function App() {
     // Ensure audio is playing when scroll ends
     const audio = audioRefs.current[currentSongIndex.current]
     if (audio && !isPaused.current && audio.paused) {
-      audio.play().catch(() => {})
+      playExclusive(currentSongIndex.current, audio.currentTime, 'resume-from-scroll')
     }
 
     // Restart auto-scroll
@@ -151,7 +184,7 @@ function App() {
       lastAutoScrollTime.current = null
       rafId.current = requestAnimationFrame(autoScroll)
     }
-  }, [autoScroll])
+  }, [autoScroll, playExclusive])
 
   // Fade out near end of track
   const applyFadeOut = useCallback((audio, duration) => {
@@ -173,13 +206,14 @@ function App() {
 
     const merged = base.map(item => ({
       ...item,
+      src: assetUrl(item.src),
       ...(overrideMap.get(item.src) || {})
     }))
 
     // Allow per-song additions not in base
     overrides.forEach(item => {
       if (!merged.find(entry => entry.src === item.src)) {
-        merged.push(item)
+        merged.push({ ...item, src: assetUrl(item.src) })
       }
     })
 
@@ -226,9 +260,7 @@ function App() {
       const newAudio = audioRefs.current[section]
       const dur = durations.current[section]
       if (newAudio && dur) {
-        newAudio.volume = 1
-        newAudio.currentTime = 0
-        newAudio.play().catch(() => {})
+        playExclusive(section, 0, 'section-switch')
       }
     }
 
@@ -260,37 +292,42 @@ function App() {
       if (!isManualScrolling.current) {
         const nearEnd = currentAudio.currentTime >= Math.max(0, currentDur - 0.05)
         if (currentAudio.paused && !isPaused.current && !nearEnd) {
-          currentAudio.play().catch(() => {})
+          playExclusive(section, currentAudio.currentTime, 'ensure-playing')
         }
       }
 
       applyFadeOut(currentAudio, currentDur)
     }
-  }, [applyFadeOut])
+    populate777Tags()
+  }, [applyFadeOut, playExclusive, populate777Tags])
 
   // Start experience on splash click
   const handleStart = useCallback(() => {
     if (started) return
     setStarted(true)
 
-    // Unlock all audio for iOS
-    audioRefs.current.forEach((a, i) => {
-      if (i > 0) unlockAudio(a)
-    })
-
     // Play first song
     const first = audioRefs.current[0]
     if (first) {
-      first.currentTime = 0
-      first.play().catch(() => {})
+      playExclusive(0, 0, 'start-first-song')
+    }
+
+    // iOS unlock for remaining tracks after first track has started.
+    if (isIOS) {
+      setTimeout(() => {
+        audioRefs.current.forEach((a, i) => {
+          if (i > 0) unlockAudio(a)
+        })
+      }, 250)
     }
 
     // Start auto-scroll after brief delay
     setTimeout(() => {
       isAutoScrolling.current = true
       rafId.current = requestAnimationFrame(autoScroll)
+      populate777Tags()
     }, 500)
-  }, [started, autoScroll, unlockAudio])
+  }, [started, autoScroll, unlockAudio, playExclusive, populate777Tags, isIOS])
 
   // Toggle layers on click (after started)
   const handleExperienceClick = useCallback(() => {
@@ -328,8 +365,7 @@ function App() {
           if (audio) audio.pause()
         } else {
           if (audio) {
-            audio.volume = 1
-            audio.play().catch(() => {})
+            playExclusive(currentSongIndex.current, audio.currentTime, 'spacebar-resume')
           }
           if (isAutoScrolling.current) {
             lastAutoScrollTime.current = null
@@ -340,15 +376,14 @@ function App() {
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [started, autoScroll])
+  }, [started, autoScroll, playExclusive])
 
   // Resize handler — recompute 777 tags
   useEffect(() => {
-    if (!allLoaded) return
     const onResize = () => populate777Tags()
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
-  }, [allLoaded, populate777Tags])
+  }, [populate777Tags])
 
   // Cleanup RAF on unmount
   useEffect(() => {
@@ -358,33 +393,32 @@ function App() {
     }
   }, [])
 
-  // Initialize collage layouts once
+  // Keep backdrop sizing in sync even before metadata is loaded.
   useEffect(() => {
-    songs.forEach((_, index) => {
-      if (!collageLayouts.current[index]) {
-        buildCollageLayout(index)
-      }
-    })
-  }, [buildCollageLayout])
+    populate777Tags()
+  }, [populate777Tags])
 
   // Audio metadata loaded handler
   const handleMetadata = useCallback((index, e) => {
     durations.current[index] = e.target.duration
-    loadedCount.current++
+    markAudioHandled(index)
 
     if (!collageLayouts.current[index]) {
       buildCollageLayout(index)
     }
 
-    if (loadedCount.current >= songs.length) {
-      setAllLoaded(true)
-      // Let section heights settle, then populate
-      requestAnimationFrame(() => {
-        populate777Tags()
-        setTimeout(populate777Tags, 100)
-      })
-    }
-  }, [populate777Tags, buildCollageLayout])
+    // Let section heights settle, then repopulate
+    requestAnimationFrame(() => {
+      populate777Tags()
+      setTimeout(populate777Tags, 100)
+    })
+  }, [populate777Tags, buildCollageLayout, markAudioHandled])
+
+  const handleAudioError = useCallback((index, songSrc) => {
+    markAudioHandled(index)
+    console.error('Audio failed to load:', songSrc)
+    populate777Tags()
+  }, [markAudioHandled, populate777Tags])
 
   // Compute section height from duration
   const getSectionHeight = (index) => {
@@ -400,7 +434,7 @@ function App() {
       {/* Splash screen */}
       <div className={`splash ${started ? 'hidden' : ''}`} onClick={handleStart}>
         <img
-          src="/assets/covers/hideout.png"
+          src={assetUrl('assets/covers/hideout.png')}
           alt="Hideout"
           className="splash-image"
         />
@@ -437,15 +471,18 @@ function App() {
               style={{ minHeight: getSectionHeight(index) }}
             >
               <div className="collage">
-                {(collageLayouts.current[index] || []).map((item, itemIndex) => (
+                {(() => {
+                  // Recompute from JSON on render so x/y edits hot-reload reliably in dev.
+                  buildCollageLayout(index)
+                  return (collageLayouts.current[index] || []).map((item, itemIndex) => (
                     <img
                       key={`${song.id}-${itemIndex}`}
                       src={item.src}
                       alt=""
                       aria-hidden="true"
                       className="cover-art collage-item"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none'
+                      onError={() => {
+                        console.error('Cover failed to load:', item.src)
                       }}
                       style={{
                         '--x': `${item.x}%`,
@@ -455,7 +492,8 @@ function App() {
                         '--z': item.z
                       }}
                     />
-                ))}
+                  ))
+                })()}
               </div>
             </section>
           ))}
@@ -470,6 +508,7 @@ function App() {
           src={song.audio}
           preload="auto"
           onLoadedMetadata={(e) => handleMetadata(index, e)}
+          onError={() => handleAudioError(index, song.audio)}
           onTimeUpdate={() => {
             const dur = durations.current[index]
             if (dur) applyFadeOut(audioRefs.current[index], dur)
