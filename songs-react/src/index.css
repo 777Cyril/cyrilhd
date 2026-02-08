@@ -154,7 +154,7 @@ html, body, #root {
     rotate(var(--r))
     scale(var(--s));
   z-index: var(--z);
-  opacity: clamp(0, calc((var(--section-progress, 0) - var(--reveal, 0)) * 9999), 1);
+  opacity: clamp(0, calc((var(--section-time, 0) - var(--reveal-seconds, 0)) * 9999), 1);
 }
 
 

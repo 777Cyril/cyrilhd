@@ -184,23 +184,25 @@ function App() {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296
   }
 
-  const buildCollageLayout = useCallback((songIndex) => {
+  const buildCollageLayout = useCallback((songIndex, duration) => {
+    const count = COVER_POOL.length
+    const spacing = duration && count > 1 ? Math.min(5, duration / (count - 1)) : 5
+
     const layout = COVER_POOL.map((src, idx) => {
       const seed = (songIndex + 1) * 1000 + idx * 97
       const r1 = seededRandom(seed)
       const r2 = seededRandom(seed + 1)
       const r3 = seededRandom(seed + 2)
       const r4 = seededRandom(seed + 3)
-      const r5 = seededRandom(seed + 4)
 
       // spread across the canvas, slight rotation
       const x = Math.round((r1 * 140) - 70) // -70% to 70%
       const y = Math.round((r2 * 120) - 60) // -60% to 60%
       const rot = Math.round((r3 * 16) - 8) // -8deg to 8deg
       const scale = 0.7 + r4 * 0.5 // 0.7 to 1.2
-      const reveal = Math.min(0.85, Math.max(0.05, r5)) // 0.05 to 0.85
+      const revealSeconds = idx * spacing
 
-      return { src, x, y, rot, scale, reveal, z: idx + 1 }
+      return { src, x, y, rot, scale, revealSeconds, z: idx + 1 }
     })
     collageLayouts.current[songIndex] = layout
   }, [])
@@ -261,11 +263,12 @@ function App() {
       const scrollInSection = scrollTop - sectionStart
       const progress = Math.max(0, Math.min(1, scrollInSection / sectionHeight))
 
-      sectionEl.style.setProperty('--section-progress', String(progress))
+      const currentTime = progress * currentDur
+      sectionEl.style.setProperty('--section-time', String(currentTime))
 
       // DJ scrub: only update currentTime during manual scroll
       if (isManualScrolling.current) {
-        const targetTime = progress * currentDur
+        const targetTime = currentTime
         if (Number.isFinite(targetTime) && targetTime >= 0 && targetTime <= currentDur) {
           // Throttle: only update if delta > 50ms to avoid thrashing
           if (Math.abs(currentAudio.currentTime - targetTime) > 0.05) {
@@ -384,6 +387,10 @@ function App() {
     durations.current[index] = e.target.duration
     loadedCount.current++
 
+    if (!collageLayouts.current[index]) {
+      buildCollageLayout(index, e.target.duration)
+    }
+
     if (loadedCount.current >= songs.length) {
       setAllLoaded(true)
       // Let section heights settle, then populate
@@ -392,7 +399,7 @@ function App() {
         setTimeout(populate777Tags, 100)
       })
     }
-  }, [populate777Tags])
+  }, [populate777Tags, buildCollageLayout])
 
   // Compute section height from duration
   const getSectionHeight = (index) => {
@@ -445,11 +452,7 @@ function App() {
               style={{ minHeight: getSectionHeight(index) }}
             >
               <div className="collage">
-                {(() => {
-                  if (!collageLayouts.current[index]) {
-                    buildCollageLayout(index)
-                  }
-                  return (collageLayouts.current[index] || []).map((item, itemIndex) => (
+                {(collageLayouts.current[index] || []).map((item, itemIndex) => (
                     <img
                       key={`${song.id}-${itemIndex}`}
                       src={item.src}
@@ -460,12 +463,11 @@ function App() {
                         '--y': `${item.y}%`,
                         '--r': `${item.rot}deg`,
                         '--s': item.scale,
-                        '--reveal': item.reveal,
+                        '--reveal-seconds': item.revealSeconds,
                         '--z': item.z
                       }}
                     />
-                  ))
-                })()}
+                ))}
               </div>
             </section>
           ))}
