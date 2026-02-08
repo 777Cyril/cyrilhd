@@ -263,12 +263,9 @@ function App() {
       const scrollInSection = scrollTop - sectionStart
       const progress = Math.max(0, Math.min(1, scrollInSection / sectionHeight))
 
-      const currentTime = progress * currentDur
-      sectionEl.style.setProperty('--section-time', String(currentTime))
-
       // DJ scrub: only update currentTime during manual scroll
       if (isManualScrolling.current) {
-        const targetTime = currentTime
+        const targetTime = progress * currentDur
         if (Number.isFinite(targetTime) && targetTime >= 0 && targetTime <= currentDur) {
           // Throttle: only update if delta > 50ms to avoid thrashing
           if (Math.abs(currentAudio.currentTime - targetTime) > 0.05) {
