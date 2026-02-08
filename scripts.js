@@ -181,6 +181,7 @@ document.addEventListener('DOMContentLoaded', function() {
         { title: 'in the garden', src: 'assets/songs/sex in the garden.mp3' },
         { title: 'choosey lover', src: 'assets/songs/choosey lover (atlanta).mp3' },
         { title: 'familiar', src: 'assets/songs/familiar @lifecrzy.mp3' },
+        { title: 'teezn u', src: 'assets/songs/Teezn u @jlitt @lifecrzy.mp3' },
         { title: 'motorola', src: 'assets/songs/Motorola.wav' },
         { title: 'love me no more', src: 'assets/songs/love me nomore (mixed and mastered).m4a' },
         { title: 'hella options', src: 'assets/songs/hella options @lifecrzy @fggy.mp3' },
