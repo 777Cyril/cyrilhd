@@ -172,7 +172,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var mcTracks = [
         { title: 'motorola', src: 'assets/songs/Motorola.wav' },
         { title: 'good company', src: 'assets/songs/goodcompany.mp3' },
-        { title: 'muimui', src: 'assets/songs/muimui.mp3' }
+        { title: 'miu miu', src: 'assets/songs/muimui.mp3' }
     ];
 
     var songsLink = document.getElementById('songsLink');
@@ -225,10 +225,8 @@ document.addEventListener('DOMContentLoaded', function() {
             var text;
             if (mcIsPlaying) {
                 text = mcTracks[mcCurrentTrack].title;
-            } else if (mcCurrentTrack > 0 || mcIsOpen) {
-                text = mcTracks[mcCurrentTrack].title + ' (paused)';
             } else {
-                text = 'no track loaded';
+                text = '';
             }
 
             if (useTypewriter && mcIsOpen) {
