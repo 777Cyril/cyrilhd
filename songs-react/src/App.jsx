@@ -1,7 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import collageLayout from './collage-layout.json'
 
-const assetUrl = (path) => `${import.meta.env.BASE_URL}${path.replace(/^\/+/, '')}`
+const assetUrl = (path) => {
+  // Keep absolute shared asset paths stable in production.
+  if (path.startsWith('/assets/')) return path
+  return `${import.meta.env.BASE_URL}${path.replace(/^\/+/, '')}`
+}
 
 const songs = [
   {
