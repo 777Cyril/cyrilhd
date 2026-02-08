@@ -175,6 +175,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var mcTypewriterTimeout = null;
     var mcTracks = [
         { title: 'motorola', src: 'assets/songs/Motorola.wav' },
+        { title: 'atlanta', src: 'assets/songs/atlanta v2.mp3' },
         { title: 'good company', src: 'assets/songs/goodcompany.mp3' },
         { title: 'miu miu', src: 'assets/songs/muimui.mp3' }
     ];
