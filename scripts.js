@@ -182,6 +182,7 @@ document.addEventListener('DOMContentLoaded', function() {
         { title: 'share', src: 'assets/songs/share.mp3' },
         { title: 'in the garden', src: 'assets/songs/sex in the garden.mp3' },
         { title: 'choosey lover', src: 'assets/songs/choosey lover (atlanta).mp3' },
+        { title: 'know you', src: 'assets/songs/cayman @lifecrzy.mp3' },
         { title: 'familiar', src: 'assets/songs/familiar @lifecrzy.mp3' },
         { title: 'teezn u', src: 'assets/songs/Teezn u @jlitt @lifecrzy.mp3' },
         { title: 'motorola', src: 'assets/songs/Motorola.wav' },
