@@ -6,8 +6,8 @@ const songs = [
     title: 'Muimui',
     audio: '/assets/songs/muimui.mp3',
     covers: [
-      '/assets/covers/hideout.jpg',
-      '/assets/covers/junya.jpg'
+      '/assets/covers/hideout.png',
+      '/assets/covers/junya.png'
     ]
   },
   {
@@ -34,7 +34,7 @@ const songs = [
     audio: '/assets/songs/atlanta v2.mp3',
     covers: [
       '/assets/covers/cyril w abla.jpg',
-      '/assets/covers/junya.jpg'
+      '/assets/covers/junya.png'
     ]
   },
   {
@@ -42,7 +42,7 @@ const songs = [
     title: 'Melotron RSQ8 v1',
     audio: '/assets/songs/Melotron RSQ8 v1.mp3',
     covers: [
-      '/assets/covers/junya.jpg',
+      '/assets/covers/junya.png',
       '/assets/covers/Play4 Keeps delux cover.jpeg'
     ]
   },
@@ -61,7 +61,7 @@ const songs = [
     audio: '/assets/songs/IMMATURE .wav',
     covers: [
       '/assets/covers/p4k pixelated.PNG',
-      '/assets/covers/junya.jpg'
+      '/assets/covers/junya.png'
     ]
   }
 ]

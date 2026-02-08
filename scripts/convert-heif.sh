@@ -21,6 +21,8 @@ if [[ $# -lt 1 || $# -gt 2 ]]; then
   exit 1
 fi
 
+SRGB_PROFILE="/System/Library/ColorSync/Profiles/sRGB Profile.icc"
+
 convert_one() {
   local input="$1"
   local output="${2:-}"
@@ -30,7 +32,11 @@ convert_one() {
     output="${base}.jpg"
   fi
 
-  sips -s format jpeg "$input" --out "$output" >/dev/null
+  if [[ -f "${SRGB_PROFILE}" ]]; then
+    sips -s format jpeg -s formatOptions 90 --matchTo "${SRGB_PROFILE}" "$input" --out "$output" >/dev/null
+  else
+    sips -s format jpeg -s formatOptions 90 "$input" --out "$output" >/dev/null
+  fi
   echo "Converted: $input -> $output"
 }
 
