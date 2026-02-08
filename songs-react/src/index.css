@@ -127,9 +127,7 @@ html, body, #root {
   position: relative;
   width: 90vw;
   max-width: 1200px;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 40px;
+  display: flex;
   justify-content: center;
   align-items: center;
   padding: 40px;
@@ -139,26 +137,21 @@ html, body, #root {
   width: 100%;
   height: auto;
   object-fit: contain;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  transition: transform 0.4s ease, box-shadow 0.4s ease;
-  mix-blend-mode: normal;
+  border-radius: 0;
+  box-shadow: none;
+  transition: none;
+  mix-blend-mode: multiply;
+  opacity: 0.95;
+  filter: contrast(1.05) saturate(0.95);
+  -webkit-mask-image: radial-gradient(closest-side at 50% 50%, #000 72%, transparent 100%);
+  mask-image: radial-gradient(closest-side at 50% 50%, #000 72%, transparent 100%);
 }
 
 .cover-art.main {
-  grid-column: span 2;
   max-width: 600px;
   justify-self: center;
 }
 
-.cover-art.secondary {
-  max-width: 400px;
-}
-
-.cover-art:hover {
-  transform: scale(1.05);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
-}
 
 @media (max-width: 768px) {
   .splash-image {
@@ -168,11 +161,10 @@ html, body, #root {
 
   .collage {
     width: 90vw;
-    grid-template-columns: 1fr;
   }
 
   .cover-art.main {
-    grid-column: span 1;
+    max-width: 90vw;
   }
 
   .backdrop-pane {

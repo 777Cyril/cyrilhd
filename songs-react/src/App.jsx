@@ -1,68 +1,52 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 
+const COVER_POOL = [
+  '/assets/covers/hideout.png',
+  '/assets/covers/junya.png',
+  '/assets/covers/nebula.png',
+  '/assets/covers/Motorola Cover Art Final.JPEG',
+  '/assets/covers/cyril w abla.jpg',
+  '/assets/covers/yillz alt 1.PNG',
+  '/assets/covers/Play4 Keeps delux cover.jpeg',
+  '/assets/covers/p4k pixelated.PNG',
+  '/assets/covers/opening scene.png'
+]
+
 const songs = [
   {
     id: 0,
     title: 'Muimui',
-    audio: '/assets/songs/muimui.mp3',
-    covers: [
-      '/assets/covers/hideout.png',
-      '/assets/covers/junya.png'
-    ]
+    audio: '/assets/songs/muimui.mp3'
   },
   {
     id: 1,
     title: 'Motorola',
-    audio: '/assets/songs/Motorola.wav',
-    covers: [
-      '/assets/covers/Motorola Cover Art Final.JPEG',
-      '/assets/covers/cyril w abla.jpg'
-    ]
+    audio: '/assets/songs/Motorola.wav'
   },
   {
     id: 2,
     title: 'Good Company',
-    audio: '/assets/songs/goodcompany.mp3',
-    covers: [
-      '/assets/covers/yillz alt 1.PNG',
-      '/assets/covers/Motorola Cover Art Final.JPEG'
-    ]
+    audio: '/assets/songs/goodcompany.mp3'
   },
   {
     id: 3,
     title: 'Atlanta v2',
-    audio: '/assets/songs/atlanta v2.mp3',
-    covers: [
-      '/assets/covers/cyril w abla.jpg',
-      '/assets/covers/junya.png'
-    ]
+    audio: '/assets/songs/atlanta v2.mp3'
   },
   {
     id: 4,
     title: 'Melotron RSQ8 v1',
-    audio: '/assets/songs/Melotron RSQ8 v1.mp3',
-    covers: [
-      '/assets/covers/junya.png',
-      '/assets/covers/Play4 Keeps delux cover.jpeg'
-    ]
+    audio: '/assets/songs/Melotron RSQ8 v1.mp3'
   },
   {
     id: 5,
     title: 'Rubies',
-    audio: '/assets/songs/Rubies.mp3',
-    covers: [
-      '/assets/covers/Play4 Keeps delux cover.jpeg',
-      '/assets/covers/cyril w abla.jpg'
-    ]
+    audio: '/assets/songs/Rubies.mp3'
   },
   {
     id: 6,
     title: 'IMMATURE',
-    audio: '/assets/songs/IMMATURE .wav',
-    covers: [
-      '/assets/covers/p4k pixelated.PNG',
-      '/assets/covers/junya.png'
-    ]
+    audio: '/assets/songs/IMMATURE .wav'
   }
 ]
 
@@ -85,6 +69,8 @@ function App() {
   const foregroundRef = useRef(null)
   const audioRefs = useRef([])
   const sectionRefs = useRef([])
+  const collageRefs = useRef([])
+  const collageState = useRef([])
 
   const isAutoScrolling = useRef(false)
   const isPaused = useRef(false)
@@ -191,6 +177,41 @@ function App() {
     }
   }, [])
 
+  const getRandomCover = useCallback((exclude) => {
+    if (COVER_POOL.length === 0) return ''
+    if (COVER_POOL.length === 1) return COVER_POOL[0]
+    let next = exclude
+    while (next === exclude) {
+      next = COVER_POOL[Math.floor(Math.random() * COVER_POOL.length)]
+    }
+    return next
+  }, [])
+
+  const ensureCollageState = useCallback((index, currentTime = 0) => {
+    if (!collageState.current[index]) {
+      const initial = getRandomCover('')
+      collageState.current[index] = {
+        current: initial,
+        nextSwap: currentTime + (4 + Math.random() * 6) // 4–10s
+      }
+      const img = collageRefs.current[index]
+      if (img) img.src = initial
+    }
+  }, [getRandomCover])
+
+  const updateCollage = useCallback((index, currentTime) => {
+    ensureCollageState(index, currentTime)
+    const state = collageState.current[index]
+    if (!state) return
+    if (currentTime >= state.nextSwap) {
+      const next = getRandomCover(state.current)
+      state.current = next
+      state.nextSwap = currentTime + (4 + Math.random() * 6)
+      const img = collageRefs.current[index]
+      if (img) img.src = next
+    }
+  }, [ensureCollageState, getRandomCover])
+
   // Handle scroll — find current section, sync audio
   const handleScroll = useCallback(() => {
     if (!containerRef.current) return
@@ -247,9 +268,12 @@ function App() {
       const scrollInSection = scrollTop - sectionStart
       const progress = Math.max(0, Math.min(1, scrollInSection / sectionHeight))
 
+      const currentTime = progress * currentDur
+      updateCollage(section, currentTime)
+
       // DJ scrub: only update currentTime during manual scroll
       if (isManualScrolling.current) {
-        const targetTime = progress * currentDur
+        const targetTime = currentTime
         if (Number.isFinite(targetTime) && targetTime >= 0 && targetTime <= currentDur) {
           // Throttle: only update if delta > 50ms to avoid thrashing
           if (Math.abs(currentAudio.currentTime - targetTime) > 0.05) {
@@ -271,7 +295,7 @@ function App() {
 
       applyFadeOut(currentAudio, currentDur)
     }
-  }, [applyFadeOut])
+  }, [applyFadeOut, updateCollage])
 
   // Start experience on splash click
   const handleStart = useCallback(() => {
@@ -376,7 +400,9 @@ function App() {
         setTimeout(populate777Tags, 100)
       })
     }
-  }, [populate777Tags])
+
+    ensureCollageState(index, 0)
+  }, [populate777Tags, ensureCollageState])
 
   // Compute section height from duration
   const getSectionHeight = (index) => {
@@ -429,10 +455,12 @@ function App() {
               style={{ minHeight: getSectionHeight(index) }}
             >
               <div className="collage">
-                <img src={song.covers[0]} alt={song.title} className="cover-art main" />
-                {song.covers[1] && (
-                  <img src={song.covers[1]} alt={song.title} className="cover-art secondary" />
-                )}
+                <img
+                  ref={el => collageRefs.current[index] = el}
+                  src=""
+                  alt={song.title}
+                  className="cover-art main"
+                />
               </div>
             </section>
           ))}
