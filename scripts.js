@@ -123,9 +123,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         var hour = new Date().getHours();
         var message;
-        if (hour >= 6 && hour < 12) {
+        if (hour >= 4 && hour < 12) {
             message = 'good morning';
-        } else if (hour >= 12 && hour < 17) {
+        } else if (hour >= 12 && hour < 19) {
             message = 'good afternoon';
         } else {
             message = 'good evening';
