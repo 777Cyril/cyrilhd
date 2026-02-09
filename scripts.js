@@ -25,12 +25,28 @@ setInterval(updateDarkMode, 60000);
 document.addEventListener('DOMContentLoaded', function() {
     const avi = document.querySelector('.avatar');
     const audio = document.getElementById('avi-audio');
+    const bannerSlot = document.getElementById('bannerSlot');
+    const hintsOverlay = document.getElementById('hintsOverlay');
     if (!avi || !audio) {
         return;
     }
 
     avi.style.cursor = 'pointer';
     let flashTimeoutId = null;
+    let bannerPulseTimeoutId = null;
+
+    function pulseBanner() {
+        if (!bannerSlot) return;
+        bannerSlot.classList.remove('pulsing');
+        void bannerSlot.offsetWidth;
+        bannerSlot.classList.add('pulsing');
+        if (bannerPulseTimeoutId) {
+            clearTimeout(bannerPulseTimeoutId);
+        }
+        bannerPulseTimeoutId = setTimeout(function() {
+            bannerSlot.classList.remove('pulsing');
+        }, 420);
+    }
 
     // ── Time-of-Day Greeting ──
     var greetingDismissed = false;
@@ -66,6 +82,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (charIndex < message.length && !greetingDismissed) {
                 greetingText.textContent = message.substring(0, charIndex + 1);
                 charIndex++;
+                pulseBanner();
                 setTimeout(typeGreeting, 35);
             } else {
                 greetingText.classList.remove('typing');
@@ -325,6 +342,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (charIndex < text.length && mcIsOpen) {
                     nowPlaying.textContent = text.substring(0, charIndex + 1);
                     charIndex++;
+                    pulseBanner();
                     mcTypewriterTimeout = setTimeout(typeNext, 35);
                 } else {
                     nowPlaying.classList.remove('typing');
@@ -399,6 +417,10 @@ document.addEventListener('DOMContentLoaded', function() {
             carouselTrack.style.setProperty('--carousel-duration', duration + 's');
 
             carouselTrack.classList.add('scrolling');
+            if (bannerSlot) {
+                bannerSlot.classList.add('carousel-live');
+            }
+            pulseBanner();
         }
 
         function carouselHide() {
@@ -406,6 +428,9 @@ document.addEventListener('DOMContentLoaded', function() {
             carouselTrack.classList.remove('scrolling');
             carouselTrack.textContent = '';
             carouselViewport.classList.remove('active');
+            if (bannerSlot) {
+                bannerSlot.classList.remove('carousel-live');
+            }
         }
 
         function mcClose() {
@@ -444,6 +469,18 @@ document.addEventListener('DOMContentLoaded', function() {
             audio.pause();
             audio.currentTime = 0;
         }
+
+        function triggerAvatarSongsReaction() {
+            avi.classList.remove('react-songs');
+            void avi.offsetWidth;
+            avi.classList.add('react-songs');
+            setTimeout(function() {
+                avi.classList.remove('react-songs');
+            }, 260);
+        }
+
+        songsLink.addEventListener('mouseenter', triggerAvatarSongsReaction);
+        songsLink.addEventListener('focus', triggerAvatarSongsReaction);
 
         songsLink.addEventListener('click', function(e) {
             e.preventDefault();
@@ -560,6 +597,34 @@ document.addEventListener('DOMContentLoaded', function() {
     })();
 
     // ── Hidden Keystroke Patterns (Easter Eggs) ──
+    document.addEventListener('keydown', function(e) {
+        var tag = e.target.tagName.toLowerCase();
+        if (tag === 'input' || tag === 'textarea' || tag === 'select' || e.target.isContentEditable) {
+            return;
+        }
+
+        if (e.key === '?') {
+            e.preventDefault();
+            if (hintsOverlay) {
+                var shouldOpen = !hintsOverlay.classList.contains('active');
+                hintsOverlay.classList.toggle('active', shouldOpen);
+                hintsOverlay.setAttribute('aria-hidden', shouldOpen ? 'false' : 'true');
+            }
+        } else if (e.key === 'Escape' && hintsOverlay && hintsOverlay.classList.contains('active')) {
+            hintsOverlay.classList.remove('active');
+            hintsOverlay.setAttribute('aria-hidden', 'true');
+        }
+    });
+
+    if (hintsOverlay) {
+        hintsOverlay.addEventListener('click', function(e) {
+            if (e.target === hintsOverlay) {
+                hintsOverlay.classList.remove('active');
+                hintsOverlay.setAttribute('aria-hidden', 'true');
+            }
+        });
+    }
+
     (function() {
         var keyBuffer = '';
         var cooldownActive = false;
