@@ -557,7 +557,6 @@ document.addEventListener('DOMContentLoaded', function() {
         var BUFFER_MAX = 10;
 
         var patterns = {
-            '777': trigger777,
             'brr': triggerBrr
         };
 
@@ -586,36 +585,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
-
-        function trigger777() {
-            // Page flash
-            var flash = document.createElement('div');
-            flash.className = 'page-flash';
-            document.body.appendChild(flash);
-            setTimeout(function() { flash.remove(); }, 500);
-
-            // Matrix falling numbers
-            for (var i = 0; i < 15; i++) {
-                (function(index) {
-                    setTimeout(function() {
-                        var col = document.createElement('div');
-                        col.className = 'matrix-column';
-                        var digits = '';
-                        var len = 5 + Math.floor(Math.random() * 10);
-                        for (var d = 0; d < len; d++) {
-                            digits += Math.floor(Math.random() * 10);
-                            if (d < len - 1) digits += '\n';
-                        }
-                        col.textContent = digits;
-                        col.style.left = (Math.random() * 100) + 'vw';
-                        col.style.animationDuration = (2 + Math.random() * 2) + 's';
-                        col.style.fontSize = (12 + Math.random() * 8) + 'px';
-                        document.body.appendChild(col);
-                        setTimeout(function() { col.remove(); }, 4500);
-                    }, index * 100);
-                })(i);
-            }
-        }
 
         function triggerBrr() {
             var avi = document.querySelector('.avatar');

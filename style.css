@@ -558,51 +558,6 @@ body.dark-mode .link-preview {
 }
 
 /* ── Easter Egg Effects ── */
-
-/* "777" - Falling matrix numbers */
-.matrix-column {
-    position: fixed;
-    top: -20px;
-    font-family: 'Delius', monospace;
-    font-size: 16px;
-    color: #00ff41;
-    opacity: 0;
-    z-index: 9999;
-    pointer-events: none;
-    animation: matrixFall linear forwards;
-    white-space: pre;
-}
-
-@keyframes matrixFall {
-    0% {
-        opacity: 0.8;
-        transform: translateY(0);
-    }
-    80% {
-        opacity: 0.3;
-    }
-    100% {
-        opacity: 0;
-        transform: translateY(100vh);
-    }
-}
-
-/* Page flash for 777 */
-.page-flash {
-    position: fixed;
-    inset: 0;
-    background: #00ff41;
-    opacity: 0;
-    z-index: 9998;
-    pointer-events: none;
-    animation: pageFlashAnim 0.4s ease-out forwards;
-}
-
-@keyframes pageFlashAnim {
-    0% { opacity: 0.3; }
-    100% { opacity: 0; }
-}
-
 /* Gentle shiver for brr */
 .avatar.shiver {
     animation: shiverAvi 0.3s ease-in-out 3 !important;
