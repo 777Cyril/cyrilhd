@@ -363,13 +363,14 @@ document.addEventListener('DOMContentLoaded', function() {
         { title: 'broken hearts', src: 'assets/audio/produced/broken hearts 87 bpm.mp3' },
         { title: 'teezn u', src: 'assets/audio/produced/Teezn u @jlitt @lifecrzy.mp3' },
         { title: 'motorola', src: 'assets/audio/produced/Motorola.wav' },
+        { title: 'immature', src: 'assets/audio/produced/IMMATURE.wav' },
         { title: 'love me no more', src: 'assets/audio/produced/love me nomore (mixed and mastered).m4a' },
         { title: 'hella options', src: 'assets/audio/produced/hella options @lifecrzy @fggy.mp3' },
-        { title: 'good company', src: 'assets/audio/produced/goodcompany.mp3' },
+        { title: 'rubies', src: 'assets/audio/produced/Rubies.mp3' },
         { title: 'nicaraguay', src: 'assets/audio/produced/nicaraguay v2 @lifecrzy.mp3' },
         { title: 'you send me', src: 'assets/audio/produced/you send me v3.mp3' },
         { title: 'in order', src: 'assets/audio/produced/in order.mp3' },
-        { title: 'miu miu', src: 'assets/audio/produced/muimui.mp3' },
+        { title: 'miu miu', src: 'assets/audio/produced/miu miu.mp3' },
         { title: 'money dance', src: 'assets/audio/produced/01 Khalil.Lifestyle - Money Dance.mp3' }
     ];
 
