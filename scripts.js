@@ -172,88 +172,33 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 650);
     }
 
-    const fallbackSchedule = {
-        timeZone: 'America/New_York',
-        default: 'assets/songs/Clairo Juna Live Ending.mp3',
-        ranges: [],
-        slots: {},
-    };
-    let schedule = fallbackSchedule;
+    // Avatar audio: favorite songs playlist (shuffled on page load)
+    const fallbackFavorites = [
+        'assets/audio/favorites/Clairo Juna Live Ending.mp3'
+    ];
+    let favoriteTracks = [];
+    let currentAviTrack = null;
+    let aviIsPlaying = false;
 
-    function getTimePartsInTimeZone() {
-        const parts = new Intl.DateTimeFormat('en-US', {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false,
-            timeZone: schedule.timeZone || fallbackSchedule.timeZone,
-        }).formatToParts(new Date());
-        const hourPart = parts.find(function(p) { return p.type === 'hour'; });
-        const minutePart = parts.find(function(p) { return p.type === 'minute'; });
-        return {
-            hour: hourPart ? parseInt(hourPart.value, 10) : new Date().getHours(),
-            minute: minutePart ? parseInt(minutePart.value, 10) : new Date().getMinutes(),
-        };
+    // Fisher-Yates shuffle
+    function shuffleArray(array) {
+        const shuffled = array.slice();
+        for (var i = shuffled.length - 1; i > 0; i--) {
+            var j = Math.floor(Math.random() * (i + 1));
+            var temp = shuffled[i];
+            shuffled[i] = shuffled[j];
+            shuffled[j] = temp;
+        }
+        return shuffled;
     }
 
-    function parseTimeToMinutes(value) {
-        if (!value || typeof value !== 'string') {
-            return null;
-        }
-        const parts = value.split(':');
-        if (parts.length !== 2) {
-            return null;
-        }
-        const hour = parseInt(parts[0], 10);
-        const minute = parseInt(parts[1], 10);
-        if (Number.isNaN(hour) || Number.isNaN(minute)) {
-            return null;
-        }
-        if (hour < 0 || hour > 24 || minute < 0 || minute > 59) {
-            return null;
-        }
-        if (hour === 24 && minute !== 0) {
-            return null;
-        }
-        return hour * 60 + minute;
-    }
-
-    function getHourlySource() {
-        const timeParts = getTimePartsInTimeZone();
-        const minuteOfDay = timeParts.hour * 60 + timeParts.minute;
-        const slotKey = String(timeParts.hour).padStart(2, '0') + ':' + String(timeParts.minute).padStart(2, '0');
-        if (schedule.slots && schedule.slots[slotKey]) {
-            return schedule.slots[slotKey];
-        }
-        if (Array.isArray(schedule.ranges)) {
-            for (let i = 0; i < schedule.ranges.length; i += 1) {
-                const range = schedule.ranges[i];
-                const start = parseTimeToMinutes(range.start);
-                const end = parseTimeToMinutes(range.end);
-                if (start === null || end === null) {
-                    continue;
-                }
-                if (start === end) {
-                    continue;
-                }
-                if (start < end && minuteOfDay >= start && minuteOfDay < end) {
-                    return range.src;
-                }
-                if (start > end && (minuteOfDay >= start || minuteOfDay < end)) {
-                    return range.src;
-                }
-            }
-        }
-        return schedule.default || fallbackSchedule.default;
-    }
-
-    function updateAudioSourceIfNeeded() {
-        const nextSrc = getHourlySource();
-        if (audio.dataset.currentSrc !== nextSrc) {
-            audio.pause();
-            audio.src = nextSrc;
-            audio.load();
-            audio.dataset.currentSrc = nextSrc;
-        }
+    function selectRandomAvatarTrack() {
+        if (favoriteTracks.length === 0) return;
+        const randomIndex = Math.floor(Math.random() * favoriteTracks.length);
+        currentAviTrack = favoriteTracks[randomIndex];
+        audio.src = currentAviTrack;
+        audio.load();
+        audio.dataset.currentSrc = currentAviTrack;
     }
 
     fetch('assets/songs/schedule.json', { cache: 'no-store' })
@@ -264,22 +209,21 @@ document.addEventListener('DOMContentLoaded', function() {
             return res.json();
         })
         .then(function(data) {
-            if (data && typeof data === 'object') {
-                schedule = {
-                    timeZone: data.timeZone || fallbackSchedule.timeZone,
-                    default: data.default || fallbackSchedule.default,
-                    ranges: Array.isArray(data.ranges) ? data.ranges : [],
-                    slots: data.slots && typeof data.slots === 'object' ? data.slots : {},
-                };
+            if (data && Array.isArray(data.favorites) && data.favorites.length > 0) {
+                favoriteTracks = data.favorites;
+            } else {
+                favoriteTracks = fallbackFavorites;
             }
         })
         .catch(function() {
-            schedule = fallbackSchedule;
+            favoriteTracks = fallbackFavorites;
         })
         .finally(function() {
-            updateAudioSourceIfNeeded();
-            setInterval(updateAudioSourceIfNeeded, 60000);
+            selectRandomAvatarTrack();
         });
+
+    // Define aviUpdateCarousel - will be set after music controls are initialized
+    var aviUpdateCarousel = function() {};
 
     avi.addEventListener('click', function() {
         triggerTapFlash();
@@ -287,9 +231,21 @@ document.addEventListener('DOMContentLoaded', function() {
             if (typeof mcStopAndClose === 'function') {
                 mcStopAndClose();
             }
+            aviIsPlaying = true;
             audio.play();
+            aviUpdateCarousel();
         } else {
+            aviIsPlaying = false;
             audio.pause();
+            aviUpdateCarousel();
+        }
+    });
+
+    // Avatar ended event - loop the same track
+    audio.addEventListener('ended', function() {
+        if (aviIsPlaying) {
+            audio.currentTime = 0;
+            audio.play();
         }
     });
 
@@ -300,33 +256,33 @@ document.addEventListener('DOMContentLoaded', function() {
     var mcIsOpen = false;
     var mcTypewriterTimeout = null;
     var mcTracks = [
-        { title: 'get it together', src: 'assets/songs/Get it together v2 pitched up.mp3' },
-        { title: '4u', src: 'assets/songs/atlanta v2.mp3' },
-        { title: '50 Stater', src: 'assets/songs/50 Stater.mp3' },
-        { title: 'caught up', src: 'assets/songs/SOF v2.mp3' },
-        { title: 'doin me dirty', src: 'assets/songs/doin me dirty @lifecrzy.mp3' },
-        { title: 'all the way', src: 'assets/songs/All the way (so crazy) v2 @lifecrzy.mp3' },
-        { title: 'choosey lover', src: 'assets/songs/choosey lover (atlanta).mp3' },
-        { title: 'mulino prime', src: 'assets/songs/MULINO PRIME @lifecrzy.mp3' },
-        { title: 'touchdown', src: 'assets/songs/Khalil Lifestyle x Boofinesse - Touchdown Prod. LIFECRZY.mp3' },
-        { title: 'diamond', src: 'assets/songs/DIAMOND v2.mp3' },
-        { title: 'share', src: 'assets/songs/share.mp3' },
-        { title: 'in the garden', src: 'assets/songs/sex in the garden.mp3' },
-        { title: 'roxanne', src: 'assets/songs/roxannne v2 @lifecrzy.mp3' },
-        { title: 'know you', src: 'assets/songs/cayman @lifecrzy.mp3' },
-        { title: 'familiar', src: 'assets/songs/familiar @lifecrzy.mp3' },
-        { title: 'lovely day in may', src: 'assets/songs/Lovely Day in May.mp3' },
-        { title: 'broken hearts', src: 'assets/songs/broken hearts 87 bpm.mp3' },
-        { title: 'teezn u', src: 'assets/songs/Teezn u @jlitt @lifecrzy.mp3' },
-        { title: 'motorola', src: 'assets/songs/Motorola.wav' },
-        { title: 'love me no more', src: 'assets/songs/love me nomore (mixed and mastered).m4a' },
-        { title: 'hella options', src: 'assets/songs/hella options @lifecrzy @fggy.mp3' },
-        { title: 'good company', src: 'assets/songs/goodcompany.mp3' },
-        { title: 'nicaraguay', src: 'assets/songs/nicaraguay v2 @lifecrzy.mp3' },
-        { title: 'you send me', src: 'assets/songs/you send me v3.mp3' },
-        { title: 'in order', src: 'assets/songs/in order.mp3' },
-        { title: 'miu miu', src: 'assets/songs/muimui.mp3' },
-        { title: 'money dance', src: 'assets/songs/01 Khalil.Lifestyle - Money Dance.mp3' }
+        { title: 'get it together', src: 'assets/audio/produced/Get it together v2 pitched up.mp3' },
+        { title: '4u', src: 'assets/audio/produced/atlanta v2.mp3' },
+        { title: '50 Stater', src: 'assets/audio/produced/50 Stater.mp3' },
+        { title: 'caught up', src: 'assets/audio/produced/SOF v2.mp3' },
+        { title: 'doin me dirty', src: 'assets/audio/produced/doin me dirty @lifecrzy.mp3' },
+        { title: 'all the way', src: 'assets/audio/produced/All the way (so crazy) v2 @lifecrzy.mp3' },
+        { title: 'choosey lover', src: 'assets/audio/produced/choosey lover (atlanta).mp3' },
+        { title: 'mulino prime', src: 'assets/audio/produced/MULINO PRIME @lifecrzy.mp3' },
+        { title: 'touchdown', src: 'assets/audio/produced/Khalil Lifestyle x Boofinesse - Touchdown Prod. LIFECRZY.mp3' },
+        { title: 'diamond', src: 'assets/audio/produced/DIAMOND v2.mp3' },
+        { title: 'share', src: 'assets/audio/produced/share.mp3' },
+        { title: 'in the garden', src: 'assets/audio/produced/sex in the garden.mp3' },
+        { title: 'roxanne', src: 'assets/audio/produced/roxannne v2 @lifecrzy.mp3' },
+        { title: 'know you', src: 'assets/audio/produced/cayman @lifecrzy.mp3' },
+        { title: 'familiar', src: 'assets/audio/produced/familiar @lifecrzy.mp3' },
+        { title: 'lovely day in may', src: 'assets/audio/produced/Lovely Day in May.mp3' },
+        { title: 'broken hearts', src: 'assets/audio/produced/broken hearts 87 bpm.mp3' },
+        { title: 'teezn u', src: 'assets/audio/produced/Teezn u @jlitt @lifecrzy.mp3' },
+        { title: 'motorola', src: 'assets/audio/produced/Motorola.wav' },
+        { title: 'love me no more', src: 'assets/audio/produced/love me nomore (mixed and mastered).m4a' },
+        { title: 'hella options', src: 'assets/audio/produced/hella options @lifecrzy @fggy.mp3' },
+        { title: 'good company', src: 'assets/audio/produced/goodcompany.mp3' },
+        { title: 'nicaraguay', src: 'assets/audio/produced/nicaraguay v2 @lifecrzy.mp3' },
+        { title: 'you send me', src: 'assets/audio/produced/you send me v3.mp3' },
+        { title: 'in order', src: 'assets/audio/produced/in order.mp3' },
+        { title: 'miu miu', src: 'assets/audio/produced/muimui.mp3' },
+        { title: 'money dance', src: 'assets/audio/produced/01 Khalil.Lifestyle - Money Dance.mp3' }
     ];
 
     // Fisher-Yates shuffle
@@ -425,12 +381,26 @@ document.addEventListener('DOMContentLoaded', function() {
         var CAROUSEL_SPEED = 50; // pixels per second
 
         function carouselUpdate() {
-            if (mcIsPlaying) {
+            // Avatar takes priority over music controls
+            if (aviIsPlaying && currentAviTrack) {
+                var trackName = getAviTrackName(currentAviTrack);
+                var title = 'you are now listening to ' + trackName;
+                carouselShow(title);
+            } else if (mcIsPlaying) {
                 var title = 'you are now listening to ' + mcTracks[mcCurrentTrack].title;
                 carouselShow(title);
             } else {
                 carouselHide();
             }
+        }
+
+        function getAviTrackName(src) {
+            // Extract filename from path (e.g., "juna by clairo.mp3")
+            var filename = src.split('/').pop();
+            // Remove extension
+            filename = filename.replace('.mp3', '').replace('.wav', '');
+            // Filename is already in format "song name by artist"
+            return filename;
         }
 
         function carouselShow(text) {
@@ -514,7 +484,12 @@ document.addEventListener('DOMContentLoaded', function() {
         function stopAviAudio() {
             audio.pause();
             audio.currentTime = 0;
+            aviIsPlaying = false;
+            carouselUpdate();
         }
+
+        // Expose carousel update for avatar
+        aviUpdateCarousel = carouselUpdate;
 
         function triggerAvatarSongsReaction() {
             avi.classList.remove('react-songs');

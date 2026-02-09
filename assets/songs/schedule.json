@@ -1,16 +1,15 @@
 {
-  "timeZone": "America/New_York",
-  "default": "assets/songs/Clairo Juna Live Ending.mp3",
-  "ranges": [
-    { "start": "01:00", "end": "02:00", "src": "assets/songs/old habits - swapa.mp3" },
-    { "start": "04:00", "end": "05:00", "src": "assets/songs/use to care - swapa.mp3" },
-    { "start": "16:00", "end": "17:00", "src": "assets/songs/Swapa - Meeting God.mp3" },
-    { "start": "17:00", "end": "18:00", "src": "assets/songs/Playboi Carti - Place.mp3" },
-    { "start": "18:00", "end": "19:00", "src": "assets/songs/Taliban Music.mp3" },
-    { "start": "19:00", "end": "20:00", "src": "assets/songs/Hiatus Kaiyote Building A Ladder Live.mp3" },
-    { "start": "20:00", "end": "21:00", "src": "assets/songs/Pz' - Havana  (prod. rue.de.sevres).mp3" },
-    { "start": "22:00", "end": "23:00", "src": "assets/songs/Long Time (Intro).mp3" },
-    { "start": "23:00", "end": "24:00", "src": "assets/songs/old habits - swapa.mp3" }
-  ],
-  "slots": {}
+  "favorites": [
+    "assets/audio/favorites/juna by clairo.mp3",
+    "assets/audio/favorites/old habits by swapa.mp3",
+    "assets/audio/favorites/use to care by swapa.mp3",
+    "assets/audio/favorites/meeting god by swapa.mp3",
+    "assets/audio/favorites/place by playboi carti.mp3",
+    "assets/audio/favorites/taliban music by texako + bagboybando.mp3",
+    "assets/audio/favorites/building a ladder by hiatus kaiyote.mp3",
+    "assets/audio/favorites/havana by pz.mp3",
+    "assets/audio/favorites/long time by playboi carti.mp3",
+    "assets/audio/favorites/my search is over by friendship baptist church.mp3",
+    "assets/audio/favorites/about you by texako & tony shhnow.mp3"
+  ]
 }
