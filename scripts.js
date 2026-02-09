@@ -197,8 +197,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function selectRandomAvatarTrack() {
         if (favoriteTracks.length === 0) return;
-        const randomIndex = Math.floor(Math.random() * favoriteTracks.length);
-        currentAviTrack = favoriteTracks[randomIndex];
+
+        // If only one track, no choice but to replay
+        if (favoriteTracks.length === 1) {
+            currentAviTrack = favoriteTracks[0];
+            audio.src = currentAviTrack;
+            audio.load();
+            audio.dataset.currentSrc = currentAviTrack;
+            return;
+        }
+
+        // Pick a random track that isn't the current one
+        let nextTrack;
+        do {
+            const randomIndex = Math.floor(Math.random() * favoriteTracks.length);
+            nextTrack = favoriteTracks[randomIndex];
+        } while (nextTrack === currentAviTrack);
+
+        currentAviTrack = nextTrack;
         audio.src = currentAviTrack;
         audio.load();
         audio.dataset.currentSrc = currentAviTrack;
