@@ -48,6 +48,62 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 420);
     }
 
+    var magnetLinks = Array.prototype.slice.call(document.querySelectorAll('a'));
+    magnetLinks.forEach(function(link) {
+        link.classList.add('magnet-link');
+    });
+
+    var magnetCursorX = 0;
+    var magnetCursorY = 0;
+    var magnetNeedsFrame = false;
+    var MAGNET_RADIUS = 120;
+    var MAGNET_MAX_SHIFT = 2;
+
+    function resetMagnetLinks() {
+        magnetLinks.forEach(function(link) {
+            link.style.transform = '';
+        });
+    }
+
+    function updateMagnetLinks() {
+        magnetNeedsFrame = false;
+        magnetLinks.forEach(function(link) {
+            var rect = link.getBoundingClientRect();
+            var centerX = rect.left + rect.width / 2;
+            var centerY = rect.top + rect.height / 2;
+            var vx = magnetCursorX - centerX;
+            var vy = magnetCursorY - centerY;
+            var dist = Math.sqrt(vx * vx + vy * vy);
+
+            if (dist <= 0.01 || dist > MAGNET_RADIUS) {
+                link.style.transform = '';
+                return;
+            }
+
+            var strength = Math.pow(1 - dist / MAGNET_RADIUS, 1.35);
+            var shift = MAGNET_MAX_SHIFT * strength;
+            var tx = (vx / dist) * shift;
+            var ty = (vy / dist) * shift;
+            link.style.transform = 'translate(' + tx.toFixed(2) + 'px, ' + ty.toFixed(2) + 'px)';
+        });
+    }
+
+    document.addEventListener('mousemove', function(e) {
+        magnetCursorX = e.clientX;
+        magnetCursorY = e.clientY;
+        if (!magnetNeedsFrame) {
+            magnetNeedsFrame = true;
+            requestAnimationFrame(updateMagnetLinks);
+        }
+    }, { passive: true });
+
+    document.addEventListener('mouseout', function(e) {
+        if (!e.relatedTarget) {
+            resetMagnetLinks();
+        }
+    });
+    window.addEventListener('blur', resetMagnetLinks);
+
     // ── Time-of-Day Greeting ──
     var greetingDismissed = false;
     (function() {
