@@ -65,18 +65,25 @@
     </header>
     <audio id="avi-audio" preload="none"></audio>
 
+    <div class="banner-slot" id="bannerSlot">
+        <span class="greeting-text" id="greetingText"></span>
+        <span class="carousel-viewport" id="carouselViewport">
+            <span class="carousel-track" id="carouselTrack"></span>
+        </span>
+    </div>
+
     <main>
         <p>hi</p>
 
-        <p>i like making compute go brr.</p>
+        <p>i like making <span id="brrTarget">compute go brr</span>.</p>
 
-        <p>building <a href="https://www.llmxai.co/" target="_blank" rel="noopener noreferrer">LLMx</a> to help more people benefit from artificial intelligence.</p>
+        <p>building <a href="https://www.llmxai.co/" target="_blank" rel="noopener noreferrer" data-preview-title="LLMx" data-preview-desc="AI products for everyone" data-preview-cat="company">LLMx</a> to help more people benefit from artificial intelligence.</p>
 
-        <p>presently product managing at <a href="https://www.instagram.com/americanexpress/" target="_blank" rel="noopener noreferrer">American Express</a>, scaling semantic search to millions of users.</p>
+        <p>presently product managing at <a href="https://www.instagram.com/americanexpress/" target="_blank" rel="noopener noreferrer" data-preview-title="American Express" data-preview-desc="Semantic search at scale" data-preview-cat="work">American Express</a>, scaling semantic search to millions of users.</p>
 
-        <p>and prior to that, i worked at an audit tech <a href="https://fortune.com/2025/08/23/how-to-build-tech-unicorn-europe-datasnipper-vidya-peters/" target="_blank" rel="noopener noreferrer">startup</a>, helping teams adopt new ways of working with ai -- my audit background proved quite useful here. i consider it my pre-training phase.</p>
+        <p>and prior to that, i worked at an audit tech <a href="https://fortune.com/2025/08/23/how-to-build-tech-unicorn-europe-datasnipper-vidya-peters/" target="_blank" rel="noopener noreferrer" data-preview-title="DataSnipper" data-preview-desc="Audit tech unicorn in Europe" data-preview-cat="press">startup</a>, helping teams adopt new ways of working with ai -- my audit background proved quite useful here. i consider it my pre-training phase.</p>
 
-        <p>here are some <a href="#principles">principles</a> i hold close ++ my favorite <a href="books.html">books</a> and <a href="movies.html">movies</a>.</p>
+        <p>here are some <a href="#principles">principles</a> i hold close ++ my favorite <a href="books.html" data-preview-title="Books" data-preview-desc="East of Eden, Monte Christo, Anna Karenina..." data-preview-cat="favorites">books</a> and <a href="movies.html" data-preview-title="Movies" data-preview-desc="300, Troy, Parasite, The Dark Knight..." data-preview-cat="favorites">movies</a>.</p>
 
         <!-- <h2>sometimes i scribble</h2>
         <ul>
@@ -91,10 +98,10 @@
         <ul>
             <li>i experience life in new york mainly</li>
             <li>originally from ghana</li>
-            <li>studied @ <a href="https://dh.howard.edu/cgi/viewcontent.cgi?params=/context/hugradpro/article/1163/&path_info=dhu_hua_commence_0162.pdf" target="_blank" rel="noopener noreferrer">howard</a></li>
-            <li>helped redesign <a href="https://www.apple.com/newsroom/2022/11/apple-music-launches-new-replay-experience-reveals-2022s-top-charts/" target="_blank" rel="noopener noreferrer">apple music replay</a> during my stint at <a href="https://work.co/" target="_blank" rel="noopener noreferrer">Work & Co</a></li>
+            <li>studied @ <a href="https://dh.howard.edu/cgi/viewcontent.cgi?params=/context/hugradpro/article/1163/&path_info=dhu_hua_commence_0162.pdf" target="_blank" rel="noopener noreferrer" data-preview-title="Howard University" data-preview-desc="Commencement program" data-preview-cat="education">howard</a></li>
+            <li>helped redesign <a href="https://www.apple.com/newsroom/2022/11/apple-music-launches-new-replay-experience-reveals-2022s-top-charts/" target="_blank" rel="noopener noreferrer" data-preview-title="Apple Music Replay" data-preview-desc="Redesigned the annual listening experience" data-preview-cat="design">apple music replay</a> during my stint at <a href="https://work.co/" target="_blank" rel="noopener noreferrer" data-preview-title="Work & Co" data-preview-desc="Digital product studio" data-preview-cat="agency">Work & Co</a></li>
             <li class="songs-item">
-                <a class="songs-trigger" id="songsLink">songs</a> i produced + <a href="https://open.spotify.com/playlist/3S0Y1mq6M2DNdG7VkoVdr0?si=pkSFiDRCQKSOCkISAK-8Mg&pi=DyXKaWejRrKF8" target="_blank" rel="noopener noreferrer">playlist</a> i curate
+                <a class="songs-trigger" id="songsLink">songs</a> i produced + <a href="https://open.spotify.com/playlist/3S0Y1mq6M2DNdG7VkoVdr0?si=pkSFiDRCQKSOCkISAK-8Mg&pi=DyXKaWejRrKF8" target="_blank" rel="noopener noreferrer" data-preview-title="Playlist" data-preview-desc="Curated on Spotify" data-preview-cat="music">playlist</a> i curate
                 <div class="music-controls" id="musicControls">
                     <div class="controls-inner">
                         <button class="control-btn" id="prevBtn" aria-label="Previous track">
@@ -124,6 +131,12 @@
         <h2>contact</h2>
         <p><a href="mailto:cyril@llmxai.co">email</a>, <a href="https://x.com/cyril_dowuona">X</a>
     </main>
+
+    <div class="link-preview" id="linkPreview">
+        <div class="link-preview-cat" id="linkPreviewCat"></div>
+        <div class="link-preview-title" id="linkPreviewTitle"></div>
+        <div class="link-preview-desc" id="linkPreviewDesc"></div>
+    </div>
 
     <script>
         window.LLM_VIZ_ASSET_BASE = '/llm-viz';

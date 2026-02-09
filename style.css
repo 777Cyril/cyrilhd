@@ -71,7 +71,7 @@ body.dark-mode {
     display: flex;
     align-items: flex-start;
     gap: 40px;
-    margin-bottom: 60px;
+    margin-bottom: 20px;
 }
 
 .hero-left {
@@ -425,4 +425,146 @@ body.dark-mode .now-playing {
 @keyframes mcBlink {
     0%, 50% { opacity: 1; }
     51%, 100% { opacity: 0; }
+}
+
+/* ── Banner Slot (shared by greeting + carousel) ── */
+.banner-slot {
+    min-height: 1.7em;
+    margin: 20px 0;
+    overflow: hidden;
+}
+
+/* ── Time-of-Day Greeting ── */
+.greeting-text {
+    font-size: 18px;
+    color: var(--text-light);
+    font-style: italic;
+    opacity: 0.6;
+    transition: opacity 0.8s ease;
+}
+
+html.dark-mode .greeting-text,
+body.dark-mode .greeting-text {
+    color: var(--text-dark);
+}
+
+.greeting-text.typing::after {
+    content: '|';
+    animation: mcBlink 0.7s step-end infinite;
+    margin-left: 2px;
+}
+
+.greeting-text.fade-out {
+    opacity: 0;
+}
+
+.greeting-text.hidden {
+    display: none;
+}
+
+/* ── Song Carousel ── */
+.carousel-viewport {
+    display: none;
+    width: 280px;
+    overflow: hidden;
+    font-size: 13px;
+    font-style: italic;
+    color: rgba(0, 0, 0, 0.5);
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+html.dark-mode .carousel-viewport,
+body.dark-mode .carousel-viewport {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.carousel-viewport.active {
+    display: inline-block;
+}
+
+.carousel-track {
+    display: inline-block;
+    white-space: nowrap;
+    will-change: transform;
+}
+
+.carousel-track.scrolling {
+    animation: carouselScroll var(--carousel-duration, 8s) linear infinite;
+}
+
+@keyframes carouselScroll {
+    0% {
+        transform: translateX(var(--carousel-start, 280px));
+    }
+    100% {
+        transform: translateX(var(--carousel-end, -100%));
+    }
+}
+
+@media (max-width: 600px) {
+    .carousel-viewport {
+        width: 180px;
+    }
+}
+
+/* ── Link Preview Whispers ── */
+.link-preview {
+    position: fixed;
+    z-index: 1000;
+    background-color: var(--bg-light);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 6px;
+    padding: 10px 14px;
+    max-width: 220px;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateX(8px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    font-style: normal;
+}
+
+.link-preview.visible {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+html.dark-mode .link-preview,
+body.dark-mode .link-preview {
+    background-color: #2a2a2a;
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+}
+
+.link-preview-cat {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0.4;
+    margin-bottom: 4px;
+}
+
+.link-preview-title {
+    font-size: 14px;
+    font-weight: normal;
+    margin-bottom: 3px;
+}
+
+.link-preview-desc {
+    font-size: 12px;
+    opacity: 0.6;
+    line-height: 1.4;
+}
+
+/* ── Easter Egg Effects ── */
+/* Gentle shiver for brr */
+.avatar.shiver {
+    animation: shiverAvi 0.3s ease-in-out 3 !important;
+}
+
+@keyframes shiverAvi {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-3px) rotate(-1deg); }
+    75% { transform: translateX(3px) rotate(1deg); }
 }

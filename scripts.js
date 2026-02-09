@@ -32,6 +32,59 @@ document.addEventListener('DOMContentLoaded', function() {
     avi.style.cursor = 'pointer';
     let flashTimeoutId = null;
 
+    // ── Time-of-Day Greeting ──
+    var greetingDismissed = false;
+    (function() {
+        var GREETING_KEY = 'cyrilhd_greeting_ts';
+        var GREETING_INTERVAL = 30 * 60 * 1000;
+
+        var lastShown = localStorage.getItem(GREETING_KEY);
+        if (lastShown && (Date.now() - parseInt(lastShown, 10)) < GREETING_INTERVAL) {
+            var gt = document.getElementById('greetingText');
+            if (gt) gt.classList.add('hidden');
+            greetingDismissed = true;
+            return;
+        }
+
+        var greetingText = document.getElementById('greetingText');
+        if (!greetingText) return;
+
+        var hour = new Date().getHours();
+        var message;
+        if (hour >= 6 && hour < 12) {
+            message = 'good morning';
+        } else if (hour >= 12 && hour < 17) {
+            message = 'good afternoon';
+        } else {
+            message = 'good evening';
+        }
+
+        var charIndex = 0;
+        greetingText.classList.add('typing');
+
+        function typeGreeting() {
+            if (charIndex < message.length && !greetingDismissed) {
+                greetingText.textContent = message.substring(0, charIndex + 1);
+                charIndex++;
+                setTimeout(typeGreeting, 35);
+            } else {
+                greetingText.classList.remove('typing');
+                if (!greetingDismissed) {
+                    setTimeout(function() {
+                        greetingText.classList.add('fade-out');
+                        setTimeout(function() {
+                            greetingText.classList.add('hidden');
+                            greetingDismissed = true;
+                        }, 800);
+                    }, 3000);
+                }
+            }
+        }
+
+        setTimeout(typeGreeting, 500);
+        localStorage.setItem(GREETING_KEY, String(Date.now()));
+    })();
+
     function triggerTapFlash() {
         avi.classList.remove('tap-flash');
         // Force reflow so the animation restarts on repeated taps.
@@ -287,6 +340,62 @@ document.addEventListener('DOMContentLoaded', function() {
                 nowPlaying.textContent = text;
                 nowPlaying.classList.remove('typing');
             }
+
+            // Sync banner carousel
+            carouselUpdate();
+        }
+
+        // ── Banner Carousel (Claude Code status line style) ──
+        var carouselViewport = document.getElementById('carouselViewport');
+        var carouselTrack = document.getElementById('carouselTrack');
+        var CAROUSEL_SPEED = 50; // pixels per second
+
+        function carouselUpdate() {
+            if (mcIsPlaying) {
+                var title = 'you are now listening to ' + mcTracks[mcCurrentTrack].title;
+                carouselShow(title);
+            } else {
+                carouselHide();
+            }
+        }
+
+        function carouselShow(text) {
+            if (!carouselViewport || !carouselTrack) return;
+
+            // Dismiss greeting if still visible
+            if (!greetingDismissed) {
+                var gt = document.getElementById('greetingText');
+                if (gt) {
+                    gt.classList.add('hidden');
+                    gt.classList.remove('typing', 'fade-out');
+                }
+                greetingDismissed = true;
+            }
+
+            carouselTrack.classList.remove('scrolling');
+            void carouselTrack.offsetWidth;
+
+            carouselTrack.textContent = text;
+            carouselViewport.classList.add('active');
+
+            // Measure after making visible
+            var textWidth = carouselTrack.offsetWidth;
+            var vpWidth = carouselViewport.offsetWidth;
+            var totalDistance = vpWidth + textWidth;
+            var duration = totalDistance / CAROUSEL_SPEED;
+
+            carouselTrack.style.setProperty('--carousel-start', vpWidth + 'px');
+            carouselTrack.style.setProperty('--carousel-end', '-' + textWidth + 'px');
+            carouselTrack.style.setProperty('--carousel-duration', duration + 's');
+
+            carouselTrack.classList.add('scrolling');
+        }
+
+        function carouselHide() {
+            if (!carouselViewport || !carouselTrack) return;
+            carouselTrack.classList.remove('scrolling');
+            carouselTrack.textContent = '';
+            carouselViewport.classList.remove('active');
         }
 
         function mcClose() {
@@ -301,6 +410,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 mcControls.classList.remove('closing');
             }, 500);
             mcIsOpen = false;
+            carouselUpdate();
         }
 
         function mcResetPlayback() {
@@ -309,6 +419,7 @@ document.addEventListener('DOMContentLoaded', function() {
             mcIsPlaying = false;
             playIcon.style.display = 'block';
             pauseIcon.style.display = 'none';
+            carouselHide();
         }
 
         // Exposed so avi click can stop music controls and close them
@@ -376,4 +487,133 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // ── Link Preview Whispers ──
+    (function() {
+        var preview = document.getElementById('linkPreview');
+        var previewTitle = document.getElementById('linkPreviewTitle');
+        var previewDesc = document.getElementById('linkPreviewDesc');
+        var previewCat = document.getElementById('linkPreviewCat');
+        if (!preview) return;
+
+        var hoverTimeout = null;
+
+        var previewLinks = document.querySelectorAll('a[data-preview-title]');
+
+        previewLinks.forEach(function(link) {
+            link.addEventListener('mouseenter', function(e) {
+                hoverTimeout = setTimeout(function() {
+                    showPreview(link, e);
+                }, 500);
+            });
+
+            link.addEventListener('mouseleave', function() {
+                clearTimeout(hoverTimeout);
+                hidePreview();
+            });
+
+            link.addEventListener('mousemove', function(e) {
+                if (preview.classList.contains('visible')) {
+                    positionPreview(e);
+                }
+            });
+        });
+
+        function showPreview(link, e) {
+            previewTitle.textContent = link.getAttribute('data-preview-title') || '';
+            previewDesc.textContent = link.getAttribute('data-preview-desc') || '';
+            previewCat.textContent = link.getAttribute('data-preview-cat') || '';
+            positionPreview(e);
+            preview.classList.add('visible');
+        }
+
+        function hidePreview() {
+            preview.classList.remove('visible');
+        }
+
+        function positionPreview(e) {
+            var x = e.clientX + 16;
+            var y = e.clientY + 16;
+            var vw = window.innerWidth;
+            var vh = window.innerHeight;
+
+            if (x + 230 > vw) {
+                x = e.clientX - 230;
+            }
+            if (y + 80 > vh) {
+                y = e.clientY - 80;
+            }
+
+            preview.style.left = x + 'px';
+            preview.style.top = y + 'px';
+        }
+    })();
+
+    // ── Hidden Keystroke Patterns (Easter Eggs) ──
+    (function() {
+        var keyBuffer = '';
+        var cooldownActive = false;
+        var COOLDOWN_MS = 3000;
+        var BUFFER_MAX = 10;
+
+        var patterns = {
+            'brr': triggerBrr
+        };
+
+        document.addEventListener('keydown', function(e) {
+            var tag = e.target.tagName.toLowerCase();
+            if (tag === 'input' || tag === 'textarea' || tag === 'select' || e.target.isContentEditable) {
+                return;
+            }
+
+            if (cooldownActive) return;
+
+            keyBuffer += e.key.toLowerCase();
+            if (keyBuffer.length > BUFFER_MAX) {
+                keyBuffer = keyBuffer.slice(-BUFFER_MAX);
+            }
+
+            for (var pattern in patterns) {
+                if (keyBuffer.endsWith(pattern)) {
+                    cooldownActive = true;
+                    keyBuffer = '';
+                    patterns[pattern]();
+                    setTimeout(function() {
+                        cooldownActive = false;
+                    }, COOLDOWN_MS);
+                    break;
+                }
+            }
+        });
+
+        function triggerBrr() {
+            var avi = document.querySelector('.avatar');
+            var brrTarget = document.getElementById('brrTarget');
+
+            // Typewriter re-animation on the existing "compute go brr" text
+            if (brrTarget) {
+                var originalText = 'compute go brr';
+                brrTarget.textContent = '';
+                var charIdx = 0;
+
+                function typeBrr() {
+                    if (charIdx < originalText.length) {
+                        brrTarget.textContent = originalText.substring(0, charIdx + 1);
+                        charIdx++;
+                        setTimeout(typeBrr, 35);
+                    }
+                }
+
+                typeBrr();
+            }
+
+            // Avatar shiver
+            if (avi) {
+                avi.classList.remove('shiver');
+                void avi.offsetWidth;
+                avi.classList.add('shiver');
+                setTimeout(function() { avi.classList.remove('shiver'); }, 1000);
+            }
+        }
+    })();
 });
