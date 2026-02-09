@@ -180,6 +180,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentAviTrack = null;
     let aviIsPlaying = false;
     let aviNextBtnTimeout = null;
+    let aviNextBtnHovering = false;
     const aviNextBtn = document.getElementById('aviNextBtn');
 
     // Fisher-Yates shuffle
@@ -216,12 +217,15 @@ document.addEventListener('DOMContentLoaded', function() {
             clearTimeout(aviNextBtnTimeout);
         }
 
-        // Hide after 4 seconds
+        // Hide after 4 seconds (unless hovering)
         aviNextBtnTimeout = setTimeout(function() {
-            aviNextBtn.classList.remove('visible');
-            setTimeout(function() {
-                aviNextBtn.classList.remove('show');
-            }, 300); // Wait for fade transition
+            // Don't hide if user is hovering over the button
+            if (!aviNextBtnHovering) {
+                aviNextBtn.classList.remove('visible');
+                setTimeout(function() {
+                    aviNextBtn.classList.remove('show');
+                }, 300); // Wait for fade transition
+            }
         }, 4000);
     }
 
@@ -319,6 +323,17 @@ document.addEventListener('DOMContentLoaded', function() {
             if (aviIsPlaying) {
                 playNextAviTrack();
             }
+        });
+
+        // Track hover state to prevent auto-fade while hovering
+        aviNextBtn.addEventListener('mouseenter', function() {
+            aviNextBtnHovering = true;
+        });
+
+        aviNextBtn.addEventListener('mouseleave', function() {
+            aviNextBtnHovering = false;
+            // Restart fade timer when mouse leaves
+            showAviNextButton();
         });
     }
 
