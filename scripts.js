@@ -588,21 +588,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         function trigger777() {
-            var avi = document.querySelector('.avatar');
-
             // Page flash
             var flash = document.createElement('div');
             flash.className = 'page-flash';
             document.body.appendChild(flash);
             setTimeout(function() { flash.remove(); }, 500);
-
-            // Avatar triple spin
-            if (avi) {
-                avi.classList.remove('triple-spin');
-                void avi.offsetWidth;
-                avi.classList.add('triple-spin');
-                setTimeout(function() { avi.classList.remove('triple-spin'); }, 1300);
-            }
 
             // Matrix falling numbers
             for (var i = 0; i < 15; i++) {
@@ -629,13 +619,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
         function triggerBrr() {
             var avi = document.querySelector('.avatar');
+            var brrTarget = document.getElementById('brrTarget');
 
-            // Slide "compute go brrrrr" text across screen
-            var brrEl = document.createElement('div');
-            brrEl.className = 'brr-text';
-            brrEl.textContent = 'compute go brrrrr';
-            document.body.appendChild(brrEl);
-            setTimeout(function() { brrEl.remove(); }, 2500);
+            // Typewriter re-animation on the existing "compute go brr" text
+            if (brrTarget) {
+                var originalText = 'compute go brr';
+                brrTarget.textContent = '';
+                var charIdx = 0;
+
+                function typeBrr() {
+                    if (charIdx < originalText.length) {
+                        brrTarget.textContent = originalText.substring(0, charIdx + 1);
+                        charIdx++;
+                        setTimeout(typeBrr, 35);
+                    }
+                }
+
+                typeBrr();
+            }
 
             // Avatar shiver
             if (avi) {

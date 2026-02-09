@@ -71,7 +71,7 @@ body.dark-mode {
     display: flex;
     align-items: flex-start;
     gap: 40px;
-    margin-bottom: 60px;
+    margin-bottom: 20px;
 }
 
 .hero-left {
@@ -430,7 +430,7 @@ body.dark-mode .now-playing {
 /* ── Banner Slot (shared by greeting + carousel) ── */
 .banner-slot {
     min-height: 1.7em;
-    margin-bottom: 0;
+    margin: 20px 0;
     overflow: hidden;
 }
 
@@ -565,7 +565,7 @@ body.dark-mode .link-preview {
     top: -20px;
     font-family: 'Delius', monospace;
     font-size: 16px;
-    color: var(--link-light);
+    color: #00ff41;
     opacity: 0;
     z-index: 9999;
     pointer-events: none;
@@ -587,21 +587,11 @@ body.dark-mode .link-preview {
     }
 }
 
-/* Avatar triple spin */
-.avatar.triple-spin {
-    animation: tripleSpinAvi 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
-}
-
-@keyframes tripleSpinAvi {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(1080deg); }
-}
-
 /* Page flash for 777 */
 .page-flash {
     position: fixed;
     inset: 0;
-    background: var(--link-light);
+    background: #00ff41;
     opacity: 0;
     z-index: 9998;
     pointer-events: none;
@@ -611,43 +601,6 @@ body.dark-mode .link-preview {
 @keyframes pageFlashAnim {
     0% { opacity: 0.3; }
     100% { opacity: 0; }
-}
-
-/* "brr" - Text slide across */
-.brr-text {
-    position: fixed;
-    top: 50%;
-    white-space: nowrap;
-    font-family: 'Delius', -apple-system, sans-serif;
-    font-size: 28px;
-    font-style: italic;
-    color: var(--text-light);
-    opacity: 0.6;
-    z-index: 9999;
-    pointer-events: none;
-    animation: brrSlide 2s ease-in-out forwards;
-}
-
-html.dark-mode .brr-text,
-body.dark-mode .brr-text {
-    color: var(--text-dark);
-}
-
-@keyframes brrSlide {
-    0% {
-        transform: translateX(100vw) translateY(-50%);
-        opacity: 0;
-    }
-    15% {
-        opacity: 0.7;
-    }
-    85% {
-        opacity: 0.7;
-    }
-    100% {
-        transform: translateX(-100%) translateY(-50%);
-        opacity: 0;
-    }
 }
 
 /* Gentle shiver for brr */
