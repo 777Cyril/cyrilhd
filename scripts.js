@@ -351,7 +351,7 @@ document.addEventListener('DOMContentLoaded', function() {
         var CAROUSEL_SPEED = 50; // pixels per second
 
         function carouselUpdate() {
-            if (mcIsPlaying && mcIsOpen) {
+            if (mcIsPlaying) {
                 var title = 'you are now listening to ' + mcTracks[mcCurrentTrack].title;
                 carouselShow(title);
             } else {
@@ -406,11 +406,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if (mcTypewriterTimeout) {
                 clearTimeout(mcTypewriterTimeout);
             }
-            carouselHide();
             setTimeout(function() {
                 mcControls.classList.remove('closing');
             }, 500);
             mcIsOpen = false;
+            carouselUpdate();
         }
 
         function mcResetPlayback() {
