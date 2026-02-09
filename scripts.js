@@ -367,6 +367,7 @@ document.addEventListener('DOMContentLoaded', function() {
         { title: 'love me no more', src: 'assets/audio/produced/love me nomore (mixed and mastered).m4a' },
         { title: 'hella options', src: 'assets/audio/produced/hella options @lifecrzy @fggy.mp3' },
         { title: 'rubies', src: 'assets/audio/produced/Rubies.mp3' },
+        { title: 'good company', src: 'assets/audio/produced/goodcompany.mp3' },
         { title: 'nicaraguay', src: 'assets/audio/produced/nicaraguay v2 @lifecrzy.mp3' },
         { title: 'you send me', src: 'assets/audio/produced/you send me v3.mp3' },
         { title: 'in order', src: 'assets/audio/produced/in order.mp3' },
