@@ -179,6 +179,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let favoriteTracks = [];
     let currentAviTrack = null;
     let aviIsPlaying = false;
+    let aviNextBtnTimeout = null;
+    const aviNextBtn = document.getElementById('aviNextBtn');
 
     // Fisher-Yates shuffle
     function shuffleArray(array) {
@@ -199,6 +201,57 @@ document.addEventListener('DOMContentLoaded', function() {
         audio.src = currentAviTrack;
         audio.load();
         audio.dataset.currentSrc = currentAviTrack;
+    }
+
+    function showAviNextButton() {
+        if (!aviNextBtn || !aviIsPlaying) return;
+
+        aviNextBtn.classList.add('show');
+        // Force reflow before adding visible class
+        void aviNextBtn.offsetWidth;
+        aviNextBtn.classList.add('visible');
+
+        // Clear existing timeout
+        if (aviNextBtnTimeout) {
+            clearTimeout(aviNextBtnTimeout);
+        }
+
+        // Hide after 4 seconds
+        aviNextBtnTimeout = setTimeout(function() {
+            aviNextBtn.classList.remove('visible');
+            setTimeout(function() {
+                aviNextBtn.classList.remove('show');
+            }, 300); // Wait for fade transition
+        }, 4000);
+    }
+
+    function hideAviNextButton() {
+        if (!aviNextBtn) return;
+        if (aviNextBtnTimeout) {
+            clearTimeout(aviNextBtnTimeout);
+        }
+        aviNextBtn.classList.remove('visible');
+        setTimeout(function() {
+            aviNextBtn.classList.remove('show');
+        }, 300);
+    }
+
+    function playNextAviTrack() {
+        // Trigger nod animation
+        avi.classList.remove('nod');
+        void avi.offsetWidth; // Force reflow
+        avi.classList.add('nod');
+        setTimeout(function() {
+            avi.classList.remove('nod');
+        }, 400);
+
+        selectRandomAvatarTrack();
+        audio.play().then(function() {
+            aviUpdateCarousel();
+            showAviNextButton(); // Show button again after skip
+        }).catch(function(err) {
+            console.error('Play next error:', err);
+        });
     }
 
     fetch('assets/songs/schedule.json', { cache: 'no-store' })
@@ -232,22 +285,42 @@ document.addEventListener('DOMContentLoaded', function() {
                 mcStopAndClose();
             }
             aviIsPlaying = true;
-            audio.play();
-            aviUpdateCarousel();
+            audio.play().then(function() {
+                aviUpdateCarousel();
+                showAviNextButton();
+            }).catch(function(err) {
+                console.error('Avatar play error:', err);
+            });
         } else {
             aviIsPlaying = false;
             audio.pause();
             aviUpdateCarousel();
+            hideAviNextButton();
         }
     });
 
-    // Avatar ended event - loop the same track
+    // Avatar ended event - play next random track
     audio.addEventListener('ended', function() {
         if (aviIsPlaying) {
-            audio.currentTime = 0;
-            audio.play();
+            selectRandomAvatarTrack();
+            audio.play().then(function() {
+                aviUpdateCarousel();
+                showAviNextButton();
+            }).catch(function(err) {
+                console.error('Auto-play error:', err);
+            });
         }
     });
+
+    // Next track button click handler
+    if (aviNextBtn) {
+        aviNextBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (aviIsPlaying) {
+                playNextAviTrack();
+            }
+        });
+    }
 
     // ── Inline Music Controls ──
     var mcStopAndClose;
@@ -486,10 +559,20 @@ document.addEventListener('DOMContentLoaded', function() {
             audio.currentTime = 0;
             aviIsPlaying = false;
             carouselUpdate();
+            hideAviNextButton();
         }
 
         // Expose carousel update for avatar
         aviUpdateCarousel = carouselUpdate;
+
+        // Carousel click to re-show next button
+        if (carouselViewport) {
+            carouselViewport.addEventListener('click', function() {
+                if (aviIsPlaying) {
+                    showAviNextButton();
+                }
+            });
+        }
 
         function triggerAvatarSongsReaction() {
             avi.classList.remove('react-songs');
