@@ -24,8 +24,9 @@ setInterval(updateDarkMode, 60000);
 
 document.addEventListener('DOMContentLoaded', function() {
     const avi = document.querySelector('.avatar');
+    const aviShell = document.querySelector('.avatar-shell');
     const audio = document.getElementById('avi-audio');
-    if (!avi || !audio) {
+    if (!avi || !audio || !aviShell) {
         return;
     }
 
@@ -101,12 +102,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ── Wink Interaction (manual trigger during prototyping) ──
     function triggerWink() {
-        avi.classList.remove('wink');
-        void avi.offsetWidth;
-        avi.classList.add('wink');
+        aviShell.classList.remove('wink');
+        void aviShell.offsetWidth;
+        aviShell.classList.add('wink');
         setTimeout(function() {
-            avi.classList.remove('wink');
-        }, 500);
+            aviShell.classList.remove('wink');
+        }, 280);
     }
 
     const fallbackSchedule = {

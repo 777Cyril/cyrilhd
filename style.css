@@ -78,12 +78,34 @@ body.dark-mode {
     flex: 0 0 auto;
 }
 
+.avatar-shell {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 20px;
+    line-height: 0;
+}
+
 .avatar {
     width: 140px;
     height: auto;
     object-fit: cover;
-    margin-bottom: 20px;
+    margin-bottom: 0;
     display: block;
+}
+
+.wink-lid {
+    position: absolute;
+    left: 57%;
+    top: 38%;
+    width: 12%;
+    height: 5%;
+    background: #2b1a14;
+    border-top: 1px solid #3a231a;
+    border-bottom: 1px solid #1e120d;
+    opacity: 0;
+    transform: translate(-50%, -50%) scaleY(0.05);
+    transform-origin: center top;
+    pointer-events: none;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -558,16 +580,20 @@ body.dark-mode .link-preview {
 }
 
 /* ── Easter Egg Effects ── */
-/* Time-synced wink */
-.avatar.wink {
-    transform-origin: center;
-    animation: winkAvi 0.42s ease-in-out 1 !important;
+/* Avatar eye wink */
+.avatar-shell.wink .wink-lid {
+    animation: winkLidAvi 0.24s steps(2, end) 1;
 }
 
-@keyframes winkAvi {
-    0%, 100% { transform: scaleY(1); filter: brightness(1); }
-    35% { transform: scaleY(0.14); filter: brightness(0.92); }
-    55% { transform: scaleY(0.88); filter: brightness(1.04); }
+@keyframes winkLidAvi {
+    0%, 100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scaleY(0.05);
+    }
+    45%, 65% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scaleY(1);
+    }
 }
 
 /* Gentle shiver for brr */
