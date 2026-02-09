@@ -142,8 +142,23 @@
         <div class="hints-card" role="dialog" aria-label="Site hints">
             <p class="hints-title">quick hints</p>
             <p>type <kbd>?</kbd> to toggle this panel</p>
+            <p>type <kbd>.</kbd> for command palette</p>
             <p>type <kbd>brr</kbd> for the avatar shiver</p>
             <p class="hints-close">press <kbd>Esc</kbd> to close</p>
+        </div>
+    </div>
+
+    <div class="cmdk-overlay" id="commandPalette" aria-hidden="true">
+        <div class="cmdk-card" role="dialog" aria-label="Command palette">
+            <input
+                id="commandInput"
+                class="cmdk-input"
+                type="text"
+                autocomplete="off"
+                spellcheck="false"
+                placeholder="type a command..."
+                aria-label="Command input">
+            <ul class="cmdk-list" id="commandList"></ul>
         </div>
     </div>
 

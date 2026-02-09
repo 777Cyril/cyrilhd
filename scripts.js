@@ -27,6 +27,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const audio = document.getElementById('avi-audio');
     const bannerSlot = document.getElementById('bannerSlot');
     const hintsOverlay = document.getElementById('hintsOverlay');
+    const commandPalette = document.getElementById('commandPalette');
+    const commandInput = document.getElementById('commandInput');
+    const commandList = document.getElementById('commandList');
     if (!avi || !audio) {
         return;
     }
@@ -34,6 +37,15 @@ document.addEventListener('DOMContentLoaded', function() {
     avi.style.cursor = 'pointer';
     let flashTimeoutId = null;
     let bannerPulseTimeoutId = null;
+    let commandPaletteOpen = false;
+    let commandSelection = 0;
+    let filteredCommands = [];
+
+    function isTypingTarget(target) {
+        if (!target || !target.tagName) return false;
+        var tag = target.tagName.toLowerCase();
+        return tag === 'input' || tag === 'textarea' || tag === 'select' || target.isContentEditable;
+    }
 
     function pulseBanner() {
         if (!bannerSlot) return;
@@ -47,6 +59,208 @@ document.addEventListener('DOMContentLoaded', function() {
             bannerSlot.classList.remove('pulsing');
         }, 420);
     }
+
+    function openHints() {
+        if (!hintsOverlay) return;
+        hintsOverlay.classList.add('active');
+        hintsOverlay.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeHints() {
+        if (!hintsOverlay) return;
+        hintsOverlay.classList.remove('active');
+        hintsOverlay.setAttribute('aria-hidden', 'true');
+    }
+
+    var commandDefs = [
+        {
+            label: 'Play songs',
+            keywords: 'songs music play',
+            action: function() {
+                var songsLinkEl = document.getElementById('songsLink');
+                var playPauseEl = document.getElementById('playPauseBtn');
+                if (songsLinkEl) songsLinkEl.click();
+                if (playPauseEl) {
+                    setTimeout(function() {
+                        var pauseIcon = playPauseEl.querySelector('.pause-icon');
+                        var isPlaying = pauseIcon && pauseIcon.style.display !== 'none';
+                        if (!isPlaying) {
+                            playPauseEl.click();
+                        }
+                    }, 30);
+                }
+            }
+        },
+        {
+            label: 'Open books',
+            keywords: 'books reading',
+            action: function() {
+                window.location.href = 'books.html';
+            }
+        },
+        {
+            label: 'Open movies',
+            keywords: 'movies films',
+            action: function() {
+                window.location.href = 'movies.html';
+            }
+        },
+        {
+            label: 'Email Cyril',
+            keywords: 'email contact',
+            action: function() {
+                window.location.href = 'mailto:cyril@llmxai.co';
+            }
+        },
+        {
+            label: 'Toggle hints',
+            keywords: 'hints help',
+            action: function() {
+                if (!hintsOverlay) return;
+                if (hintsOverlay.classList.contains('active')) {
+                    closeHints();
+                } else {
+                    openHints();
+                }
+            }
+        }
+    ];
+
+    function renderCommandList() {
+        if (!commandList) return;
+        commandList.innerHTML = '';
+
+        if (!filteredCommands.length) {
+            var emptyItem = document.createElement('li');
+            emptyItem.className = 'cmdk-item-empty';
+            emptyItem.textContent = 'No matching command.';
+            commandList.appendChild(emptyItem);
+            return;
+        }
+
+        if (commandSelection >= filteredCommands.length) {
+            commandSelection = 0;
+        }
+        if (commandSelection < 0) {
+            commandSelection = filteredCommands.length - 1;
+        }
+
+        filteredCommands.forEach(function(command, idx) {
+            var item = document.createElement('li');
+            item.className = 'cmdk-item' + (idx === commandSelection ? ' active' : '');
+            item.textContent = command.label;
+            item.addEventListener('mouseenter', function() {
+                commandSelection = idx;
+                renderCommandList();
+            });
+            item.addEventListener('click', function() {
+                command.action();
+                closeCommandPalette();
+            });
+            commandList.appendChild(item);
+        });
+    }
+
+    function filterCommands(query) {
+        var q = (query || '').trim().toLowerCase();
+        if (!q) {
+            filteredCommands = commandDefs.slice();
+        } else {
+            filteredCommands = commandDefs.filter(function(command) {
+                return command.label.toLowerCase().indexOf(q) !== -1 ||
+                    command.keywords.indexOf(q) !== -1;
+            });
+        }
+        commandSelection = 0;
+        renderCommandList();
+    }
+
+    function openCommandPalette() {
+        if (!commandPalette || !commandInput) return;
+        commandPaletteOpen = true;
+        commandPalette.classList.add('active');
+        commandPalette.setAttribute('aria-hidden', 'false');
+        commandInput.value = '';
+        filterCommands('');
+        commandInput.focus();
+    }
+
+    function closeCommandPalette() {
+        if (!commandPalette) return;
+        commandPaletteOpen = false;
+        commandPalette.classList.remove('active');
+        commandPalette.setAttribute('aria-hidden', 'true');
+    }
+
+    if (commandInput) {
+        commandInput.addEventListener('input', function() {
+            filterCommands(commandInput.value);
+        });
+    }
+
+    if (commandPalette) {
+        commandPalette.addEventListener('click', function(e) {
+            if (e.target === commandPalette) {
+                closeCommandPalette();
+            }
+        });
+    }
+
+    var magnetLinks = Array.prototype.slice.call(document.querySelectorAll('a'));
+    magnetLinks.forEach(function(link) {
+        link.classList.add('magnet-link');
+    });
+
+    var magnetCursorX = 0;
+    var magnetCursorY = 0;
+    var magnetNeedsFrame = false;
+    var MAGNET_RADIUS = 120;
+    var MAGNET_MAX_SHIFT = 2;
+
+    function resetMagnetLinks() {
+        magnetLinks.forEach(function(link) {
+            link.style.transform = '';
+        });
+    }
+
+    function updateMagnetLinks() {
+        magnetNeedsFrame = false;
+        magnetLinks.forEach(function(link) {
+            var rect = link.getBoundingClientRect();
+            var centerX = rect.left + rect.width / 2;
+            var centerY = rect.top + rect.height / 2;
+            var vx = magnetCursorX - centerX;
+            var vy = magnetCursorY - centerY;
+            var dist = Math.sqrt(vx * vx + vy * vy);
+
+            if (dist <= 0.01 || dist > MAGNET_RADIUS) {
+                link.style.transform = '';
+                return;
+            }
+
+            var strength = Math.pow(1 - dist / MAGNET_RADIUS, 1.35);
+            var shift = MAGNET_MAX_SHIFT * strength;
+            var tx = (vx / dist) * shift;
+            var ty = (vy / dist) * shift;
+            link.style.transform = 'translate(' + tx.toFixed(2) + 'px, ' + ty.toFixed(2) + 'px)';
+        });
+    }
+
+    document.addEventListener('mousemove', function(e) {
+        magnetCursorX = e.clientX;
+        magnetCursorY = e.clientY;
+        if (!magnetNeedsFrame) {
+            magnetNeedsFrame = true;
+            requestAnimationFrame(updateMagnetLinks);
+        }
+    }, { passive: true });
+
+    document.addEventListener('mouseout', function(e) {
+        if (!e.relatedTarget) {
+            resetMagnetLinks();
+        }
+    });
+    window.addEventListener('blur', resetMagnetLinks);
 
     // ── Time-of-Day Greeting ──
     var greetingDismissed = false;
@@ -588,8 +802,42 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ── Hidden Keystroke Patterns (Easter Eggs) ──
     document.addEventListener('keydown', function(e) {
-        var tag = e.target.tagName.toLowerCase();
-        if (tag === 'input' || tag === 'textarea' || tag === 'select' || e.target.isContentEditable) {
+        if (!commandPaletteOpen && e.key === '.' && !e.metaKey && !e.ctrlKey && !e.altKey && !isTypingTarget(e.target)) {
+            e.preventDefault();
+            openCommandPalette();
+            return;
+        }
+
+        if (commandPaletteOpen) {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                closeCommandPalette();
+                return;
+            }
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                commandSelection += 1;
+                renderCommandList();
+                return;
+            }
+            if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                commandSelection -= 1;
+                renderCommandList();
+                return;
+            }
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (filteredCommands[commandSelection]) {
+                    filteredCommands[commandSelection].action();
+                    closeCommandPalette();
+                }
+                return;
+            }
+            return;
+        }
+
+        if (isTypingTarget(e.target)) {
             return;
         }
 
@@ -597,20 +845,21 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             if (hintsOverlay) {
                 var shouldOpen = !hintsOverlay.classList.contains('active');
-                hintsOverlay.classList.toggle('active', shouldOpen);
-                hintsOverlay.setAttribute('aria-hidden', shouldOpen ? 'false' : 'true');
+                if (shouldOpen) {
+                    openHints();
+                } else {
+                    closeHints();
+                }
             }
         } else if (e.key === 'Escape' && hintsOverlay && hintsOverlay.classList.contains('active')) {
-            hintsOverlay.classList.remove('active');
-            hintsOverlay.setAttribute('aria-hidden', 'true');
+            closeHints();
         }
     });
 
     if (hintsOverlay) {
         hintsOverlay.addEventListener('click', function(e) {
             if (e.target === hintsOverlay) {
-                hintsOverlay.classList.remove('active');
-                hintsOverlay.setAttribute('aria-hidden', 'true');
+                closeHints();
             }
         });
     }
@@ -626,8 +875,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         document.addEventListener('keydown', function(e) {
-            var tag = e.target.tagName.toLowerCase();
-            if (tag === 'input' || tag === 'textarea' || tag === 'select' || e.target.isContentEditable) {
+            if (isTypingTarget(e.target) || commandPaletteOpen) {
                 return;
             }
 
