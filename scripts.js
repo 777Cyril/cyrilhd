@@ -565,9 +565,18 @@ document.addEventListener('DOMContentLoaded', function() {
         // Expose carousel update for avatar
         aviUpdateCarousel = carouselUpdate;
 
-        // Carousel click to re-show next button
+        // Carousel hover to show next button
         if (carouselViewport) {
-            carouselViewport.addEventListener('click', function() {
+            carouselViewport.addEventListener('mouseenter', function() {
+                if (aviIsPlaying) {
+                    showAviNextButton();
+                }
+            });
+        }
+
+        // Banner slot hover to show next button (includes carousel area)
+        if (bannerSlot) {
+            bannerSlot.addEventListener('mouseenter', function() {
                 if (aviIsPlaying) {
                     showAviNextButton();
                 }
