@@ -565,22 +565,45 @@ document.addEventListener('DOMContentLoaded', function() {
         // Expose carousel update for avatar
         aviUpdateCarousel = carouselUpdate;
 
-        // Carousel hover to show next button
+        // Detect mobile/touch devices
+        var isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+        // Carousel interaction to show next button
         if (carouselViewport) {
-            carouselViewport.addEventListener('mouseenter', function() {
-                if (aviIsPlaying) {
-                    showAviNextButton();
-                }
-            });
+            if (isTouchDevice) {
+                // On mobile: use click
+                carouselViewport.addEventListener('click', function() {
+                    if (aviIsPlaying) {
+                        showAviNextButton();
+                    }
+                });
+            } else {
+                // On desktop: use hover
+                carouselViewport.addEventListener('mouseenter', function() {
+                    if (aviIsPlaying) {
+                        showAviNextButton();
+                    }
+                });
+            }
         }
 
-        // Banner slot hover to show next button (includes carousel area)
+        // Banner slot interaction to show next button (includes carousel area)
         if (bannerSlot) {
-            bannerSlot.addEventListener('mouseenter', function() {
-                if (aviIsPlaying) {
-                    showAviNextButton();
-                }
-            });
+            if (isTouchDevice) {
+                // On mobile: use click
+                bannerSlot.addEventListener('click', function() {
+                    if (aviIsPlaying) {
+                        showAviNextButton();
+                    }
+                });
+            } else {
+                // On desktop: use hover
+                bannerSlot.addEventListener('mouseenter', function() {
+                    if (aviIsPlaying) {
+                        showAviNextButton();
+                    }
+                });
+            }
         }
 
         function triggerAvatarSongsReaction() {
