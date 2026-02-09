@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hidden Keystroke Pattern Prototype</title>
+    <link rel="stylesheet" href="pattern.css">
+</head>
+<body>
+    <div class="demo-container">
+        <h1>Hidden Keystroke Pattern Prototype</h1>
+        <p class="instructions">Type "777" or "brr" anywhere on the page to trigger easter egg animations!</p>
+
+        <div class="easter-egg-area">
+            <div class="avatar-placeholder">
+                <div class="placeholder-box">Avatar</div>
+            </div>
+
+            <p class="hi-placeholder">hi</p>
+
+            <p>i like making compute go <span class="brr-trigger">brr</span>.</p>
+
+            <div class="buffer-display">
+                <strong>Current Buffer:</strong> <span id="bufferDisplay">_</span>
+            </div>
+        </div>
+
+        <div class="status">
+            <p><strong>Status:</strong> <span id="statusText">Waiting for pattern...</span></p>
+            <p><strong>Last Triggered:</strong> <span id="lastTriggered">None</span></p>
+            <p><strong>Total Triggers:</strong> <span id="triggerCount">0</span></p>
+        </div>
+
+        <div class="config">
+            <h3>Easter Egg Ideas:</h3>
+            <div class="easter-egg-grid">
+                <div class="egg-card">
+                    <div class="egg-pattern">777</div>
+                    <div class="egg-action">
+                        <strong>Option 1:</strong> Cascade of 7s falling like Matrix rain<br>
+                        <strong>Option 2:</strong> Avatar does a triple spin<br>
+                        <strong>Option 3:</strong> "lucky sevens!" message appears<br>
+                        <strong>Option 4:</strong> Page flashes 7 times
+                    </div>
+                </div>
+                <div class="egg-card">
+                    <div class="egg-pattern">brr</div>
+                    <div class="egg-action">
+                        <strong>Option 1:</strong> "compute go brr" text animates across screen<br>
+                        <strong>Option 2:</strong> Snow/cold effect overlay<br>
+                        <strong>Option 3:</strong> Money printer sound + $ symbols<br>
+                        <strong>Option 4:</strong> Gentle shiver/shake animation
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <h3>Test Patterns:</h3>
+            <button id="test777">🎰 Trigger "777"</button>
+            <button id="testBrr">🥶 Trigger "brr"</button>
+            <button id="reset">🔄 Reset</button>
+        </div>
+
+        <div class="how-it-works">
+            <h3>How it works:</h3>
+            <ul>
+                <li>Listens to all keypress events on the page</li>
+                <li>Maintains a rolling buffer of last 3 characters typed</li>
+                <li>When buffer matches "777" or "brr", triggers easter egg</li>
+                <li>Non-intrusive - doesn't interfere with form inputs</li>
+                <li>Cooldown period to prevent spam triggering</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Easter Egg Animations Container -->
+    <div class="easter-egg-overlay" id="easterEggOverlay"></div>
+
+    <script src="pattern.js"></script>
+</body>
+</html>

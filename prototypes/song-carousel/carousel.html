@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Song Carousel Prototype</title>
+    <link rel="stylesheet" href="carousel.css">
+</head>
+<body>
+    <div class="demo-container">
+        <h1>Song Carousel Prototype</h1>
+        <p class="instructions">The carousel will display below, positioned where it would sit between your avatar and "hi"</p>
+
+        <div class="avatar-placeholder">
+            <div class="placeholder-box">Avatar</div>
+        </div>
+
+        <!-- Song Carousel Element -->
+        <div class="song-carousel" id="songCarousel">
+            <div class="carousel-track" id="carouselTrack">
+                <span class="carousel-text">you are now listening to <strong id="songName">get it together</strong></span>
+            </div>
+        </div>
+
+        <p class="hi-placeholder">hi</p>
+
+        <div class="controls">
+            <button id="playBtn">▶ Play/Update Song</button>
+            <button id="stopBtn">⏹ Stop Carousel</button>
+            <select id="songSelector">
+                <option value="get it together">get it together</option>
+                <option value="4u">4u</option>
+                <option value="50 Stater">50 Stater</option>
+                <option value="caught up">caught up</option>
+                <option value="doin me dirty">doin me dirty</option>
+                <option value="all the way">all the way</option>
+            </select>
+        </div>
+
+        <div class="config">
+            <h3>Configuration Options:</h3>
+            <label>
+                Animation Speed:
+                <input type="range" id="speedSlider" min="5" max="30" value="15" step="1">
+                <span id="speedValue">15s</span>
+            </label>
+            <br>
+            <label>
+                Carousel Width:
+                <input type="range" id="widthSlider" min="300" max="600" value="400" step="50">
+                <span id="widthValue">400px</span>
+            </label>
+        </div>
+    </div>
+
+    <script src="carousel.js"></script>
+</body>
+</html>

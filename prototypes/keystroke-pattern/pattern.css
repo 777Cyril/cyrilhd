@@ -1,0 +1,340 @@
+/* Demo styling */
+body {
+    font-family: 'Delius', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    background: #F0E5D5;
+    color: #2c2c2c;
+    padding: 40px;
+    max-width: 800px;
+    margin: 0 auto;
+    font-size: 18px;
+    line-height: 1.7;
+    overflow-x: hidden;
+}
+
+.demo-container {
+    position: relative;
+}
+
+h1 {
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+.instructions {
+    font-size: 14px;
+    opacity: 0.7;
+    margin-bottom: 40px;
+    padding: 15px;
+    background: rgba(207, 139, 169, 0.15);
+    border-radius: 8px;
+    border-left: 3px solid #CF8BA9;
+}
+
+.easter-egg-area {
+    margin: 40px 0;
+    padding: 40px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    min-height: 300px;
+}
+
+.avatar-placeholder {
+    margin: 20px 0;
+}
+
+.placeholder-box {
+    width: 140px;
+    height: 140px;
+    background: rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    font-size: 14px;
+    opacity: 0.5;
+    transition: transform 0.5s ease;
+}
+
+.hi-placeholder {
+    font-size: 18px;
+    margin: 20px 0;
+}
+
+.brr-trigger {
+    color: #CF8BA9;
+    font-weight: bold;
+}
+
+.buffer-display {
+    margin-top: 30px;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+#bufferDisplay {
+    font-family: 'Courier New', monospace;
+    color: #CF8BA9;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+/* Status Section */
+.status {
+    margin-top: 30px;
+    padding: 20px;
+    background: rgba(207, 139, 169, 0.1);
+    border-radius: 8px;
+    border-left: 3px solid #CF8BA9;
+}
+
+.status p {
+    margin: 8px 0;
+    font-size: 14px;
+}
+
+.status strong {
+    color: #CF8BA9;
+}
+
+/* Config Section */
+.config {
+    margin-top: 30px;
+    padding: 20px;
+    background: rgba(0,0,0,0.03);
+    border-radius: 8px;
+}
+
+.config h3 {
+    font-size: 16px;
+    margin-bottom: 15px;
+}
+
+.easter-egg-grid {
+    display: grid;
+    gap: 15px;
+}
+
+.egg-card {
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 6px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.egg-pattern {
+    font-family: 'Courier New', monospace;
+    font-size: 20px;
+    font-weight: bold;
+    color: #CF8BA9;
+    margin-bottom: 10px;
+}
+
+.egg-action {
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.egg-action strong {
+    color: #CF8BA9;
+}
+
+/* Controls */
+.controls {
+    margin-top: 20px;
+    padding: 20px;
+    background: rgba(0,0,0,0.05);
+    border-radius: 8px;
+}
+
+.controls h3 {
+    font-size: 16px;
+    margin-bottom: 15px;
+}
+
+.controls button {
+    padding: 10px 20px;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    border: none;
+    background: #CF8BA9;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.controls button:hover {
+    opacity: 0.8;
+    transform: translateY(-2px);
+}
+
+.controls button:active {
+    transform: translateY(0);
+}
+
+/* How It Works */
+.how-it-works {
+    margin-top: 20px;
+    padding: 20px;
+    background: rgba(0,0,0,0.03);
+    border-radius: 8px;
+}
+
+.how-it-works h3 {
+    font-size: 16px;
+    margin-bottom: 15px;
+}
+
+.how-it-works ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.how-it-works li {
+    font-size: 14px;
+    margin-bottom: 8px;
+    padding-left: 20px;
+    position: relative;
+}
+
+.how-it-works li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: #CF8BA9;
+}
+
+/* ── Easter Egg Animations ── */
+.easter-egg-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 9999;
+    overflow: hidden;
+}
+
+/* 777 Animation: Falling numbers */
+.falling-seven {
+    position: absolute;
+    font-size: 48px;
+    font-weight: bold;
+    color: #CF8BA9;
+    opacity: 0.8;
+    animation: fall 3s linear forwards;
+    pointer-events: none;
+}
+
+@keyframes fall {
+    0% {
+        transform: translateY(-100px) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(100vh) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+/* BRR Animation: Sliding text */
+.brr-text {
+    position: fixed;
+    top: 50%;
+    left: 100%;
+    transform: translateY(-50%);
+    font-size: 36px;
+    font-weight: bold;
+    color: #CF8BA9;
+    white-space: nowrap;
+    animation: slideAcross 4s ease-in-out forwards;
+    pointer-events: none;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+@keyframes slideAcross {
+    0% {
+        left: 100%;
+        opacity: 0;
+    }
+    20% {
+        opacity: 1;
+    }
+    80% {
+        opacity: 1;
+    }
+    100% {
+        left: -100%;
+        opacity: 0;
+    }
+}
+
+/* Avatar spin animation */
+.placeholder-box.spinning {
+    animation: spin777 1.5s ease-in-out;
+}
+
+@keyframes spin777 {
+    0%, 100% {
+        transform: rotate(0deg);
+    }
+    33% {
+        transform: rotate(360deg);
+    }
+    66% {
+        transform: rotate(720deg);
+    }
+}
+
+/* Page flash animation */
+@keyframes pageFlash {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.8;
+    }
+}
+
+body.flashing {
+    animation: pageFlash 0.15s ease-in-out 7;
+}
+
+/* Shiver animation for BRR */
+@keyframes shiver {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    10%, 30%, 50%, 70%, 90% {
+        transform: translateX(-5px);
+    }
+    20%, 40%, 60%, 80% {
+        transform: translateX(5px);
+    }
+}
+
+.easter-egg-area.shivering {
+    animation: shiver 0.8s ease-in-out;
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+    body {
+        background: #1a1a1a;
+        color: #e0e0e0;
+    }
+
+    .easter-egg-area {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .egg-card {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+}

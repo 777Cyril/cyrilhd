@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Link Preview Whispers Prototype</title>
+    <link rel="stylesheet" href="whispers.css">
+</head>
+<body>
+    <div class="demo-container">
+        <h1>Link Preview Whispers Prototype</h1>
+        <p class="instructions">Hover over the links below to see preview cards slide in from the side. There's a 500ms delay to avoid being intrusive.</p>
+
+        <div class="content-sample">
+            <p>hi</p>
+
+            <p>i like making compute go brr.</p>
+
+            <p>building <a href="https://www.llmxai.co/"
+                data-preview-title="LLMx"
+                data-preview-desc="Building AI tools to help more people benefit from artificial intelligence"
+                data-preview-type="project">LLMx</a> to help more people benefit from artificial intelligence.</p>
+
+            <p>presently product managing at <a href="https://www.instagram.com/americanexpress/"
+                data-preview-title="American Express"
+                data-preview-desc="Scaling semantic search to millions of users"
+                data-preview-type="work">American Express</a>, scaling semantic search to millions of users.</p>
+
+            <p>prior to that, worked at an audit tech <a href="https://fortune.com/2025/08/23/how-to-build-tech-unicorn-europe-datasnipper-vidya-peters/"
+                data-preview-title="DataSnipper"
+                data-preview-desc="Fortune article: How to build a tech unicorn in Europe"
+                data-preview-type="article">startup</a>, helping teams adopt new ways of working with ai.</p>
+
+            <p>here are some <a href="#principles"
+                data-preview-title="Principles"
+                data-preview-desc="Core values and beliefs I hold close"
+                data-preview-type="internal">principles</a> i hold close ++ my favorite <a href="books.html"
+                data-preview-title="Books"
+                data-preview-desc="Curated list of influential reads"
+                data-preview-type="internal">books</a> and <a href="movies.html"
+                data-preview-title="Movies"
+                data-preview-desc="Films that made an impact"
+                data-preview-type="internal">movies</a>.</p>
+        </div>
+
+        <div class="config">
+            <h3>Configuration:</h3>
+            <label>
+                <input type="checkbox" id="enablePreviews" checked>
+                Enable Preview Whispers
+            </label>
+            <br>
+            <label>
+                Hover Delay:
+                <input type="range" id="delaySlider" min="0" max="1000" value="500" step="100">
+                <span id="delayValue">500ms</span>
+            </label>
+            <br>
+            <label>
+                Preview Position:
+                <select id="positionSelect">
+                    <option value="right">Slide from Right</option>
+                    <option value="left">Slide from Left</option>
+                    <option value="top">Slide from Top</option>
+                    <option value="bottom">Slide from Bottom</option>
+                </select>
+            </label>
+        </div>
+
+        <div class="how-it-works">
+            <h3>How it works:</h3>
+            <ul>
+                <li>Links have data attributes: <code>data-preview-title</code>, <code>data-preview-desc</code>, <code>data-preview-type</code></li>
+                <li>On hover with 500ms delay, preview card slides in</li>
+                <li>Card disappears when mouse leaves link</li>
+                <li>Minimal design maintains site aesthetic</li>
+                <li>Can be disabled per-link by omitting data attributes</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Preview Card (hidden by default) -->
+    <div class="link-preview" id="linkPreview">
+        <div class="preview-type" id="previewType"></div>
+        <div class="preview-title" id="previewTitle"></div>
+        <div class="preview-desc" id="previewDesc"></div>
+    </div>
+
+    <script src="whispers.js"></script>
+</body>
+</html>

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quietly Interesting Prototypes</title>
+    <style>
+        @font-face {
+            font-family: 'Delius';
+            src: url('../assets/Delius-Regular.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Delius', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: #F0E5D5;
+            color: #2c2c2c;
+            padding: 60px 40px;
+            max-width: 900px;
+            margin: 0 auto;
+            font-size: 18px;
+            line-height: 1.7;
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            font-weight: normal;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            opacity: 0.7;
+            margin-bottom: 40px;
+        }
+
+        .intro {
+            background: rgba(207, 139, 169, 0.1);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 40px;
+            border-left: 3px solid #CF8BA9;
+        }
+
+        .prototype-grid {
+            display: grid;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .prototype-card {
+            background: rgba(255, 255, 255, 0.5);
+            padding: 25px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .prototype-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-color: #CF8BA9;
+        }
+
+        .prototype-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #CF8BA9;
+            margin-bottom: 10px;
+        }
+
+        .prototype-desc {
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        .prototype-status {
+            font-size: 12px;
+            color: rgba(0, 0, 0, 0.5);
+            font-style: italic;
+        }
+
+        .status-ready {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .features-list {
+            list-style: none;
+            margin-top: 8px;
+        }
+
+        .features-list li {
+            font-size: 13px;
+            padding-left: 20px;
+            position: relative;
+            margin-bottom: 4px;
+        }
+
+        .features-list li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: #CF8BA9;
+        }
+
+        .footer {
+            margin-top: 60px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            text-align: center;
+            font-size: 14px;
+            opacity: 0.7;
+        }
+
+        a {
+            color: #CF8BA9;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+
+        a:hover {
+            opacity: 0.7;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: #1a1a1a;
+                color: #e0e0e0;
+            }
+
+            .prototype-card {
+                background: rgba(255, 255, 255, 0.08);
+                border-color: rgba(255, 255, 255, 0.1);
+            }
+
+            .prototype-card:hover {
+                background: rgba(255, 255, 255, 0.12);
+            }
+
+            .prototype-status {
+                color: rgba(255, 255, 255, 0.5);
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Quietly Interesting Prototypes</h1>
+    <p class="subtitle">Interactive features that add delight without distraction</p>
+
+    <div class="intro">
+        <p><strong>Design Philosophy:</strong> These prototypes explore subtle, discoverable interactions that enhance the website experience while maintaining its minimalist aesthetic. Each feature is "quietly interesting" — something you notice and appreciate rather than being hit over the head with.</p>
+    </div>
+
+    <div class="prototype-grid">
+        <a href="song-carousel/carousel.html" class="prototype-card">
+            <div class="prototype-title">Song Carousel</div>
+            <div class="prototype-desc">
+                Displays "you are now listening to [song name]" in a contained carousel with a sunset-style animation (slides from right to left). Positioned below the avatar and before the "hi" greeting.
+            </div>
+            <ul class="features-list">
+                <li>Constrained width (adjustable 300-600px)</li>
+                <li>Smooth horizontal animation</li>
+                <li>Integrates with existing music player</li>
+                <li>Dark mode support</li>
+            </ul>
+            <div class="prototype-status status-ready">✓ Ready to Test</div>
+        </a>
+
+        <a href="time-greeting/greeting.html" class="prototype-card">
+            <div class="prototype-title">Time-of-Day Greeting</div>
+            <div class="prototype-desc">
+                Shows a personalized greeting ("good morning", "good afternoon", "good evening", or "burning the midnight oil") on page load using the existing typewriter effect. Only appears once per 30-minute session to avoid repetition on quick refreshes.
+            </div>
+            <ul class="features-list">
+                <li>Typewriter animation (matches music player style)</li>
+                <li>Smart session management (30min cooldown)</li>
+                <li>Time-based greeting selection</li>
+                <li>Auto-fades after display</li>
+            </ul>
+            <div class="prototype-status status-ready">✓ Ready to Test</div>
+        </a>
+
+        <a href="link-whispers/whispers.html" class="prototype-card">
+            <div class="prototype-title">Link Preview Whispers</div>
+            <div class="prototype-desc">
+                Tiny preview cards that appear when hovering over links. Shows a title, description, and type (project/work/article/internal) with a 500ms delay to avoid being intrusive. Slides in from the side with minimal design.
+            </div>
+            <ul class="features-list">
+                <li>500ms hover delay (configurable)</li>
+                <li>Smart positioning (stays in viewport)</li>
+                <li>Uses data attributes for content</li>
+                <li>Lightweight and non-intrusive</li>
+            </ul>
+            <div class="prototype-status status-ready">✓ Ready to Test</div>
+        </a>
+
+        <a href="keystroke-pattern/pattern.html" class="prototype-card">
+            <div class="prototype-title">Hidden Keystroke Patterns</div>
+            <div class="prototype-desc">
+                Easter eggs triggered by typing "777" or "brr" anywhere on the page. Multiple animation options for each pattern including falling numbers, text animations, avatar spins, and page effects.
+            </div>
+            <ul class="features-list">
+                <li>Detects "777" and "brr" patterns</li>
+                <li>Multiple animation styles per pattern</li>
+                <li>Cooldown to prevent spam</li>
+                <li>Doesn't interfere with form inputs</li>
+            </ul>
+            <div class="prototype-status status-ready">✓ Ready to Test</div>
+        </a>
+    </div>
+
+    <div class="intro">
+        <p><strong>Next Steps:</strong></p>
+        <ul class="features-list">
+            <li>Test each prototype independently</li>
+            <li>Choose which features to integrate</li>
+            <li>Customize animations and timing to match your preferences</li>
+            <li>Consider which features work well together</li>
+        </ul>
+    </div>
+
+    <div class="footer">
+        <p>Built with ❤️ for <a href="../index.html">cyrilhd.com</a></p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time-of-Day Greeting Prototype</title>
+    <link rel="stylesheet" href="greeting.css">
+</head>
+<body>
+    <div class="demo-container">
+        <h1>Time-of-Day Greeting Prototype</h1>
+        <p class="instructions">The greeting appears on page load with typewriter effect, then fades away. It only shows once per 30-minute window.</p>
+
+        <div class="avatar-placeholder">
+            <div class="placeholder-box">Avatar</div>
+        </div>
+
+        <!-- Time Greeting Element (same position as carousel would be) -->
+        <div class="time-greeting" id="timeGreeting">
+            <span class="greeting-text" id="greetingText"></span>
+        </div>
+
+        <p class="hi-placeholder">hi</p>
+
+        <div class="status">
+            <p><strong>Current Status:</strong> <span id="statusText">Checking...</span></p>
+            <p><strong>Last Shown:</strong> <span id="lastShown">Never</span></p>
+            <p><strong>Time Until Next Show:</strong> <span id="timeUntil">-</span></p>
+        </div>
+
+        <div class="controls">
+            <button id="testBtn">🔄 Test Greeting (Force Show)</button>
+            <button id="resetBtn">🗑️ Clear Session (Reset 30min Timer)</button>
+            <button id="simulateRefresh">⟳ Simulate Page Refresh</button>
+            <select id="timeSelector">
+                <option value="morning">Morning (5am-12pm)</option>
+                <option value="afternoon">Afternoon (12pm-6pm)</option>
+                <option value="evening">Evening (6pm-10pm)</option>
+                <option value="night">Late Night (10pm-5am)</option>
+            </select>
+        </div>
+
+        <div class="config">
+            <h3>How it works:</h3>
+            <ul>
+                <li>On page load, checks if greeting was shown in last 30 minutes</li>
+                <li>If not, displays appropriate greeting with typewriter effect</li>
+                <li>Greeting stays for ~3 seconds, then fades out</li>
+                <li>Uses sessionStorage + timestamp to track display timing</li>
+                <li>Quick refreshes won't retrigger the greeting</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="greeting.js"></script>
+</body>
+</html>

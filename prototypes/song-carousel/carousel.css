@@ -1,0 +1,169 @@
+/* Demo styling */
+body {
+    font-family: 'Delius', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    background: #F0E5D5;
+    color: #2c2c2c;
+    padding: 40px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.demo-container {
+    position: relative;
+}
+
+h1 {
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+.instructions {
+    font-size: 14px;
+    opacity: 0.7;
+    margin-bottom: 40px;
+}
+
+.avatar-placeholder {
+    margin: 40px 0 20px 0;
+}
+
+.placeholder-box {
+    width: 140px;
+    height: 140px;
+    background: rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    font-size: 14px;
+    opacity: 0.5;
+}
+
+.hi-placeholder {
+    font-size: 18px;
+    margin-top: 20px;
+}
+
+/* ── Song Carousel Core Styles ── */
+.song-carousel {
+    position: relative;
+    width: 400px; /* Constrained width - adjustable */
+    height: 30px;
+    margin: 20px 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+.song-carousel.active {
+    opacity: 1;
+}
+
+.carousel-track {
+    position: absolute;
+    white-space: nowrap;
+    will-change: transform;
+}
+
+.carousel-text {
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.6);
+    font-style: italic;
+}
+
+.carousel-text strong {
+    font-weight: normal;
+    color: rgba(0, 0, 0, 0.8);
+}
+
+/* Sunset animation: slide from right to left */
+@keyframes sunsetSlide {
+    0% {
+        transform: translateX(100%);
+    }
+    100% {
+        transform: translateX(-100%);
+    }
+}
+
+.carousel-track.animating {
+    animation: sunsetSlide 15s linear infinite;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    body {
+        background: #1a1a1a;
+        color: #e0e0e0;
+    }
+
+    .carousel-text {
+        color: rgba(255, 255, 255, 0.6);
+    }
+
+    .carousel-text strong {
+        color: rgba(255, 255, 255, 0.9);
+    }
+}
+
+/* Demo controls */
+.controls {
+    margin-top: 40px;
+    padding: 20px;
+    background: rgba(0,0,0,0.05);
+    border-radius: 8px;
+}
+
+.controls button {
+    padding: 8px 16px;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    border: none;
+    background: #CF8BA9;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.controls button:hover {
+    opacity: 0.8;
+}
+
+.controls select {
+    padding: 8px;
+    border: 1px solid rgba(0,0,0,0.2);
+    border-radius: 4px;
+    font-family: inherit;
+    background: white;
+}
+
+.config {
+    margin-top: 20px;
+    padding: 20px;
+    background: rgba(0,0,0,0.03);
+    border-radius: 8px;
+}
+
+.config h3 {
+    font-size: 16px;
+    margin-bottom: 15px;
+}
+
+.config label {
+    display: block;
+    margin-bottom: 15px;
+    font-size: 14px;
+}
+
+.config input[type="range"] {
+    width: 200px;
+    margin: 0 10px;
+}
+
+.config span {
+    display: inline-block;
+    min-width: 60px;
+    font-weight: bold;
+    color: #CF8BA9;
+}
