@@ -116,16 +116,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 650);
     }
 
-    // ── Wink Interaction (manual trigger during prototyping) ──
-    function triggerWink() {
-        avi.classList.remove('wink');
-        void avi.offsetWidth;
-        avi.classList.add('wink');
-        setTimeout(function() {
-            avi.classList.remove('wink');
-        }, 500);
-    }
-
     const fallbackSchedule = {
         timeZone: 'America/New_York',
         default: 'assets/songs/Clairo Juna Live Ending.mp3',
@@ -632,7 +622,6 @@ document.addEventListener('DOMContentLoaded', function() {
         var BUFFER_MAX = 10;
 
         var patterns = {
-            '777': triggerWink,
             'brr': triggerBrr
         };
 

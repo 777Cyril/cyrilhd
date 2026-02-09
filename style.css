@@ -446,22 +446,26 @@ body.dark-mode .now-playing {
 }
 
 .banner-slot.pulsing {
-    animation: bannerPulse 0.36s ease-out 1;
+    animation: bannerPulse 0.5s ease-out 1;
 }
 
 .banner-slot.carousel-live {
-    animation: bannerBreathe 2.8s ease-in-out infinite;
+    animation: none;
 }
 
 @keyframes bannerPulse {
-    0% { opacity: 0.82; }
-    55% { opacity: 1; }
-    100% { opacity: 0.82; }
+    0% { transform: translateY(0); opacity: 0.82; filter: brightness(0.9); }
+    45% { transform: translateY(-1px); opacity: 1; filter: brightness(1.2); }
+    100% { transform: translateY(0); opacity: 0.88; filter: brightness(1); }
+}
+
+.banner-slot.carousel-live .carousel-viewport {
+    animation: bannerBreathe 1.6s ease-in-out infinite;
 }
 
 @keyframes bannerBreathe {
-    0%, 100% { opacity: 0.78; }
-    50% { opacity: 1; }
+    0%, 100% { opacity: 0.55; transform: translateY(0); }
+    50% { opacity: 1; transform: translateY(-1px); }
 }
 
 /* ── Time-of-Day Greeting ── */
@@ -653,18 +657,6 @@ body.dark-mode .hints-card kbd {
 }
 
 /* ── Easter Egg Effects ── */
-/* Time-synced wink */
-.avatar.wink {
-    transform-origin: center;
-    animation: winkAvi 0.42s ease-in-out 1 !important;
-}
-
-@keyframes winkAvi {
-    0%, 100% { transform: scaleY(1); filter: brightness(1); }
-    35% { transform: scaleY(0.14); filter: brightness(0.92); }
-    55% { transform: scaleY(0.88); filter: brightness(1.04); }
-}
-
 /* Gentle shiver for brr */
 .avatar.shiver {
     animation: shiverAvi 0.3s ease-in-out 3 !important;
