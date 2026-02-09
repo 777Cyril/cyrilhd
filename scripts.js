@@ -99,6 +99,42 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 650);
     }
 
+    // ── Time-Synced Wink (minute 07 each hour) ──
+    var lastWinkHourKey = '';
+    function maybeTriggerHourlyWink() {
+        var now = new Date();
+        if (now.getMinutes() !== 7) return;
+
+        var hourKey = [
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate(),
+            now.getHours()
+        ].join('-');
+
+        if (lastWinkHourKey === hourKey) return;
+        lastWinkHourKey = hourKey;
+
+        avi.classList.remove('wink');
+        void avi.offsetWidth;
+        avi.classList.add('wink');
+        setTimeout(function() {
+            avi.classList.remove('wink');
+        }, 500);
+    }
+
+    function scheduleHourlyWinkCheck() {
+        var now = new Date();
+        var delayToNextMinute = ((60 - now.getSeconds()) * 1000) - now.getMilliseconds() + 30;
+        setTimeout(function() {
+            maybeTriggerHourlyWink();
+            setInterval(maybeTriggerHourlyWink, 60000);
+        }, Math.max(100, delayToNextMinute));
+    }
+
+    maybeTriggerHourlyWink();
+    scheduleHourlyWinkCheck();
+
     const fallbackSchedule = {
         timeZone: 'America/New_York',
         default: 'assets/songs/Clairo Juna Live Ending.mp3',

@@ -558,6 +558,18 @@ body.dark-mode .link-preview {
 }
 
 /* ── Easter Egg Effects ── */
+/* Time-synced wink */
+.avatar.wink {
+    transform-origin: center;
+    animation: winkAvi 0.42s ease-in-out 1 !important;
+}
+
+@keyframes winkAvi {
+    0%, 100% { transform: scaleY(1); filter: brightness(1); }
+    35% { transform: scaleY(0.14); filter: brightness(0.92); }
+    55% { transform: scaleY(0.88); filter: brightness(1.04); }
+}
+
 /* Gentle shiver for brr */
 .avatar.shiver {
     animation: shiverAvi 0.3s ease-in-out 3 !important;
