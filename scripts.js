@@ -73,6 +73,36 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     })();
 
+    // ── Click Tick Sound ──
+    var _audioCtx = null;
+    function getAudioCtx() {
+        if (!_audioCtx) {
+            _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        return _audioCtx;
+    }
+
+    function playTick() {
+        try {
+            var ctx = getAudioCtx();
+            var buf = ctx.createBuffer(1, ctx.sampleRate * 0.02, ctx.sampleRate);
+            var data = buf.getChannelData(0);
+            for (var i = 0; i < data.length; i++) {
+                // Short exponential decay burst — iPod wheel click character
+                data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 12);
+            }
+            var src = ctx.createBufferSource();
+            src.buffer = buf;
+            var gain = ctx.createGain();
+            gain.gain.value = 0.18;
+            src.connect(gain);
+            gain.connect(ctx.destination);
+            src.start();
+        } catch (e) {
+            // Silently fail if Web Audio not available
+        }
+    }
+
     const avi = document.querySelector('.avatar');
     const audio = document.getElementById('avi-audio');
     const bannerSlot = document.getElementById('bannerSlot');
@@ -371,6 +401,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var aviUpdateCarousel = function() {};
 
     avi.addEventListener('click', function() {
+        playTick();
         triggerTapFlash();
         if (audio.paused) {
             if (typeof mcStopAndClose === 'function') {
@@ -416,6 +447,7 @@ document.addEventListener('DOMContentLoaded', function() {
         aviNextBtn.addEventListener('click', function(e) {
             e.stopPropagation();
             if (aviIsPlaying) {
+                playTick();
                 playNextAviTrack();
             }
         });
@@ -826,6 +858,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         songsLink.addEventListener('click', function(e) {
             e.preventDefault();
+            playTick();
             if (mcIsOpen) {
                 mcClose();
                 if (!aviIsPlaying) setAviWired(false);
@@ -840,6 +873,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         playPauseBtn.addEventListener('click', function() {
+            playTick();
             mcIsPlaying = !mcIsPlaying;
             playIcon.style.display = mcIsPlaying ? 'none' : 'block';
             pauseIcon.style.display = mcIsPlaying ? 'block' : 'none';
@@ -862,6 +896,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         prevBtn.addEventListener('click', function() {
+            playTick();
             mcCurrentTrack = (mcCurrentTrack - 1 + mcTracks.length) % mcTracks.length;
             mcLoadTrack();
             progressReset();
@@ -873,6 +908,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         nextBtn.addEventListener('click', function() {
+            playTick();
             mcCurrentTrack = (mcCurrentTrack + 1) % mcTracks.length;
             mcLoadTrack();
             progressReset();
