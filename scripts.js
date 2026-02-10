@@ -519,6 +519,22 @@ document.addEventListener('DOMContentLoaded', function() {
             document.addEventListener('mouseup', function() {
                 isScrubbing = false;
             });
+
+            // Touch scrubbing
+            progressTrackEl.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                isScrubbing = true;
+                scrubTo(e.touches[0].clientX);
+            }, { passive: false });
+
+            document.addEventListener('touchmove', function(e) {
+                if (!isScrubbing) return;
+                scrubTo(e.touches[0].clientX);
+            }, { passive: true });
+
+            document.addEventListener('touchend', function() {
+                isScrubbing = false;
+            });
         }
 
         function mcLoadTrack() {
@@ -594,6 +610,43 @@ document.addEventListener('DOMContentLoaded', function() {
         var carouselTrack = document.getElementById('carouselTrack');
         var CAROUSEL_SPEED = 50; // pixels per second
 
+        // ── Page Title Tick ──
+        var titleTick = (function() {
+            var BASE_TITLE = document.title;
+            var _intervalId = null;
+            var _phase = false; // false = track name, true = base title
+
+            function start(trackName) {
+                stop();
+                _phase = false;
+                document.title = '♪ ' + trackName + ' — cyril';
+                _intervalId = setInterval(function() {
+                    _phase = !_phase;
+                    document.title = _phase ? BASE_TITLE : '♪ ' + trackName + ' — cyril';
+                }, 3000);
+            }
+
+            function stop() {
+                if (_intervalId) {
+                    clearInterval(_intervalId);
+                    _intervalId = null;
+                }
+                document.title = BASE_TITLE;
+            }
+
+            function sync() {
+                if (aviIsPlaying && currentAviTrack) {
+                    start(getAviTrackName(currentAviTrack));
+                } else if (mcIsPlaying) {
+                    start(mcTracks[mcCurrentTrack].title);
+                } else {
+                    stop();
+                }
+            }
+
+            return { sync: sync, stop: stop };
+        })();
+
         function carouselUpdate() {
             // Avatar takes priority over music controls
             if (aviIsPlaying && currentAviTrack) {
@@ -606,6 +659,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 carouselHide();
             }
+            titleTick.sync();
         }
 
         function getAviTrackName(src) {
