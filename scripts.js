@@ -773,6 +773,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 mcControls.classList.add('active');
                 mcIsOpen = true;
                 setAviWired(true);
+                if (mcIsPlaying) progressStart();
                 mcUpdateNowPlaying(true);
             }
         });
