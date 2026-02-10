@@ -438,7 +438,8 @@ document.addEventListener('DOMContentLoaded', function() {
         { title: 'you send me', src: 'assets/audio/produced/you send me v3.mp3' },
         { title: 'in order', src: 'assets/audio/produced/in order.mp3' },
         { title: 'miu miu', src: 'assets/audio/produced/miu miu.mp3' },
-        { title: 'money dance', src: 'assets/audio/produced/01 Khalil.Lifestyle - Money Dance.mp3' }
+        { title: 'money dance', src: 'assets/audio/produced/01 Khalil.Lifestyle - Money Dance.mp3' },
+        { title: 'something soft', src: 'assets/audio/produced/something soft v2.mp3' }
     ];
 
     // Fisher-Yates shuffle
