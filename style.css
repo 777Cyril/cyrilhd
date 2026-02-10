@@ -750,12 +750,16 @@ body.dark-mode .progress-time {
 }
 
 .progress-track {
-    flex: 1;
+    flex: 0 0 auto;
+    width: 120px;
     height: 2px;
     background: rgba(0, 0, 0, 0.12);
     border-radius: 2px;
     position: relative;
     cursor: pointer;
+    /* expanded hit area — invisible padding above/below */
+    padding: 8px 0;
+    margin: -8px 0;
 }
 
 html.dark-mode .progress-track,

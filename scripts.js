@@ -491,13 +491,32 @@ document.addEventListener('DOMContentLoaded', function() {
             if (progressRow) progressRow.classList.remove('visible');
         }
 
-        // Scrub on click
+        // Scrub on drag — mousedown + mousemove until mouseup
         if (progressRow) {
-            progressRow.querySelector('.progress-track').addEventListener('click', function(e) {
+            var progressTrackEl = progressRow.querySelector('.progress-track');
+            var isScrubbing = false;
+
+            function scrubTo(clientX) {
                 if (!mcAudio.duration) return;
-                var rect = this.getBoundingClientRect();
-                var pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+                // Use progressFill as the reference — it sits flush inside the visual line
+                var rect = progressFill.getBoundingClientRect();
+                var pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
                 mcAudio.currentTime = pct * mcAudio.duration;
+            }
+
+            progressTrackEl.addEventListener('mousedown', function(e) {
+                e.preventDefault();
+                isScrubbing = true;
+                scrubTo(e.clientX);
+            });
+
+            document.addEventListener('mousemove', function(e) {
+                if (!isScrubbing) return;
+                scrubTo(e.clientX);
+            });
+
+            document.addEventListener('mouseup', function() {
+                isScrubbing = false;
             });
         }
 
