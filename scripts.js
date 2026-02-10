@@ -440,7 +440,7 @@ document.addEventListener('DOMContentLoaded', function() {
         { title: 'miu miu', src: 'assets/audio/produced/miu miu.mp3' },
         { title: 'money dance', src: 'assets/audio/produced/01 Khalil.Lifestyle - Money Dance.mp3' },
         { title: 'something soft', src: 'assets/audio/produced/something soft v2.mp3' },
-        { title: '01 poison my soda', src: 'assets/audio/produced/01 poison my soda.mp3' },
+        { title: 'poison my soda', src: 'assets/audio/produced/01 poison my soda.mp3' },
         { title: 'more more less green', src: 'assets/audio/produced/more more less green.mp3' }
     ];
 
