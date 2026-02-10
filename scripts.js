@@ -435,6 +435,72 @@ document.addEventListener('DOMContentLoaded', function() {
         var mcAudio = new Audio();
         mcAudio.preload = 'none';
 
+        // ── Progress Bar ──
+        var progressRow   = document.getElementById('progressRow');
+        var progressFill  = document.getElementById('progressFill');
+        var progressThumb = document.getElementById('progressThumb');
+        var progressElapsed = document.getElementById('progressElapsed');
+        var progressTotal   = document.getElementById('progressTotal');
+        var progressRafId   = null;
+
+        function formatTime(secs) {
+            if (!isFinite(secs) || secs < 0) return '0:00';
+            var m = Math.floor(secs / 60);
+            var s = Math.floor(secs % 60);
+            return m + ':' + (s < 10 ? '0' : '') + s;
+        }
+
+        function progressTick() {
+            if (!mcAudio.duration) {
+                progressRafId = requestAnimationFrame(progressTick);
+                return;
+            }
+            var pct = (mcAudio.currentTime / mcAudio.duration) * 100;
+            progressFill.style.width  = pct + '%';
+            progressThumb.style.left  = pct + '%';
+            progressElapsed.textContent = formatTime(mcAudio.currentTime);
+            progressTotal.textContent   = formatTime(mcAudio.duration);
+            progressRafId = requestAnimationFrame(progressTick);
+        }
+
+        function progressStart() {
+            if (progressRow) {
+                progressRow.classList.add('visible');
+            }
+            if (progressRafId) cancelAnimationFrame(progressRafId);
+            progressRafId = requestAnimationFrame(progressTick);
+        }
+
+        function progressStop() {
+            if (progressRafId) {
+                cancelAnimationFrame(progressRafId);
+                progressRafId = null;
+            }
+        }
+
+        function progressReset() {
+            progressStop();
+            if (progressFill)   progressFill.style.width  = '0%';
+            if (progressThumb)  progressThumb.style.left  = '0%';
+            if (progressElapsed) progressElapsed.textContent = '0:00';
+            if (progressTotal)   progressTotal.textContent   = '0:00';
+        }
+
+        function progressHide() {
+            progressReset();
+            if (progressRow) progressRow.classList.remove('visible');
+        }
+
+        // Scrub on click
+        if (progressRow) {
+            progressRow.querySelector('.progress-track').addEventListener('click', function(e) {
+                if (!mcAudio.duration) return;
+                var rect = this.getBoundingClientRect();
+                var pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+                mcAudio.currentTime = pct * mcAudio.duration;
+            });
+        }
+
         function mcLoadTrack() {
             mcAudio.src = mcTracks[mcCurrentTrack].src;
             mcAudio.load();
@@ -455,6 +521,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             mcLoadTrack();
             mcAudio.play();
+            progressReset();
+            progressStart();
             mcUpdateNowPlaying(true);
         });
 
@@ -598,6 +666,7 @@ document.addEventListener('DOMContentLoaded', function() {
             playIcon.style.display = 'block';
             pauseIcon.style.display = 'none';
             setAviWired(false);
+            progressHide();
             carouselHide();
         }
 
@@ -699,9 +768,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     mcLoadTrack();
                 }
                 mcAudio.play();
+                progressStart();
             } else {
                 mcAudio.pause();
                 setAviWired(false);
+                progressStop();
             }
             mcUpdateNowPlaying(true);
         });
@@ -709,8 +780,10 @@ document.addEventListener('DOMContentLoaded', function() {
         prevBtn.addEventListener('click', function() {
             mcCurrentTrack = (mcCurrentTrack - 1 + mcTracks.length) % mcTracks.length;
             mcLoadTrack();
+            progressReset();
             if (mcIsPlaying) {
                 mcAudio.play();
+                progressStart();
             }
             mcUpdateNowPlaying(true);
         });
@@ -718,8 +791,10 @@ document.addEventListener('DOMContentLoaded', function() {
         nextBtn.addEventListener('click', function() {
             mcCurrentTrack = (mcCurrentTrack + 1) % mcTracks.length;
             mcLoadTrack();
+            progressReset();
             if (mcIsPlaying) {
                 mcAudio.play();
+                progressStart();
             }
             mcUpdateNowPlaying(true);
         });

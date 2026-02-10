@@ -717,6 +717,91 @@ body.dark-mode .hints-card kbd {
     border-color: rgba(255, 255, 255, 0.24);
 }
 
+/* ── Progress Bar ── */
+.progress-row {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    padding: 0 0 10px 0;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.music-controls.active .progress-row {
+    display: flex;
+}
+
+.music-controls.active .progress-row.visible {
+    opacity: 1;
+}
+
+.progress-time {
+    font-size: 11px;
+    font-style: italic;
+    color: var(--link-light);
+    min-width: 28px;
+    transition: color 0.3s ease;
+    white-space: nowrap;
+}
+
+html.dark-mode .progress-time,
+body.dark-mode .progress-time {
+    color: var(--link-dark);
+}
+
+.progress-track {
+    flex: 1;
+    height: 2px;
+    background: rgba(0, 0, 0, 0.12);
+    border-radius: 2px;
+    position: relative;
+    cursor: pointer;
+}
+
+html.dark-mode .progress-track,
+body.dark-mode .progress-track {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.progress-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 0%;
+    background: var(--link-light);
+    border-radius: 2px;
+    transition: color 0.3s ease;
+    pointer-events: none;
+}
+
+html.dark-mode .progress-fill,
+body.dark-mode .progress-fill {
+    background: var(--link-dark);
+}
+
+.progress-thumb {
+    position: absolute;
+    top: 50%;
+    left: 0%;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--link-light);
+    transform: translate(-50%, -50%);
+    transition: color 0.3s ease, transform 0.15s ease;
+    pointer-events: none;
+}
+
+html.dark-mode .progress-thumb,
+body.dark-mode .progress-thumb {
+    background: var(--link-dark);
+}
+
+.progress-track:hover .progress-thumb {
+    transform: translate(-50%, -50%) scale(1.5);
+}
+
 /* ── Easter Egg Effects ── */
 /* Gentle shiver for brr */
 .avatar.shiver {
