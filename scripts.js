@@ -422,7 +422,6 @@ document.addEventListener('DOMContentLoaded', function() {
         { title: 'diamond', src: 'assets/audio/produced/DIAMOND v2.mp3' },
         { title: 'share', src: 'assets/audio/produced/share.mp3' },
         { title: 'in the garden', src: 'assets/audio/produced/sex in the garden.mp3' },
-        { title: 'roxanne', src: 'assets/audio/produced/roxannne v2 @lifecrzy.mp3' },
         { title: 'know you', src: 'assets/audio/produced/cayman @lifecrzy.mp3' },
         { title: 'familiar', src: 'assets/audio/produced/familiar @lifecrzy.mp3' },
         { title: 'lovely day in may', src: 'assets/audio/produced/Lovely Day in May.mp3' },
