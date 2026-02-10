@@ -23,6 +23,56 @@ updateDarkMode();
 setInterval(updateDarkMode, 60000);
 
 document.addEventListener('DOMContentLoaded', function() {
+
+    // ── Status Bar ──
+    (function() {
+        var statusTime    = document.getElementById('statusTime');
+        var statusBattPct = document.getElementById('statusBatteryPct');
+        var batteryFill   = document.getElementById('batteryFill');
+
+        // Live clock
+        function updateClock() {
+            if (!statusTime) return;
+            var now = new Date();
+            var h = now.getHours();
+            var m = now.getMinutes();
+            var ampm = h >= 12 ? 'pm' : 'am';
+            h = h % 12 || 12;
+            statusTime.textContent = h + ':' + (m < 10 ? '0' : '') + m + ' ' + ampm;
+        }
+        updateClock();
+        // Tick on the next full minute, then every 60s
+        var msToNextMin = (60 - new Date().getSeconds()) * 1000;
+        setTimeout(function() {
+            updateClock();
+            setInterval(updateClock, 60000);
+        }, msToNextMin);
+
+        // Battery
+        function applyBattery(level, charging) {
+            var pct = Math.round(level * 100);
+            if (statusBattPct) statusBattPct.textContent = pct + '%';
+            if (batteryFill) {
+                batteryFill.style.width = pct + '%';
+                batteryFill.classList.toggle('low', !charging && pct <= 20);
+            }
+        }
+
+        if (navigator.getBattery) {
+            navigator.getBattery().then(function(bat) {
+                applyBattery(bat.level, bat.charging);
+                bat.addEventListener('levelchange',   function() { applyBattery(bat.level, bat.charging); });
+                bat.addEventListener('chargingchange', function() { applyBattery(bat.level, bat.charging); });
+            }).catch(function() {
+                // API exists but denied — hide percentage, keep full bar as decoration
+                if (statusBattPct) statusBattPct.textContent = '';
+            });
+        } else {
+            // No Battery API (most desktop browsers) — show full bar, no percentage
+            if (statusBattPct) statusBattPct.textContent = '';
+        }
+    })();
+
     const avi = document.querySelector('.avatar');
     const audio = document.getElementById('avi-audio');
     const bannerSlot = document.getElementById('bannerSlot');
@@ -37,6 +87,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     var AVI_DEFAULT = 'assets/Cyril Cryptopunk Avi Click Me.png';
     var AVI_WIRED   = 'assets/cyril-cryptopunk-avi-wired headphones.png';
+
+    var statusBar = document.getElementById('statusBar');
+    function setStatusBar(playing) {
+        if (!statusBar) return;
+        statusBar.classList.toggle('playing', playing);
+    }
 
     var _aviWiredState = false;
     function setAviWired(wired) {
@@ -322,18 +378,21 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             aviIsPlaying = true;
             setAviWired(true);
+            setStatusBar(true);
             audio.play().then(function() {
                 aviUpdateCarousel();
                 showAviNextButton();
             }).catch(function(err) {
                 aviIsPlaying = false;
                 setAviWired(false);
+                setStatusBar(false);
                 console.error('Avatar play error:', err);
             });
         } else {
             aviIsPlaying = false;
             audio.pause();
             setAviWired(false);
+            setStatusBar(false);
             aviUpdateCarousel();
             hideAviNextButton();
         }
@@ -686,6 +745,7 @@ document.addEventListener('DOMContentLoaded', function() {
             playIcon.style.display = 'block';
             pauseIcon.style.display = 'none';
             setAviWired(false);
+            setStatusBar(false);
             progressHide();
             carouselHide();
         }
@@ -703,6 +763,7 @@ document.addEventListener('DOMContentLoaded', function() {
             audio.currentTime = 0;
             aviIsPlaying = false;
             setAviWired(false);
+            setStatusBar(false);
             carouselUpdate();
             hideAviNextButton();
         }
@@ -785,6 +846,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (mcIsPlaying) {
                 stopAviAudio();
                 setAviWired(true);
+                setStatusBar(true);
                 if (!mcAudio.src || mcAudio.src === location.href) {
                     mcLoadTrack();
                 }
@@ -793,6 +855,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 mcAudio.pause();
                 setAviWired(false);
+                setStatusBar(false);
                 progressStop();
             }
             mcUpdateNowPlaying(true);
