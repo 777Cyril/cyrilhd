@@ -928,6 +928,25 @@ body.dark-mode .section-divider {
     border-top-color: var(--link-dark);
 }
 
+/* ── Cursor Trail ── */
+.cursor-dot {
+    position: fixed;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--link-light);
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    will-change: left, top, opacity;
+    transition: background 0.3s ease;
+}
+
+html.dark-mode .cursor-dot,
+body.dark-mode .cursor-dot {
+    background: var(--link-dark);
+}
+
 /* ── Easter Egg Effects ── */
 /* Gentle shiver for brr */
 .avatar.shiver {

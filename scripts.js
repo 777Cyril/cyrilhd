@@ -1052,6 +1052,78 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
+        // ── Cursor Trail ──
+        (function() {
+            // Skip on touch-only devices
+            if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+
+            var TRAIL_COUNT = 5;
+            var dots = [];
+            var positions = [];   // ring buffer of {x, y}
+            var mouseX = -999, mouseY = -999;
+            var rafId = null;
+
+            // Pre-create dots
+            for (var i = 0; i < TRAIL_COUNT; i++) {
+                var d = document.createElement('div');
+                d.className = 'cursor-dot';
+                d.style.opacity = '0';
+                document.body.appendChild(d);
+                dots.push(d);
+                positions.push({ x: -999, y: -999 });
+            }
+
+            document.addEventListener('mousemove', function(e) {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+                if (!rafId) {
+                    rafId = requestAnimationFrame(tick);
+                }
+            }, { passive: true });
+
+            document.addEventListener('mouseleave', function() {
+                // Hide all dots when cursor leaves window
+                for (var i = 0; i < TRAIL_COUNT; i++) {
+                    dots[i].style.opacity = '0';
+                }
+            });
+
+            function tick() {
+                rafId = null;
+
+                // Shift all positions forward and put current at front
+                for (var i = TRAIL_COUNT - 1; i > 0; i--) {
+                    positions[i].x = positions[i - 1].x;
+                    positions[i].y = positions[i - 1].y;
+                }
+                positions[0].x = mouseX;
+                positions[0].y = mouseY;
+
+                // Update each dot
+                for (var j = 0; j < TRAIL_COUNT; j++) {
+                    var dot = dots[j];
+                    var pos = positions[j];
+                    if (pos.x < -900) {
+                        dot.style.opacity = '0';
+                        continue;
+                    }
+                    dot.style.left = pos.x + 'px';
+                    dot.style.top  = pos.y + 'px';
+                    // Fade: lead dot ~0.55, tail ~0.08
+                    var alpha = 0.55 * Math.pow(0.45, j);
+                    dot.style.opacity = alpha.toFixed(3);
+                    // Shrink slightly toward tail
+                    var size = 4 - j * 0.4;
+                    dot.style.width  = size + 'px';
+                    dot.style.height = size + 'px';
+                }
+
+                if (mouseX > -900) {
+                    rafId = requestAnimationFrame(tick);
+                }
+            }
+        })();
+
         function triggerBrr() {
             var avi = document.querySelector('.avatar');
             var brrTarget = document.getElementById('brrTarget');
