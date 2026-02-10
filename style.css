@@ -719,17 +719,22 @@ body.dark-mode .hints-card kbd {
 
 /* ── Progress Bar ── */
 .progress-row {
-    display: none;
+    display: flex;
     align-items: center;
     gap: 8px;
     padding: 0 0 10px 0;
     opacity: 0;
-    transition: opacity 0.4s ease 0.6s;
+    pointer-events: none;
+    max-height: 0;
+    overflow: hidden;
+    transition: opacity 0.35s ease, max-height 0s ease 0.35s;
 }
 
 .progress-row.visible {
-    display: flex;
     opacity: 1;
+    pointer-events: auto;
+    max-height: 40px;
+    transition: opacity 0.4s ease 0.6s, max-height 0s ease 0.6s;
 }
 
 .progress-time {

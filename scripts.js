@@ -674,6 +674,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 mcControls.classList.remove('closing');
             }, 500);
             mcIsOpen = false;
+            progressHide();
             if (!aviIsPlaying && !mcIsPlaying) setAviWired(false);
             carouselUpdate();
         }
