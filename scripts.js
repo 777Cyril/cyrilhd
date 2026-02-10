@@ -88,6 +88,12 @@ document.addEventListener('DOMContentLoaded', function() {
     var AVI_DEFAULT = 'assets/Cyril Cryptopunk Avi Click Me.png';
     var AVI_WIRED   = 'assets/cyril-cryptopunk-avi-wired headphones.png';
 
+    var statusBar = document.getElementById('statusBar');
+    function setStatusBar(playing) {
+        if (!statusBar) return;
+        statusBar.classList.toggle('playing', playing);
+    }
+
     var _aviWiredState = false;
     function setAviWired(wired) {
         if (wired === _aviWiredState) return;
@@ -372,18 +378,21 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             aviIsPlaying = true;
             setAviWired(true);
+            setStatusBar(true);
             audio.play().then(function() {
                 aviUpdateCarousel();
                 showAviNextButton();
             }).catch(function(err) {
                 aviIsPlaying = false;
                 setAviWired(false);
+                setStatusBar(false);
                 console.error('Avatar play error:', err);
             });
         } else {
             aviIsPlaying = false;
             audio.pause();
             setAviWired(false);
+            setStatusBar(false);
             aviUpdateCarousel();
             hideAviNextButton();
         }
@@ -736,6 +745,7 @@ document.addEventListener('DOMContentLoaded', function() {
             playIcon.style.display = 'block';
             pauseIcon.style.display = 'none';
             setAviWired(false);
+            setStatusBar(false);
             progressHide();
             carouselHide();
         }
@@ -753,6 +763,7 @@ document.addEventListener('DOMContentLoaded', function() {
             audio.currentTime = 0;
             aviIsPlaying = false;
             setAviWired(false);
+            setStatusBar(false);
             carouselUpdate();
             hideAviNextButton();
         }
@@ -835,6 +846,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (mcIsPlaying) {
                 stopAviAudio();
                 setAviWired(true);
+                setStatusBar(true);
                 if (!mcAudio.src || mcAudio.src === location.href) {
                     mcLoadTrack();
                 }
@@ -843,6 +855,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 mcAudio.pause();
                 setAviWired(false);
+                setStatusBar(false);
                 progressStop();
             }
             mcUpdateNowPlaying(true);
