@@ -724,14 +724,11 @@ body.dark-mode .hints-card kbd {
     gap: 8px;
     padding: 0 0 10px 0;
     opacity: 0;
-    transition: opacity 0.4s ease;
+    transition: opacity 0.4s ease 0.6s;
 }
 
-.music-controls.active .progress-row {
+.progress-row.visible {
     display: flex;
-}
-
-.music-controls.active .progress-row.visible {
     opacity: 1;
 }
 

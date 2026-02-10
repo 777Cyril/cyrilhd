@@ -498,8 +498,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
             function scrubTo(clientX) {
                 if (!mcAudio.duration) return;
-                // Use progressFill as the reference — it sits flush inside the visual line
-                var rect = progressFill.getBoundingClientRect();
+                // Use the track element — fill width is 0 at start which breaks division
+                var rect = progressTrackEl.getBoundingClientRect();
                 var pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
                 mcAudio.currentTime = pct * mcAudio.duration;
             }
