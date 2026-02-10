@@ -199,6 +199,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let aviNextBtnTimeout = null;
     let aviNextBtnHovering = false;
     const aviNextBtn = document.getElementById('aviNextBtn');
+    var aviHistory = []; // stack of previously played tracks, most recent at end
 
     // Fisher-Yates shuffle
     function shuffleArray(array) {
@@ -214,6 +215,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function selectRandomAvatarTrack() {
         if (favoriteTracks.length === 0) return;
+
+        // Push current track to history before switching
+        if (currentAviTrack) {
+            aviHistory.push(currentAviTrack);
+            if (aviHistory.length > 50) aviHistory.shift(); // cap history
+        }
 
         // If only one track, no choice but to replay
         if (favoriteTracks.length === 1) {
@@ -235,6 +242,28 @@ document.addEventListener('DOMContentLoaded', function() {
         audio.src = currentAviTrack;
         audio.load();
         audio.dataset.currentSrc = currentAviTrack;
+    }
+
+    function playPrevAviTrack() {
+        if (aviHistory.length === 0) {
+            // No history — just rewind current track
+            audio.currentTime = 0;
+            return;
+        }
+        // Nod animation
+        avi.classList.remove('nod');
+        void avi.offsetWidth;
+        avi.classList.add('nod');
+        setTimeout(function() { avi.classList.remove('nod'); }, 400);
+
+        currentAviTrack = aviHistory.pop();
+        audio.src = currentAviTrack;
+        audio.dataset.currentSrc = currentAviTrack;
+        audio.play().then(function() {
+            aviUpdateCarousel();
+        }).catch(function(err) {
+            console.error('Prev avi track error:', err);
+        });
     }
 
     function showAviNextButton() {
@@ -915,8 +944,12 @@ document.addEventListener('DOMContentLoaded', function() {
             } else if (aviIsPlaying) {
                 e.preventDefault();
                 if (e.key === 'ArrowLeft') {
-                    // Rewind avi track
-                    audio.currentTime = 0;
+                    // Rewind if > 3s in, else go to previous in history
+                    if (audio.currentTime > 3) {
+                        audio.currentTime = 0;
+                    } else {
+                        playPrevAviTrack();
+                    }
                 } else {
                     // Right: next random avi track
                     playNextAviTrack();
