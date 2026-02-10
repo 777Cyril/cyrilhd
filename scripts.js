@@ -880,6 +880,49 @@ document.addEventListener('DOMContentLoaded', function() {
                 mcClose();
             }
         });
+
+        // ── D-Pad Arrow Key Controls ──
+        document.addEventListener('keydown', function(e) {
+            var tag = e.target.tagName.toLowerCase();
+            if (tag === 'input' || tag === 'textarea' || tag === 'select' || e.target.isContentEditable) return;
+            if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+
+            if (mcIsPlaying) {
+                e.preventDefault();
+                if (e.key === 'ArrowLeft') {
+                    // Rewind if > 3s into track, else go to previous
+                    if (mcAudio.currentTime > 3) {
+                        mcAudio.currentTime = 0;
+                        progressReset();
+                        progressStart();
+                    } else {
+                        mcCurrentTrack = (mcCurrentTrack - 1 + mcTracks.length) % mcTracks.length;
+                        mcLoadTrack();
+                        progressReset();
+                        mcAudio.play();
+                        progressStart();
+                        mcUpdateNowPlaying(true);
+                    }
+                } else {
+                    // Right: skip to next
+                    mcCurrentTrack = (mcCurrentTrack + 1) % mcTracks.length;
+                    mcLoadTrack();
+                    progressReset();
+                    mcAudio.play();
+                    progressStart();
+                    mcUpdateNowPlaying(true);
+                }
+            } else if (aviIsPlaying) {
+                e.preventDefault();
+                if (e.key === 'ArrowLeft') {
+                    // Rewind avi track
+                    audio.currentTime = 0;
+                } else {
+                    // Right: next random avi track
+                    playNextAviTrack();
+                }
+            }
+        });
     }
 
     // ── Link Preview Whispers ──
