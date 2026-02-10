@@ -926,6 +926,78 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // ── Cursor Trail ──
+    (function() {
+        // Desktop (hover: fine) only
+        if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+
+        var TRAIL_COUNT = 5;
+        var MIN_DIST = 8; // px between sampled points — creates visible spacing
+        var dots = [];
+        // history = array of {x,y} sampled positions, most recent at index 0
+        var history = [];
+        var mouseX = 0, mouseY = 0;
+        var lastSampleX = -999, lastSampleY = -999;
+        var rafRunning = false;
+
+        // Pre-create dots
+        for (var i = 0; i < TRAIL_COUNT; i++) {
+            var d = document.createElement('div');
+            d.className = 'cursor-dot';
+            d.style.opacity = '0';
+            document.body.appendChild(d);
+            dots.push(d);
+        }
+
+        document.addEventListener('mousemove', function(e) {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+
+            // Sample a new history point when cursor has moved MIN_DIST px
+            var dx = mouseX - lastSampleX;
+            var dy = mouseY - lastSampleY;
+            if (Math.sqrt(dx*dx + dy*dy) >= MIN_DIST) {
+                history.unshift({ x: mouseX, y: mouseY });
+                if (history.length > TRAIL_COUNT) history.length = TRAIL_COUNT;
+                lastSampleX = mouseX;
+                lastSampleY = mouseY;
+            }
+
+            if (!rafRunning) {
+                rafRunning = true;
+                requestAnimationFrame(tick);
+            }
+        }, { passive: true });
+
+        document.addEventListener('mouseleave', function() {
+            for (var i = 0; i < TRAIL_COUNT; i++) dots[i].style.opacity = '0';
+            history = [];
+            lastSampleX = -999; lastSampleY = -999;
+            rafRunning = false;
+        });
+
+        function tick() {
+            for (var j = 0; j < TRAIL_COUNT; j++) {
+                var dot = dots[j];
+                if (j >= history.length) {
+                    dot.style.opacity = '0';
+                    continue;
+                }
+                var pos = history[j];
+                dot.style.left = pos.x + 'px';
+                dot.style.top  = pos.y + 'px';
+                // Lead dot most opaque, tail fades out
+                var alpha = (0.5 * Math.pow(0.55, j)).toFixed(3);
+                dot.style.opacity = alpha;
+                // Lead dot biggest, tail shrinks
+                var size = (4 - j * 0.45).toFixed(1);
+                dot.style.width  = size + 'px';
+                dot.style.height = size + 'px';
+            }
+            rafRunning = false;
+        }
+    })();
+
     // ── Link Preview Whispers ──
     (function() {
         var preview = document.getElementById('linkPreview');
@@ -1051,78 +1123,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
-
-        // ── Cursor Trail ──
-        (function() {
-            // Skip on touch-only devices
-            if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
-
-            var TRAIL_COUNT = 5;
-            var dots = [];
-            var positions = [];   // ring buffer of {x, y}
-            var mouseX = -999, mouseY = -999;
-            var rafId = null;
-
-            // Pre-create dots
-            for (var i = 0; i < TRAIL_COUNT; i++) {
-                var d = document.createElement('div');
-                d.className = 'cursor-dot';
-                d.style.opacity = '0';
-                document.body.appendChild(d);
-                dots.push(d);
-                positions.push({ x: -999, y: -999 });
-            }
-
-            document.addEventListener('mousemove', function(e) {
-                mouseX = e.clientX;
-                mouseY = e.clientY;
-                if (!rafId) {
-                    rafId = requestAnimationFrame(tick);
-                }
-            }, { passive: true });
-
-            document.addEventListener('mouseleave', function() {
-                // Hide all dots when cursor leaves window
-                for (var i = 0; i < TRAIL_COUNT; i++) {
-                    dots[i].style.opacity = '0';
-                }
-            });
-
-            function tick() {
-                rafId = null;
-
-                // Shift all positions forward and put current at front
-                for (var i = TRAIL_COUNT - 1; i > 0; i--) {
-                    positions[i].x = positions[i - 1].x;
-                    positions[i].y = positions[i - 1].y;
-                }
-                positions[0].x = mouseX;
-                positions[0].y = mouseY;
-
-                // Update each dot
-                for (var j = 0; j < TRAIL_COUNT; j++) {
-                    var dot = dots[j];
-                    var pos = positions[j];
-                    if (pos.x < -900) {
-                        dot.style.opacity = '0';
-                        continue;
-                    }
-                    dot.style.left = pos.x + 'px';
-                    dot.style.top  = pos.y + 'px';
-                    // Fade: lead dot ~0.55, tail ~0.08
-                    var alpha = 0.55 * Math.pow(0.45, j);
-                    dot.style.opacity = alpha.toFixed(3);
-                    // Shrink slightly toward tail
-                    var size = 4 - j * 0.4;
-                    dot.style.width  = size + 'px';
-                    dot.style.height = size + 'px';
-                }
-
-                if (mouseX > -900) {
-                    rafId = requestAnimationFrame(tick);
-                }
-            }
-        })();
 
         function triggerBrr() {
             var avi = document.querySelector('.avatar');
