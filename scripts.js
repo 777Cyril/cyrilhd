@@ -35,6 +35,22 @@ document.addEventListener('DOMContentLoaded', function() {
     let flashTimeoutId = null;
     let bannerPulseTimeoutId = null;
 
+    var AVI_DEFAULT = 'assets/Cyril Cryptopunk Avi Click Me.png';
+    var AVI_WIRED   = 'assets/cyril-cryptopunk-avi-wired headphones.png';
+
+    var _aviWiredState = false;
+    function setAviWired(wired) {
+        if (wired === _aviWiredState) return;
+        _aviWiredState = wired;
+        var next = wired ? AVI_WIRED : AVI_DEFAULT;
+        avi.style.transition = 'opacity 0.25s ease';
+        avi.style.opacity = '0';
+        setTimeout(function() {
+            avi.src = next;
+            avi.style.opacity = '1';
+        }, 150);
+    }
+
     function pulseBanner() {
         if (!bannerSlot) return;
         bannerSlot.classList.remove('pulsing');
@@ -305,15 +321,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 mcStopAndClose();
             }
             aviIsPlaying = true;
+            setAviWired(true);
             audio.play().then(function() {
                 aviUpdateCarousel();
                 showAviNextButton();
             }).catch(function(err) {
+                aviIsPlaying = false;
+                setAviWired(false);
                 console.error('Avatar play error:', err);
             });
         } else {
             aviIsPlaying = false;
             audio.pause();
+            setAviWired(false);
             aviUpdateCarousel();
             hideAviNextButton();
         }
@@ -567,6 +587,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 mcControls.classList.remove('closing');
             }, 500);
             mcIsOpen = false;
+            if (!aviIsPlaying && !mcIsPlaying) setAviWired(false);
             carouselUpdate();
         }
 
@@ -576,6 +597,7 @@ document.addEventListener('DOMContentLoaded', function() {
             mcIsPlaying = false;
             playIcon.style.display = 'block';
             pauseIcon.style.display = 'none';
+            setAviWired(false);
             carouselHide();
         }
 
@@ -591,6 +613,7 @@ document.addEventListener('DOMContentLoaded', function() {
             audio.pause();
             audio.currentTime = 0;
             aviIsPlaying = false;
+            setAviWired(false);
             carouselUpdate();
             hideAviNextButton();
         }
@@ -655,10 +678,12 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             if (mcIsOpen) {
                 mcClose();
+                if (!aviIsPlaying) setAviWired(false);
             } else {
                 mcControls.classList.remove('closing');
                 mcControls.classList.add('active');
                 mcIsOpen = true;
+                setAviWired(true);
                 mcUpdateNowPlaying(true);
             }
         });
@@ -669,12 +694,14 @@ document.addEventListener('DOMContentLoaded', function() {
             pauseIcon.style.display = mcIsPlaying ? 'block' : 'none';
             if (mcIsPlaying) {
                 stopAviAudio();
+                setAviWired(true);
                 if (!mcAudio.src || mcAudio.src === location.href) {
                     mcLoadTrack();
                 }
                 mcAudio.play();
             } else {
                 mcAudio.pause();
+                setAviWired(false);
             }
             mcUpdateNowPlaying(true);
         });
