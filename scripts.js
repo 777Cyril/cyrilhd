@@ -897,8 +897,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         progressStart();
                     } else {
                         mcCurrentTrack = (mcCurrentTrack - 1 + mcTracks.length) % mcTracks.length;
-                        mcLoadTrack();
                         progressReset();
+                        mcAudio.src = mcTracks[mcCurrentTrack].src;
                         mcAudio.play();
                         progressStart();
                         mcUpdateNowPlaying(true);
@@ -906,8 +906,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     // Right: skip to next
                     mcCurrentTrack = (mcCurrentTrack + 1) % mcTracks.length;
-                    mcLoadTrack();
                     progressReset();
+                    mcAudio.src = mcTracks[mcCurrentTrack].src;
                     mcAudio.play();
                     progressStart();
                     mcUpdateNowPlaying(true);
