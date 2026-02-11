@@ -199,6 +199,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let aviNextBtnTimeout = null;
     let aviNextBtnHovering = false;
     const aviNextBtn = document.getElementById('aviNextBtn');
+    const aviPrevBtn = document.getElementById('aviPrevBtn');
     var aviHistory = []; // stack of previously played tracks, most recent at end
 
     // Fisher-Yates shuffle
@@ -211,6 +212,16 @@ document.addEventListener('DOMContentLoaded', function() {
             shuffled[j] = temp;
         }
         return shuffled;
+    }
+
+    var aviShuffleQueue = []; // pre-shuffled queue — every track plays before any repeat
+
+    function refillShuffleQueue() {
+        aviShuffleQueue = shuffleArray(favoriteTracks);
+        // Don't start with the same track we just finished
+        if (aviShuffleQueue.length > 1 && aviShuffleQueue[0] === currentAviTrack) {
+            aviShuffleQueue.push(aviShuffleQueue.shift());
+        }
     }
 
     function selectRandomAvatarTrack() {
@@ -231,14 +242,12 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Pick a random track that isn't the current one
-        let nextTrack;
-        do {
-            const randomIndex = Math.floor(Math.random() * favoriteTracks.length);
-            nextTrack = favoriteTracks[randomIndex];
-        } while (nextTrack === currentAviTrack);
+        // Refill queue if empty (entire catalog has played through)
+        if (aviShuffleQueue.length === 0) {
+            refillShuffleQueue();
+        }
 
-        currentAviTrack = nextTrack;
+        currentAviTrack = aviShuffleQueue.shift();
         audio.src = currentAviTrack;
         audio.load();
         audio.dataset.currentSrc = currentAviTrack;
@@ -267,12 +276,18 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function showAviNextButton() {
-        if (!aviNextBtn || !aviIsPlaying) return;
+        if (!aviIsPlaying) return;
 
-        aviNextBtn.classList.add('show');
-        // Force reflow before adding visible class
-        void aviNextBtn.offsetWidth;
-        aviNextBtn.classList.add('visible');
+        if (aviNextBtn) {
+            aviNextBtn.classList.add('show');
+            void aviNextBtn.offsetWidth;
+            aviNextBtn.classList.add('visible');
+        }
+        if (aviPrevBtn) {
+            aviPrevBtn.classList.add('show');
+            void aviPrevBtn.offsetWidth;
+            aviPrevBtn.classList.add('visible');
+        }
 
         // Clear existing timeout
         if (aviNextBtnTimeout) {
@@ -281,25 +296,31 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Hide after 4 seconds (unless hovering)
         aviNextBtnTimeout = setTimeout(function() {
-            // Don't hide if user is hovering over the button
             if (!aviNextBtnHovering) {
-                aviNextBtn.classList.remove('visible');
-                setTimeout(function() {
-                    aviNextBtn.classList.remove('show');
-                }, 300); // Wait for fade transition
+                if (aviNextBtn) {
+                    aviNextBtn.classList.remove('visible');
+                    setTimeout(function() { aviNextBtn.classList.remove('show'); }, 300);
+                }
+                if (aviPrevBtn) {
+                    aviPrevBtn.classList.remove('visible');
+                    setTimeout(function() { aviPrevBtn.classList.remove('show'); }, 300);
+                }
             }
         }, 4000);
     }
 
     function hideAviNextButton() {
-        if (!aviNextBtn) return;
         if (aviNextBtnTimeout) {
             clearTimeout(aviNextBtnTimeout);
         }
-        aviNextBtn.classList.remove('visible');
-        setTimeout(function() {
-            aviNextBtn.classList.remove('show');
-        }, 300);
+        if (aviNextBtn) {
+            aviNextBtn.classList.remove('visible');
+            setTimeout(function() { aviNextBtn.classList.remove('show'); }, 300);
+        }
+        if (aviPrevBtn) {
+            aviPrevBtn.classList.remove('visible');
+            setTimeout(function() { aviPrevBtn.classList.remove('show'); }, 300);
+        }
     }
 
     function playNextAviTrack() {
@@ -399,6 +420,25 @@ document.addEventListener('DOMContentLoaded', function() {
         aviNextBtn.addEventListener('mouseleave', function() {
             aviNextBtnHovering = false;
             // Restart fade timer when mouse leaves
+            showAviNextButton();
+        });
+    }
+
+    // Prev track button click handler
+    if (aviPrevBtn) {
+        aviPrevBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (aviIsPlaying) {
+                playPrevAviTrack();
+            }
+        });
+
+        aviPrevBtn.addEventListener('mouseenter', function() {
+            aviNextBtnHovering = true;
+        });
+
+        aviPrevBtn.addEventListener('mouseleave', function() {
+            aviNextBtnHovering = false;
             showAviNextButton();
         });
     }

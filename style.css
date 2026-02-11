@@ -603,6 +603,48 @@ body.dark-mode .avi-next-btn:hover svg {
     color: rgba(255, 255, 255, 0.9);
 }
 
+/* ── Avatar Prev Track Button ── */
+.avi-prev-btn {
+    display: none;
+    position: relative;
+    margin-left: 8px;
+    padding: 4px 6px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    vertical-align: middle;
+}
+
+.avi-prev-btn.visible {
+    opacity: 1;
+}
+
+.avi-prev-btn.show {
+    display: inline-block;
+}
+
+.avi-prev-btn svg {
+    width: 16px;
+    height: 16px;
+    color: rgba(0, 0, 0, 0.5);
+}
+
+html.dark-mode .avi-prev-btn svg,
+body.dark-mode .avi-prev-btn svg {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.avi-prev-btn:hover svg {
+    color: rgba(0, 0, 0, 0.8);
+}
+
+html.dark-mode .avi-prev-btn:hover svg,
+body.dark-mode .avi-prev-btn:hover svg {
+    color: rgba(255, 255, 255, 0.9);
+}
+
 /* ── Link Preview Whispers ── */
 .link-preview {
     position: fixed;
