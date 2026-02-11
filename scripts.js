@@ -200,8 +200,6 @@ document.addEventListener('DOMContentLoaded', function() {
     let aviNextBtnHovering = false;
     const aviNextBtn = document.getElementById('aviNextBtn');
     const aviPrevBtn = document.getElementById('aviPrevBtn');
-    var aviHistory = []; // stack of previously played tracks, most recent at end
-
     // Fisher-Yates shuffle
     function shuffleArray(array) {
         const shuffled = array.slice();
@@ -214,62 +212,66 @@ document.addEventListener('DOMContentLoaded', function() {
         return shuffled;
     }
 
-    var aviShuffleQueue = []; // pre-shuffled queue — every track plays before any repeat
+    // Single shuffled playlist with a cursor — never reshuffles mid-session.
+    // Going next advances the cursor, going prev decrements it.
+    // Only initialised once on first load; refreshing the page gives a new shuffle.
+    var aviPlaylist = [];   // shuffled once on load
+    var aviCursor = -1;     // index of currently playing track in aviPlaylist
 
-    function refillShuffleQueue() {
-        aviShuffleQueue = shuffleArray(favoriteTracks);
-        // Don't start with the same track we just finished
-        if (aviShuffleQueue.length > 1 && aviShuffleQueue[0] === currentAviTrack) {
-            aviShuffleQueue.push(aviShuffleQueue.shift());
-        }
+    function initAviPlaylist() {
+        aviPlaylist = shuffleArray(favoriteTracks);
+        aviCursor = -1; // will be incremented to 0 on first selectRandomAvatarTrack call
     }
 
     function selectRandomAvatarTrack() {
         if (favoriteTracks.length === 0) return;
 
-        // Push current track to history before switching
-        if (currentAviTrack) {
-            aviHistory.push(currentAviTrack);
-            if (aviHistory.length > 50) aviHistory.shift(); // cap history
+        // If playlist hasn't been built yet, build it now
+        if (aviPlaylist.length === 0) {
+            initAviPlaylist();
         }
 
-        // If only one track, no choice but to replay
-        if (favoriteTracks.length === 1) {
-            currentAviTrack = favoriteTracks[0];
-            audio.src = currentAviTrack;
-            audio.load();
-            audio.dataset.currentSrc = currentAviTrack;
-            return;
+        // Advance cursor; wrap around to start of a fresh shuffle when exhausted
+        aviCursor++;
+        if (aviCursor >= aviPlaylist.length) {
+            var lastTrack = aviPlaylist[aviPlaylist.length - 1];
+            aviPlaylist = shuffleArray(favoriteTracks);
+            // Avoid repeating the last track at the seam between cycles
+            if (aviPlaylist.length > 1 && aviPlaylist[0] === lastTrack) {
+                aviPlaylist.push(aviPlaylist.shift());
+            }
+            aviCursor = 0;
         }
 
-        // Refill queue if empty (entire catalog has played through)
-        if (aviShuffleQueue.length === 0) {
-            refillShuffleQueue();
-        }
-
-        currentAviTrack = aviShuffleQueue.shift();
+        currentAviTrack = aviPlaylist[aviCursor];
         audio.src = currentAviTrack;
         audio.load();
         audio.dataset.currentSrc = currentAviTrack;
     }
 
     function playPrevAviTrack() {
-        if (aviHistory.length === 0) {
-            // No history — just rewind current track
+        if (aviPlaylist.length === 0) return;
+
+        if (aviCursor <= 0) {
+            // Already at the start — just rewind
             audio.currentTime = 0;
             return;
         }
+
         // Nod animation
         avi.classList.remove('nod');
         void avi.offsetWidth;
         avi.classList.add('nod');
         setTimeout(function() { avi.classList.remove('nod'); }, 400);
 
-        currentAviTrack = aviHistory.pop();
+        // Step back in the same playlist — no reshuffle
+        aviCursor--;
+        currentAviTrack = aviPlaylist[aviCursor];
         audio.src = currentAviTrack;
         audio.dataset.currentSrc = currentAviTrack;
         audio.play().then(function() {
             aviUpdateCarousel();
+            showAviNextButton();
         }).catch(function(err) {
             console.error('Prev avi track error:', err);
         });
