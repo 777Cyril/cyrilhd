@@ -33,12 +33,14 @@ function sanitizeFilename(name) {
 }
 
 async function getYouTubeStream(url) {
-    // yt-dlp handles all bot detection and generates a signed CDN URL
+    // Use tv_embedded player client to bypass bot detection on datacenter IPs
     const info = await youtubedl(url, {
         dumpSingleJson: true,
         noCheckCertificates: true,
         noWarnings: true,
         format: 'bestaudio/best',
+        extractorArgs: 'youtube:player_client=tv_embedded',
+        noPlaylist: true,
     });
 
     if (!info || !info.url) {
