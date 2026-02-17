@@ -1,4 +1,4 @@
-const { Innertube } = require('youtubei.js');
+const youtubedl = require('youtube-dl-exec');
 const ffmpeg = require('fluent-ffmpeg');
 const ffmpegStatic = require('ffmpeg-static');
 const { Readable } = require('stream');
@@ -20,11 +20,6 @@ function isSoundCloud(url) {
     return /soundcloud\.com\//.test(url);
 }
 
-function extractYouTubeId(url) {
-    const m = url.match(/(?:youtube\.com\/watch\?(?:.*&)?v=|youtu\.be\/)([^&?#\s]+)/);
-    return m ? m[1] : null;
-}
-
 function sanitizeFilename(name) {
     return (name || 'download')
         .replace(/[<>:"/\\|?*\x00-\x1f]/g, '')
@@ -34,22 +29,19 @@ function sanitizeFilename(name) {
 }
 
 async function getYouTubeStream(url) {
-    const videoId = extractYouTubeId(url);
-    if (!videoId) throw new Error('Could not parse YouTube video ID from URL');
-
-    const yt = await Innertube.create({ generate_session_locally: true });
-    const info = await yt.getBasicInfo(videoId);
-    const title = info.basic_info.title || 'youtube-track';
-
-    // download() returns a web ReadableStream<Uint8Array>
-    const webStream = await yt.download(videoId, {
-        type: 'audio',
-        quality: 'best',
-        format: 'any',
+    // yt-dlp handles all bot detection and generates a signed CDN URL
+    const info = await youtubedl(url, {
+        dumpSingleJson: true,
+        noCheckCertificates: true,
+        noWarnings: true,
+        format: 'bestaudio/best',
     });
 
-    const nodeStream = Readable.fromWeb(webStream);
-    return { stream: nodeStream, title };
+    if (!info || !info.url) {
+        throw new Error('yt-dlp could not extract an audio URL for this video');
+    }
+
+    return { directUrl: info.url, title: info.title || 'youtube-track' };
 }
 
 async function getSoundCloudStream(url) {
@@ -73,55 +65,37 @@ async function getSoundCloudStream(url) {
     const track = await resolveRes.json();
     const title = track.title || 'soundcloud-track';
 
-    // Prefer progressive MP3 (no re-encoding needed, fastest)
     let streamUrl = null;
     if (track.media && Array.isArray(track.media.transcodings)) {
+        // Prefer progressive MP3
         const progressive = track.media.transcodings.find(
             (t) => t.format.protocol === 'progressive' && t.format.mime_type === 'audio/mpeg'
         );
         if (progressive) {
-            const streamRes = await fetch(
-                `${progressive.url}?client_id=${clientId}`,
-                { headers: SC_HEADERS }
-            );
-            if (streamRes.ok) {
-                const data = await streamRes.json();
-                streamUrl = data.url;
-            }
+            const r = await fetch(`${progressive.url}?client_id=${clientId}`, { headers: SC_HEADERS });
+            if (r.ok) streamUrl = (await r.json()).url;
         }
 
-        // Fallback: any progressive stream
+        // Fallback: any progressive format
         if (!streamUrl) {
-            const anyProgressive = track.media.transcodings.find(
-                (t) => t.format.protocol === 'progressive'
-            );
-            if (anyProgressive) {
-                const streamRes = await fetch(
-                    `${anyProgressive.url}?client_id=${clientId}`,
-                    { headers: SC_HEADERS }
-                );
-                if (streamRes.ok) {
-                    const data = await streamRes.json();
-                    streamUrl = data.url;
-                }
+            const any = track.media.transcodings.find((t) => t.format.protocol === 'progressive');
+            if (any) {
+                const r = await fetch(`${any.url}?client_id=${clientId}`, { headers: SC_HEADERS });
+                if (r.ok) streamUrl = (await r.json()).url;
             }
         }
     }
 
-    // Last resort: download_url (only for tracks that allow direct download)
     if (!streamUrl && track.download_url) {
         streamUrl = `${track.download_url}?client_id=${clientId}`;
     }
 
-    if (!streamUrl) {
-        throw new Error('No streamable format found for this SoundCloud track');
-    }
+    if (!streamUrl) throw new Error('No streamable format found for this SoundCloud track');
 
     const audioRes = await fetch(streamUrl, { headers: SC_HEADERS });
     if (!audioRes.ok) throw new Error(`Failed to fetch SoundCloud audio (${audioRes.status})`);
 
-    const nodeStream = Readable.fromWeb(audioRes.body);
-    return { stream: nodeStream, title };
+    return { nodeStream: Readable.fromWeb(audioRes.body), title };
 }
 
 module.exports = async function handler(req, res) {
@@ -132,12 +106,16 @@ module.exports = async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
 
     try {
-        let stream, title;
+        let ffmpegInput, title;
 
         if (isYouTube(url)) {
-            ({ stream, title } = await getYouTubeStream(url));
+            const { directUrl, title: t } = await getYouTubeStream(url);
+            ffmpegInput = directUrl; // ffmpeg fetches the CDN URL directly
+            title = t;
         } else if (isSoundCloud(url)) {
-            ({ stream, title } = await getSoundCloudStream(url));
+            const { nodeStream, title: t } = await getSoundCloudStream(url);
+            ffmpegInput = nodeStream;
+            title = t;
         } else {
             return res.status(400).json({ error: 'Only YouTube and SoundCloud URLs are supported' });
         }
@@ -148,7 +126,7 @@ module.exports = async function handler(req, res) {
         res.setHeader('Cache-Control', 'no-cache');
 
         await new Promise((resolve, reject) => {
-            ffmpeg(stream)
+            ffmpeg(ffmpegInput)
                 .audioBitrate(320)
                 .audioCodec('libmp3lame')
                 .format('mp3')
