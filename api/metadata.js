@@ -42,6 +42,7 @@ module.exports = async function handler(req, res) {
                 noCheckCertificates: true,
                 noWarnings: true,
                 skipDownload: true,
+                extractorArgs: 'youtube:player_client=web,mweb,mediaconnect',
             });
 
             metadata = {

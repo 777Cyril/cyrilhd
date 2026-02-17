@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 // Downloads the yt-dlp standalone Linux binary (no Python required).
 // Runs automatically via `postinstall` so Vercel has it during build.
+// Always downloads a fresh copy — YouTube changes constantly and stale
+// yt-dlp versions break within weeks.
 
 const https = require('https');
 const http = require('http');
@@ -33,12 +35,9 @@ function download(url, dest, hops = 0) {
 
 if (!fs.existsSync(BIN_DIR)) fs.mkdirSync(BIN_DIR, { recursive: true });
 
-if (fs.existsSync(BIN_PATH)) {
-    console.log('yt-dlp standalone binary already present, skipping download.');
-    process.exit(0);
-}
-
-console.log('Downloading yt-dlp standalone Linux binary (no Python required)...');
+// Always download fresh — yt-dlp breaks quickly when outdated because YouTube
+// constantly changes its API. Skipping the download risks running a stale binary.
+console.log('Downloading latest yt-dlp standalone Linux binary...');
 download(DOWNLOAD_URL, BIN_PATH)
     .then(() => {
         fs.chmodSync(BIN_PATH, 0o755);
