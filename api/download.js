@@ -69,24 +69,39 @@ async function getSoundCloudStream(url) {
     const track = await resolveRes.json();
     const title = track.title || 'soundcloud-track';
 
+    // Resolve a transcoding URL → direct stream/playlist URL
+    async function resolveTranscoding(t) {
+        const r = await fetch(`${t.url}?client_id=${clientId}`, { headers: SC_HEADERS });
+        if (!r.ok) return null;
+        return (await r.json()).url || null;
+    }
+
     let streamUrl = null;
+    let isHls = false;
+
     if (track.media && Array.isArray(track.media.transcodings)) {
-        // Prefer progressive MP3
-        const progressive = track.media.transcodings.find(
-            (t) => t.format.protocol === 'progressive' && t.format.mime_type === 'audio/mpeg'
-        );
-        if (progressive) {
-            const r = await fetch(`${progressive.url}?client_id=${clientId}`, { headers: SC_HEADERS });
-            if (r.ok) streamUrl = (await r.json()).url;
+        const tc = track.media.transcodings;
+
+        // 1. Progressive MP3 (best: single file, no playlist handling needed)
+        const progMp3 = tc.find((t) => t.format.protocol === 'progressive' && t.format.mime_type === 'audio/mpeg');
+        if (progMp3) streamUrl = await resolveTranscoding(progMp3);
+
+        // 2. Any progressive format
+        if (!streamUrl) {
+            const progAny = tc.find((t) => t.format.protocol === 'progressive');
+            if (progAny) streamUrl = await resolveTranscoding(progAny);
         }
 
-        // Fallback: any progressive format
+        // 3. HLS MP3 (ffmpeg handles m3u8 natively)
         if (!streamUrl) {
-            const any = track.media.transcodings.find((t) => t.format.protocol === 'progressive');
-            if (any) {
-                const r = await fetch(`${any.url}?client_id=${clientId}`, { headers: SC_HEADERS });
-                if (r.ok) streamUrl = (await r.json()).url;
-            }
+            const hlsMp3 = tc.find((t) => t.format.protocol === 'hls' && t.format.mime_type === 'audio/mpeg');
+            if (hlsMp3) { streamUrl = await resolveTranscoding(hlsMp3); isHls = true; }
+        }
+
+        // 4. Any HLS format
+        if (!streamUrl) {
+            const hlsAny = tc.find((t) => t.format.protocol === 'hls');
+            if (hlsAny) { streamUrl = await resolveTranscoding(hlsAny); isHls = true; }
         }
     }
 
@@ -95,6 +110,11 @@ async function getSoundCloudStream(url) {
     }
 
     if (!streamUrl) throw new Error('No streamable format found for this SoundCloud track');
+
+    if (isHls) {
+        // ffmpeg reads the HLS playlist URL directly — no need to fetch it ourselves
+        return { hlsUrl: streamUrl, title };
+    }
 
     const audioRes = await fetch(streamUrl, { headers: SC_HEADERS });
     if (!audioRes.ok) throw new Error(`Failed to fetch SoundCloud audio (${audioRes.status})`);
@@ -114,12 +134,13 @@ module.exports = async function handler(req, res) {
 
         if (isYouTube(url)) {
             const { directUrl, title: t } = await getYouTubeStream(url);
-            ffmpegInput = directUrl; // ffmpeg fetches the CDN URL directly
+            ffmpegInput = directUrl;
             title = t;
         } else if (isSoundCloud(url)) {
-            const { nodeStream, title: t } = await getSoundCloudStream(url);
-            ffmpegInput = nodeStream;
-            title = t;
+            const result = await getSoundCloudStream(url);
+            // Progressive: result.nodeStream  |  HLS: result.hlsUrl (ffmpeg reads m3u8 directly)
+            ffmpegInput = result.nodeStream || result.hlsUrl;
+            title = result.title;
         } else {
             return res.status(400).json({ error: 'Only YouTube and SoundCloud URLs are supported' });
         }
