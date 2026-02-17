@@ -1,4 +1,4 @@
-const { Innertube } = require('youtubei.js');
+const youtubedl = require('youtube-dl-exec');
 
 const SC_HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -13,11 +13,6 @@ function isYouTube(url) {
 
 function isSoundCloud(url) {
     return /soundcloud\.com\//.test(url);
-}
-
-function extractYouTubeId(url) {
-    const m = url.match(/(?:youtube\.com\/watch\?(?:.*&)?v=|youtu\.be\/)([^&?#\s]+)/);
-    return m ? m[1] : null;
 }
 
 function formatDuration(seconds) {
@@ -38,17 +33,17 @@ module.exports = async function handler(req, res) {
         let metadata;
 
         if (isYouTube(url)) {
-            const videoId = extractYouTubeId(url);
-            if (!videoId) return res.status(400).json({ error: 'Could not parse YouTube video ID' });
-
-            const yt = await Innertube.create({ generate_session_locally: true });
-            const info = await yt.getBasicInfo(videoId);
-            const b = info.basic_info;
+            const info = await youtubedl(url, {
+                dumpSingleJson: true,
+                noCheckCertificates: true,
+                noWarnings: true,
+                skipDownload: true,
+            });
 
             metadata = {
-                title: b.title || 'Unknown',
-                duration: formatDuration(b.duration || 0),
-                thumbnail: b.thumbnail?.[0]?.url || null,
+                title: info.title || 'Unknown',
+                duration: formatDuration(info.duration || 0),
+                thumbnail: info.thumbnail || null,
                 platform: 'youtube',
             };
         } else if (isSoundCloud(url)) {
