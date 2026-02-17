@@ -28,6 +28,18 @@ function formatDuration(seconds) {
 module.exports = async function handler(req, res) {
     const { url } = req.query;
 
+    // Debug endpoint: GET /api/metadata?debug=cookies — check if env var is reaching the function
+    if (req.query.debug === 'cookies') {
+        const raw = process.env.YOUTUBE_COOKIES || '';
+        return res.json({
+            exists: !!process.env.YOUTUBE_COOKIES,
+            length: raw.length,
+            hasNetscapeHeader: raw.includes('Netscape') || raw.includes('HTTP Cookie'),
+            lineCount: raw.split(/\\n|\n/).filter(Boolean).length,
+            firstChars: raw.substring(0, 80) + '...',
+        });
+    }
+
     if (!url) return res.status(400).json({ error: 'Missing url parameter' });
 
     res.setHeader('Access-Control-Allow-Origin', '*');

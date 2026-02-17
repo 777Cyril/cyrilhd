@@ -34,6 +34,29 @@ function sanitizeFilename(name) {
         .substring(0, 100) || 'download';
 }
 
+/**
+ * Build a Netscape cookie file from the env var.
+ * Vercel env vars can mangle newlines (literal \n instead of real newlines)
+ * and may strip the required header line. This normalises everything.
+ */
+function writeCookieFile() {
+    let raw = process.env.YOUTUBE_COOKIES;
+    if (!raw) return null;
+
+    // Vercel sometimes stores \n as literal two-char backslash-n — restore real newlines
+    raw = raw.replace(/\\n/g, '\n').trim();
+
+    // Ensure the Netscape header line is present (yt-dlp requires it)
+    if (!raw.startsWith('# Netscape HTTP Cookie File') && !raw.startsWith('# HTTP Cookie File')) {
+        raw = '# Netscape HTTP Cookie File\n# https://curl.haxx.se/rfc/cookie_spec.html\n# This is a generated file!  Do not edit.\n\n' + raw;
+    }
+
+    const cookiesFile = path.join(os.tmpdir(), `yt-cookies-${Date.now()}-${Math.random().toString(36).slice(2)}.txt`);
+    fs.writeFileSync(cookiesFile, raw);
+    console.log(`[yt] Wrote cookies file (${raw.length} bytes, ${raw.split('\n').filter(l => l && !l.startsWith('#')).length} cookie lines)`);
+    return cookiesFile;
+}
+
 async function getYouTubeStream(url) {
     const options = {
         dumpSingleJson: true,
@@ -41,19 +64,16 @@ async function getYouTubeStream(url) {
         noWarnings: true,
         format: 'bestaudio[ext=m4a]/bestaudio[ext=webm]/bestaudio/best',
         noPlaylist: true,
-        // Try multiple player clients — YouTube frequently restricts individual ones.
-        // 'web' is the standard browser client; 'mweb' is mobile web (good fallback);
-        // 'mediaconnect' is another option that sometimes works when others don't.
         extractorArgs: 'youtube:player_client=web,mweb,mediaconnect',
     };
 
     // If YouTube cookies are provided, write to a temp file and pass to yt-dlp.
     // This is the only reliable way to bypass bot detection on datacenter IPs.
-    let cookiesFile = null;
-    if (process.env.YOUTUBE_COOKIES) {
-        cookiesFile = path.join(os.tmpdir(), `yt-cookies-${Date.now()}-${Math.random().toString(36).slice(2)}.txt`);
-        fs.writeFileSync(cookiesFile, process.env.YOUTUBE_COOKIES);
+    let cookiesFile = writeCookieFile();
+    if (cookiesFile) {
         options.cookies = cookiesFile;
+    } else {
+        console.warn('[yt] YOUTUBE_COOKIES env var is not set — bot detection will likely block this request');
     }
 
     try {
