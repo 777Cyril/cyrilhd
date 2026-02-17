@@ -1,5 +1,8 @@
 {
   "private": true,
+  "scripts": {
+    "postinstall": "node scripts/download-ytdlp.js"
+  },
   "dependencies": {
     "youtube-dl-exec": "^3.0.11",
     "ffmpeg-static": "^5.2.0",

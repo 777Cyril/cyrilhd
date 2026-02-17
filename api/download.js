@@ -1,7 +1,11 @@
-const youtubedl = require('youtube-dl-exec');
+const path = require('path');
+const { create: createYtDlp } = require('youtube-dl-exec');
 const ffmpeg = require('fluent-ffmpeg');
 const ffmpegStatic = require('ffmpeg-static');
 const { Readable } = require('stream');
+
+// Use the standalone Linux binary (no Python needed) downloaded by postinstall
+const youtubedl = createYtDlp(path.join(__dirname, '..', 'bin', 'yt-dlp'));
 
 ffmpeg.setFfmpegPath(ffmpegStatic);
 
