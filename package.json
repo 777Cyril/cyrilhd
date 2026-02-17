@@ -1,0 +1,8 @@
+{
+  "private": true,
+  "dependencies": {
+    "@distube/ytdl-core": "^4.16.8",
+    "ffmpeg-static": "^5.2.0",
+    "fluent-ffmpeg": "^2.1.3"
+  }
+}

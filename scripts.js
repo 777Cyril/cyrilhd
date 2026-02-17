@@ -1092,6 +1092,121 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // ── MP3 Downloader Panel ──
+    (function() {
+        var mp3Panel = document.getElementById('mp3Panel');
+        var mp3UrlInput = document.getElementById('mp3Url');
+        var mp3ConvertBtn = document.getElementById('mp3ConvertBtn');
+        var mp3Status = document.getElementById('mp3Status');
+
+        if (!mp3Panel) return;
+
+        function showPanel() {
+            mp3Panel.classList.add('active');
+            mp3Panel.setAttribute('aria-hidden', 'false');
+            // Focus input after slide-in animation
+            setTimeout(function() {
+                if (mp3UrlInput) mp3UrlInput.focus();
+            }, 450);
+        }
+
+        function hidePanel() {
+            mp3Panel.classList.remove('active');
+            mp3Panel.setAttribute('aria-hidden', 'true');
+        }
+
+        // Expose toggle for the keystroke pattern listener
+        window._toggleMp3Panel = function() {
+            if (mp3Panel.classList.contains('active')) {
+                hidePanel();
+            } else {
+                showPanel();
+            }
+        };
+
+        // Close on Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && mp3Panel.classList.contains('active')) {
+                hidePanel();
+            }
+        });
+
+        // Close when clicking outside the panel
+        document.addEventListener('click', function(e) {
+            if (mp3Panel.classList.contains('active') && !e.target.closest('#mp3Panel')) {
+                hidePanel();
+            }
+        });
+
+        function setStatus(msg, isError) {
+            if (!mp3Status) return;
+            mp3Status.textContent = msg;
+            mp3Status.classList.toggle('error', !!isError);
+        }
+
+        function triggerDownload(url) {
+            var a = document.createElement('a');
+            a.href = '/api/download?url=' + encodeURIComponent(url);
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function startConversion(url) {
+            if (mp3ConvertBtn) mp3ConvertBtn.disabled = true;
+            setStatus('fetching info...', false);
+
+            fetch('/api/metadata?url=' + encodeURIComponent(url))
+                .then(function(res) {
+                    if (!res.ok) {
+                        return res.json().then(function(d) { throw new Error(d.error || 'Not found'); });
+                    }
+                    return res.json();
+                })
+                .then(function(meta) {
+                    var label = meta.title ? meta.title : 'downloading...';
+                    setStatus(label, false);
+                    triggerDownload(url);
+                    setTimeout(function() {
+                        if (mp3ConvertBtn) mp3ConvertBtn.disabled = false;
+                        setStatus('', false);
+                    }, 4000);
+                })
+                .catch(function(err) {
+                    // Metadata fetch failed — still attempt the download
+                    setStatus('downloading...', false);
+                    triggerDownload(url);
+                    setTimeout(function() {
+                        if (mp3ConvertBtn) mp3ConvertBtn.disabled = false;
+                        setStatus('', false);
+                    }, 4000);
+                });
+        }
+
+        function handleConvert() {
+            var url = mp3UrlInput ? mp3UrlInput.value.trim() : '';
+            if (!url) {
+                setStatus('paste a url first', false);
+                return;
+            }
+            startConversion(url);
+        }
+
+        if (mp3ConvertBtn) {
+            mp3ConvertBtn.addEventListener('click', handleConvert);
+        }
+
+        if (mp3UrlInput) {
+            mp3UrlInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleConvert();
+                }
+            });
+        }
+    })();
+
     (function() {
         var keyBuffer = '';
         var cooldownActive = false;
@@ -1099,7 +1214,8 @@ document.addEventListener('DOMContentLoaded', function() {
         var BUFFER_MAX = 10;
 
         var patterns = {
-            'brr': triggerBrr
+            'brr': triggerBrr,
+            'mp3': function() { if (typeof window._toggleMp3Panel === 'function') window._toggleMp3Panel(); }
         };
 
         document.addEventListener('keydown', function(e) {

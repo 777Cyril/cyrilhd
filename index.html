@@ -166,6 +166,23 @@
         </div>
     </div>
 
+    <!-- MP3 Downloader (type "mp3" anywhere to open) -->
+    <div class="mp3-panel" id="mp3Panel" aria-hidden="true">
+        <div class="mp3-panel-inner">
+            <p class="mp3-panel-title">download mp3</p>
+            <input
+                type="url"
+                id="mp3Url"
+                class="mp3-url-input"
+                placeholder="youtube or soundcloud url"
+                autocomplete="off"
+                spellcheck="false"
+            />
+            <button class="mp3-convert-btn" id="mp3ConvertBtn">convert</button>
+            <div class="mp3-status" id="mp3Status"></div>
+        </div>
+    </div>
+
     <script>
         window.LLM_VIZ_ASSET_BASE = '/llm-viz';
         window.LLM_VIZ_AUTO_ROTATE = true;
