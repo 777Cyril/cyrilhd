@@ -1,3 +1,5 @@
+const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const { create: createYtDlp } = require('youtube-dl-exec');
 const ffmpeg = require('fluent-ffmpeg');
@@ -33,21 +35,35 @@ function sanitizeFilename(name) {
 }
 
 async function getYouTubeStream(url) {
-    // Use tv_embedded player client to bypass bot detection on datacenter IPs
-    const info = await youtubedl(url, {
+    const options = {
         dumpSingleJson: true,
         noCheckCertificates: true,
         noWarnings: true,
         format: 'bestaudio/best',
-        extractorArgs: 'youtube:player_client=tv_embedded',
         noPlaylist: true,
-    });
+        extractorArgs: 'youtube:player_client=tv_embedded',
+    };
 
-    if (!info || !info.url) {
-        throw new Error('yt-dlp could not extract an audio URL for this video');
+    // If YouTube cookies are provided, write to a temp file and pass to yt-dlp.
+    // This is the only reliable way to bypass bot detection on datacenter IPs.
+    let cookiesFile = null;
+    if (process.env.YOUTUBE_COOKIES) {
+        cookiesFile = path.join(os.tmpdir(), `yt-cookies-${Date.now()}-${Math.random().toString(36).slice(2)}.txt`);
+        fs.writeFileSync(cookiesFile, process.env.YOUTUBE_COOKIES);
+        options.cookies = cookiesFile;
     }
 
-    return { directUrl: info.url, title: info.title || 'youtube-track' };
+    try {
+        const info = await youtubedl(url, options);
+        if (!info || !info.url) {
+            throw new Error('yt-dlp could not extract an audio URL for this video');
+        }
+        return { directUrl: info.url, title: info.title || 'youtube-track' };
+    } finally {
+        if (cookiesFile) {
+            try { fs.unlinkSync(cookiesFile); } catch (_) {}
+        }
+    }
 }
 
 async function getSoundCloudStream(url) {
