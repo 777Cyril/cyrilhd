@@ -1,4 +1,11 @@
-const ytdl = require('@distube/ytdl-core');
+const { Innertube } = require('youtubei.js');
+
+const SC_HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Accept': 'application/json, text/plain, */*',
+    'Referer': 'https://soundcloud.com/',
+    'Origin': 'https://soundcloud.com',
+};
 
 function isYouTube(url) {
     return /youtube\.com\/|youtu\.be\//.test(url);
@@ -6,6 +13,11 @@ function isYouTube(url) {
 
 function isSoundCloud(url) {
     return /soundcloud\.com\//.test(url);
+}
+
+function extractYouTubeId(url) {
+    const m = url.match(/(?:youtube\.com\/watch\?(?:.*&)?v=|youtu\.be\/)([^&?#\s]+)/);
+    return m ? m[1] : null;
 }
 
 function formatDuration(seconds) {
@@ -17,9 +29,7 @@ function formatDuration(seconds) {
 module.exports = async function handler(req, res) {
     const { url } = req.query;
 
-    if (!url) {
-        return res.status(400).json({ error: 'Missing url parameter' });
-    }
+    if (!url) return res.status(400).json({ error: 'Missing url parameter' });
 
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Cache-Control', 'no-cache');
@@ -28,33 +38,40 @@ module.exports = async function handler(req, res) {
         let metadata;
 
         if (isYouTube(url)) {
-            if (!ytdl.validateURL(url)) {
-                return res.status(400).json({ error: 'Invalid YouTube URL' });
-            }
-            const info = await ytdl.getInfo(url);
-            const d = info.videoDetails;
-            const durationSecs = parseInt(d.lengthSeconds, 10);
+            const videoId = extractYouTubeId(url);
+            if (!videoId) return res.status(400).json({ error: 'Could not parse YouTube video ID' });
+
+            const yt = await Innertube.create({ generate_session_locally: true });
+            const info = await yt.getBasicInfo(videoId);
+            const b = info.basic_info;
+
             metadata = {
-                title: d.title,
-                duration: formatDuration(durationSecs),
-                thumbnail: d.thumbnails?.[d.thumbnails.length - 1]?.url || null,
+                title: b.title || 'Unknown',
+                duration: formatDuration(b.duration || 0),
+                thumbnail: b.thumbnail?.[0]?.url || null,
                 platform: 'youtube',
             };
         } else if (isSoundCloud(url)) {
             const clientId = process.env.SOUNDCLOUD_CLIENT_ID;
-            if (!clientId) {
-                return res.status(503).json({ error: 'SoundCloud is not configured' });
-            }
+            if (!clientId) return res.status(503).json({ error: 'SoundCloud is not configured' });
+
             const resolveRes = await fetch(
-                `https://api.soundcloud.com/resolve?url=${encodeURIComponent(url)}&client_id=${clientId}`
+                `https://api-v2.soundcloud.com/resolve?url=${encodeURIComponent(url)}&client_id=${clientId}`,
+                { headers: SC_HEADERS }
             );
+
             if (!resolveRes.ok) {
-                return res.status(404).json({ error: 'SoundCloud track not found or private' });
+                const status = resolveRes.status;
+                if (status === 401 || status === 403) return res.status(401).json({ error: 'SoundCloud client ID is invalid or expired' });
+                if (status === 404) return res.status(404).json({ error: 'SoundCloud track not found' });
+                return res.status(status).json({ error: `SoundCloud API error (${status})` });
             }
+
             const track = await resolveRes.json();
             const durationSecs = Math.floor((track.duration || 0) / 1000);
+
             metadata = {
-                title: track.title || 'Unknown track',
+                title: track.title || 'Unknown',
                 duration: formatDuration(durationSecs),
                 thumbnail: track.artwork_url
                     ? track.artwork_url.replace('-large', '-t500x500')
@@ -62,7 +79,7 @@ module.exports = async function handler(req, res) {
                 platform: 'soundcloud',
             };
         } else {
-            return res.status(400).json({ error: 'Unsupported URL. Only YouTube and SoundCloud links are supported.' });
+            return res.status(400).json({ error: 'Only YouTube and SoundCloud URLs are supported' });
         }
 
         res.json(metadata);
