@@ -1,19 +1,9 @@
-const path = require('path');
-const { create: createYtDlp } = require('youtube-dl-exec');
-
-// Use the standalone Linux binary (no Python needed) downloaded by postinstall
-const youtubedl = createYtDlp(path.join(__dirname, '..', 'bin', 'yt-dlp'));
-
 const SC_HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     'Accept': 'application/json, text/plain, */*',
     'Referer': 'https://soundcloud.com/',
     'Origin': 'https://soundcloud.com',
 };
-
-function isYouTube(url) {
-    return /youtube\.com\/|youtu\.be\//.test(url);
-}
 
 function isSoundCloud(url) {
     return /soundcloud\.com\//.test(url);
@@ -28,91 +18,42 @@ function formatDuration(seconds) {
 module.exports = async function handler(req, res) {
     const { url } = req.query;
 
-    // Debug endpoint: GET /api/metadata?debug=env — check if env vars are reaching the function
-    if (req.query.debug === 'cookies' || req.query.debug === 'env') {
-        const raw = process.env.YOUTUBE_COOKIES || '';
-        return res.json({
-            cookies: {
-                exists: !!process.env.YOUTUBE_COOKIES,
-                length: raw.length,
-                hasNetscapeHeader: raw.includes('Netscape') || raw.includes('HTTP Cookie'),
-                lineCount: raw.split(/\\n|\n/).filter(Boolean).length,
-                firstChars: raw.substring(0, 80) + '...',
-            },
-            proxy: {
-                exists: !!process.env.YOUTUBE_PROXY,
-                // Show host only, strip credentials
-                value: process.env.YOUTUBE_PROXY
-                    ? process.env.YOUTUBE_PROXY.replace(/\/\/.*@/, '//*:*@')
-                    : null,
-            },
-            poToken: {
-                exists: !!process.env.YOUTUBE_PO_TOKEN,
-                length: (process.env.YOUTUBE_PO_TOKEN || '').length,
-            },
-        });
-    }
-
     if (!url) return res.status(400).json({ error: 'Missing url parameter' });
 
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Cache-Control', 'no-cache');
 
     try {
-        let metadata;
-
-        if (isYouTube(url)) {
-            const ytOpts = {
-                dumpSingleJson: true,
-                noCheckCertificates: true,
-                noWarnings: true,
-                skipDownload: true,
-                extractorArgs: 'youtube:player_client=web,mweb,mediaconnect',
-            };
-            if (process.env.YOUTUBE_PROXY) ytOpts.proxy = process.env.YOUTUBE_PROXY;
-            if (process.env.YOUTUBE_PO_TOKEN) {
-                ytOpts.extractorArgs += `;po_token=web+${process.env.YOUTUBE_PO_TOKEN}`;
-            }
-            const info = await youtubedl(url, ytOpts);
-
-            metadata = {
-                title: info.title || 'Unknown',
-                duration: formatDuration(info.duration || 0),
-                thumbnail: info.thumbnail || null,
-                platform: 'youtube',
-            };
-        } else if (isSoundCloud(url)) {
-            const clientId = process.env.SOUNDCLOUD_CLIENT_ID;
-            if (!clientId) return res.status(503).json({ error: 'SoundCloud is not configured' });
-
-            const resolveRes = await fetch(
-                `https://api-v2.soundcloud.com/resolve?url=${encodeURIComponent(url)}&client_id=${clientId}`,
-                { headers: SC_HEADERS }
-            );
-
-            if (!resolveRes.ok) {
-                const status = resolveRes.status;
-                if (status === 401 || status === 403) return res.status(401).json({ error: 'SoundCloud client ID is invalid or expired' });
-                if (status === 404) return res.status(404).json({ error: 'SoundCloud track not found' });
-                return res.status(status).json({ error: `SoundCloud API error (${status})` });
-            }
-
-            const track = await resolveRes.json();
-            const durationSecs = Math.floor((track.duration || 0) / 1000);
-
-            metadata = {
-                title: track.title || 'Unknown',
-                duration: formatDuration(durationSecs),
-                thumbnail: track.artwork_url
-                    ? track.artwork_url.replace('-large', '-t500x500')
-                    : null,
-                platform: 'soundcloud',
-            };
-        } else {
-            return res.status(400).json({ error: 'Only YouTube and SoundCloud URLs are supported' });
+        if (!isSoundCloud(url)) {
+            return res.status(400).json({ error: 'Only SoundCloud URLs are supported' });
         }
 
-        res.json(metadata);
+        const clientId = process.env.SOUNDCLOUD_CLIENT_ID;
+        if (!clientId) return res.status(503).json({ error: 'SoundCloud is not configured' });
+
+        const resolveRes = await fetch(
+            `https://api-v2.soundcloud.com/resolve?url=${encodeURIComponent(url)}&client_id=${clientId}`,
+            { headers: SC_HEADERS }
+        );
+
+        if (!resolveRes.ok) {
+            const status = resolveRes.status;
+            if (status === 401 || status === 403) return res.status(401).json({ error: 'SoundCloud client ID is invalid or expired' });
+            if (status === 404) return res.status(404).json({ error: 'SoundCloud track not found' });
+            return res.status(status).json({ error: `SoundCloud API error (${status})` });
+        }
+
+        const track = await resolveRes.json();
+        const durationSecs = Math.floor((track.duration || 0) / 1000);
+
+        res.json({
+            title: track.title || 'Unknown',
+            duration: formatDuration(durationSecs),
+            thumbnail: track.artwork_url
+                ? track.artwork_url.replace('-large', '-t500x500')
+                : null,
+            platform: 'soundcloud',
+        });
     } catch (err) {
         console.error('Metadata error:', err.message);
         res.status(500).json({ error: err.message || 'Failed to fetch track info' });

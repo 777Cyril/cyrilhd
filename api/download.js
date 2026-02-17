@@ -1,13 +1,6 @@
-const fs = require('fs');
-const os = require('os');
-const path = require('path');
-const { create: createYtDlp } = require('youtube-dl-exec');
 const ffmpeg = require('fluent-ffmpeg');
 const ffmpegStatic = require('ffmpeg-static');
 const { Readable } = require('stream');
-
-// Use the standalone Linux binary (no Python needed) downloaded by postinstall
-const youtubedl = createYtDlp(path.join(__dirname, '..', 'bin', 'yt-dlp'));
 
 ffmpeg.setFfmpegPath(ffmpegStatic);
 
@@ -17,10 +10,6 @@ const SC_HEADERS = {
     'Referer': 'https://soundcloud.com/',
     'Origin': 'https://soundcloud.com',
 };
-
-function isYouTube(url) {
-    return /youtube\.com\/|youtu\.be\//.test(url);
-}
 
 function isSoundCloud(url) {
     return /soundcloud\.com\//.test(url);
@@ -32,78 +21,6 @@ function sanitizeFilename(name) {
         .replace(/\s+/g, ' ')
         .trim()
         .substring(0, 100) || 'download';
-}
-
-/**
- * Build a Netscape cookie file from the env var.
- * Vercel env vars can mangle newlines (literal \n instead of real newlines)
- * and may strip the required header line. This normalises everything.
- */
-function writeCookieFile() {
-    let raw = process.env.YOUTUBE_COOKIES;
-    if (!raw) return null;
-
-    // Vercel sometimes stores \n as literal two-char backslash-n — restore real newlines
-    raw = raw.replace(/\\n/g, '\n').trim();
-
-    // Ensure the Netscape header line is present (yt-dlp requires it)
-    if (!raw.startsWith('# Netscape HTTP Cookie File') && !raw.startsWith('# HTTP Cookie File')) {
-        raw = '# Netscape HTTP Cookie File\n# https://curl.haxx.se/rfc/cookie_spec.html\n# This is a generated file!  Do not edit.\n\n' + raw;
-    }
-
-    const cookiesFile = path.join(os.tmpdir(), `yt-cookies-${Date.now()}-${Math.random().toString(36).slice(2)}.txt`);
-    fs.writeFileSync(cookiesFile, raw);
-    console.log(`[yt] Wrote cookies file (${raw.length} bytes, ${raw.split('\n').filter(l => l && !l.startsWith('#')).length} cookie lines)`);
-    return cookiesFile;
-}
-
-async function getYouTubeStream(url) {
-    const options = {
-        dumpSingleJson: true,
-        noCheckCertificates: true,
-        noWarnings: true,
-        format: 'bestaudio[ext=m4a]/bestaudio[ext=webm]/bestaudio/best',
-        noPlaylist: true,
-        extractorArgs: 'youtube:player_client=web,mweb,mediaconnect',
-    };
-
-    // Proxy is essential on datacenter IPs (Vercel) — YouTube blocks them even with cookies.
-    // Set YOUTUBE_PROXY to a residential/ISP proxy e.g. socks5://user:pass@host:port
-    if (process.env.YOUTUBE_PROXY) {
-        options.proxy = process.env.YOUTUBE_PROXY;
-        console.log('[yt] Using proxy:', process.env.YOUTUBE_PROXY.replace(/\/\/.*@/, '//*:*@'));
-    }
-
-    // Cookies help with age-restricted / member content and can reduce bot detection.
-    let cookiesFile = writeCookieFile();
-    if (cookiesFile) {
-        options.cookies = cookiesFile;
-    }
-
-    // PO (proof-of-origin) token — generated from a browser session, proves the request
-    // originated from a real browser. Set YOUTUBE_PO_TOKEN in Vercel env vars.
-    // Generate one at: https://github.com/yt-dlp/yt-dlp/wiki/Extractors#po-token-guide
-    if (process.env.YOUTUBE_PO_TOKEN) {
-        // Format: visitor_data:po_token — appended to extractor-args
-        options.extractorArgs += `;po_token=web+${process.env.YOUTUBE_PO_TOKEN}`;
-        console.log('[yt] Using PO token');
-    }
-
-    if (!process.env.YOUTUBE_PROXY && !cookiesFile && !process.env.YOUTUBE_PO_TOKEN) {
-        console.warn('[yt] No proxy, cookies, or PO token set — YouTube will likely block this request from a datacenter IP');
-    }
-
-    try {
-        const info = await youtubedl(url, options);
-        if (!info || !info.url) {
-            throw new Error('yt-dlp could not extract an audio URL for this video');
-        }
-        return { directUrl: info.url, title: info.title || 'youtube-track' };
-    } finally {
-        if (cookiesFile) {
-            try { fs.unlinkSync(cookiesFile); } catch (_) {}
-        }
-    }
 }
 
 async function getSoundCloudStream(url) {
@@ -188,22 +105,14 @@ module.exports = async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
 
     try {
-        let ffmpegInput, title;
-
-        if (isYouTube(url)) {
-            const { directUrl, title: t } = await getYouTubeStream(url);
-            ffmpegInput = directUrl;
-            title = t;
-        } else if (isSoundCloud(url)) {
-            const result = await getSoundCloudStream(url);
-            // Progressive: result.nodeStream  |  HLS: result.hlsUrl (ffmpeg reads m3u8 directly)
-            ffmpegInput = result.nodeStream || result.hlsUrl;
-            title = result.title;
-        } else {
-            return res.status(400).json({ error: 'Only YouTube and SoundCloud URLs are supported' });
+        if (!isSoundCloud(url)) {
+            return res.status(400).json({ error: 'Only SoundCloud URLs are supported' });
         }
 
-        const filename = sanitizeFilename(title) + '.mp3';
+        const result = await getSoundCloudStream(url);
+        const ffmpegInput = result.nodeStream || result.hlsUrl;
+        const filename = sanitizeFilename(result.title) + '.mp3';
+
         res.setHeader('Content-Type', 'audio/mpeg');
         res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
         res.setHeader('Cache-Control', 'no-cache');
