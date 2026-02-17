@@ -1,4 +1,8 @@
-const youtubedl = require('youtube-dl-exec');
+const path = require('path');
+const { create: createYtDlp } = require('youtube-dl-exec');
+
+// Use the standalone Linux binary (no Python needed) downloaded by postinstall
+const youtubedl = createYtDlp(path.join(__dirname, '..', 'bin', 'yt-dlp'));
 
 const SC_HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
