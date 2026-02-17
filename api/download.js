@@ -46,8 +46,10 @@ async function getYouTubeStream(url) {
 
     // If YouTube cookies are provided, write to a temp file and pass to yt-dlp.
     // This is the only reliable way to bypass bot detection on datacenter IPs.
+    // When cookies are present, drop tv_embedded — it has limited format availability.
     let cookiesFile = null;
     if (process.env.YOUTUBE_COOKIES) {
+        delete options.extractorArgs;
         cookiesFile = path.join(os.tmpdir(), `yt-cookies-${Date.now()}-${Math.random().toString(36).slice(2)}.txt`);
         fs.writeFileSync(cookiesFile, process.env.YOUTUBE_COOKIES);
         options.cookies = cookiesFile;
