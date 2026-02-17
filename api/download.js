@@ -67,13 +67,30 @@ async function getYouTubeStream(url) {
         extractorArgs: 'youtube:player_client=web,mweb,mediaconnect',
     };
 
-    // If YouTube cookies are provided, write to a temp file and pass to yt-dlp.
-    // This is the only reliable way to bypass bot detection on datacenter IPs.
+    // Proxy is essential on datacenter IPs (Vercel) — YouTube blocks them even with cookies.
+    // Set YOUTUBE_PROXY to a residential/ISP proxy e.g. socks5://user:pass@host:port
+    if (process.env.YOUTUBE_PROXY) {
+        options.proxy = process.env.YOUTUBE_PROXY;
+        console.log('[yt] Using proxy:', process.env.YOUTUBE_PROXY.replace(/\/\/.*@/, '//*:*@'));
+    }
+
+    // Cookies help with age-restricted / member content and can reduce bot detection.
     let cookiesFile = writeCookieFile();
     if (cookiesFile) {
         options.cookies = cookiesFile;
-    } else {
-        console.warn('[yt] YOUTUBE_COOKIES env var is not set — bot detection will likely block this request');
+    }
+
+    // PO (proof-of-origin) token — generated from a browser session, proves the request
+    // originated from a real browser. Set YOUTUBE_PO_TOKEN in Vercel env vars.
+    // Generate one at: https://github.com/yt-dlp/yt-dlp/wiki/Extractors#po-token-guide
+    if (process.env.YOUTUBE_PO_TOKEN) {
+        // Format: visitor_data:po_token — appended to extractor-args
+        options.extractorArgs += `;po_token=web+${process.env.YOUTUBE_PO_TOKEN}`;
+        console.log('[yt] Using PO token');
+    }
+
+    if (!process.env.YOUTUBE_PROXY && !cookiesFile && !process.env.YOUTUBE_PO_TOKEN) {
+        console.warn('[yt] No proxy, cookies, or PO token set — YouTube will likely block this request from a datacenter IP');
     }
 
     try {

@@ -28,15 +28,28 @@ function formatDuration(seconds) {
 module.exports = async function handler(req, res) {
     const { url } = req.query;
 
-    // Debug endpoint: GET /api/metadata?debug=cookies — check if env var is reaching the function
-    if (req.query.debug === 'cookies') {
+    // Debug endpoint: GET /api/metadata?debug=env — check if env vars are reaching the function
+    if (req.query.debug === 'cookies' || req.query.debug === 'env') {
         const raw = process.env.YOUTUBE_COOKIES || '';
         return res.json({
-            exists: !!process.env.YOUTUBE_COOKIES,
-            length: raw.length,
-            hasNetscapeHeader: raw.includes('Netscape') || raw.includes('HTTP Cookie'),
-            lineCount: raw.split(/\\n|\n/).filter(Boolean).length,
-            firstChars: raw.substring(0, 80) + '...',
+            cookies: {
+                exists: !!process.env.YOUTUBE_COOKIES,
+                length: raw.length,
+                hasNetscapeHeader: raw.includes('Netscape') || raw.includes('HTTP Cookie'),
+                lineCount: raw.split(/\\n|\n/).filter(Boolean).length,
+                firstChars: raw.substring(0, 80) + '...',
+            },
+            proxy: {
+                exists: !!process.env.YOUTUBE_PROXY,
+                // Show host only, strip credentials
+                value: process.env.YOUTUBE_PROXY
+                    ? process.env.YOUTUBE_PROXY.replace(/\/\/.*@/, '//*:*@')
+                    : null,
+            },
+            poToken: {
+                exists: !!process.env.YOUTUBE_PO_TOKEN,
+                length: (process.env.YOUTUBE_PO_TOKEN || '').length,
+            },
         });
     }
 
@@ -49,13 +62,18 @@ module.exports = async function handler(req, res) {
         let metadata;
 
         if (isYouTube(url)) {
-            const info = await youtubedl(url, {
+            const ytOpts = {
                 dumpSingleJson: true,
                 noCheckCertificates: true,
                 noWarnings: true,
                 skipDownload: true,
                 extractorArgs: 'youtube:player_client=web,mweb,mediaconnect',
-            });
+            };
+            if (process.env.YOUTUBE_PROXY) ytOpts.proxy = process.env.YOUTUBE_PROXY;
+            if (process.env.YOUTUBE_PO_TOKEN) {
+                ytOpts.extractorArgs += `;po_token=web+${process.env.YOUTUBE_PO_TOKEN}`;
+            }
+            const info = await youtubedl(url, ytOpts);
 
             metadata = {
                 title: info.title || 'Unknown',
