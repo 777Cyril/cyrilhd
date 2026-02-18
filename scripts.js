@@ -1488,6 +1488,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 delBtn.title = 'remove';
                 delBtn.addEventListener('click', function() {
                     var removed = favoriteTracks.splice(i, 1)[0];
+                    // Clean up local IndexedDB cache if it was an uploaded file
                     if (removed && removed.localKey) {
                         if (aviObjectURLs[removed.localKey]) {
                             URL.revokeObjectURL(aviObjectURLs[removed.localKey]);
@@ -1497,6 +1498,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     aviTracksSave(favoriteTracks);
                     renderAvatarList();
+                    // Delete from GitHub so it's gone for all visitors
+                    var repoPath = removed && (typeof removed === 'object' ? (removed.src || null) : removed);
+                    if (repoPath && repoPath.startsWith('assets/audio/')) {
+                        fetch('/api/delete', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ path: repoPath, target: 'avatar' }),
+                        }).catch(function(err) { console.error('Delete API error:', err); });
+                    }
                 });
 
                 row.appendChild(upBtn);
@@ -1564,6 +1574,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 delBtn.title = 'remove';
                 delBtn.addEventListener('click', function() {
                     var removed = mcTracks.splice(i, 1)[0];
+                    // Clean up local IndexedDB cache if it was an uploaded file
                     if (removed && removed.localKey) {
                         if (mcObjectURLs[removed.localKey]) {
                             URL.revokeObjectURL(mcObjectURLs[removed.localKey]);
@@ -1573,6 +1584,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     mcTracksSave(mcTracks);
                     renderProducedList();
+                    // Delete from GitHub so the audio file is gone from the server
+                    var repoPath = removed && (removed.src || null);
+                    if (repoPath && repoPath.startsWith('assets/audio/')) {
+                        fetch('/api/delete', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ path: repoPath, target: 'produced' }),
+                        }).catch(function(err) { console.error('Delete API error:', err); });
+                    }
                 });
 
                 row.appendChild(upBtn);
