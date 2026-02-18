@@ -1620,19 +1620,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Strip the data URL prefix (e.g. "data:audio/mpeg;base64,")
                 var base64 = e.target.result.split(',')[1];
 
-                // Also cache blob in IndexedDB for immediate local playback
+                // Cache original file blob in IndexedDB for immediate local playback
+                // (no need to re-decode base64 — the File object is already a Blob)
                 var localKey = 'local_' + Date.now() + '_' + file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-                var blob = new Blob([atob(base64).split('').map(function(c) {
-                    return String.fromCharCode(c.charCodeAt(0));
-                })].join('') ? new Uint8Array(atob(base64).split('').map(function(c) { return c.charCodeAt(0); })) : [], { type: file.type || 'audio/mpeg' });
-                // Simpler blob reconstruction
-                var byteChars = atob(base64);
-                var byteArr = new Uint8Array(byteChars.length);
-                for (var i = 0; i < byteChars.length; i++) {
-                    byteArr[i] = byteChars.charCodeAt(i);
-                }
-                blob = new Blob([byteArr], { type: file.type || 'audio/mpeg' });
-                songDB.save(localKey, blob);
+                songDB.save(localKey, file);
 
                 fetch('/api/upload', {
                     method: 'POST',
