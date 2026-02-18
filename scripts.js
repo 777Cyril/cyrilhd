@@ -22,6 +22,65 @@ updateDarkMode();
 // Check every minute for seamless transitions
 setInterval(updateDarkMode, 60000);
 
+// ── IndexedDB Audio Store ──
+var songDB = (function() {
+    var DB_NAME = 'cyril_songs', STORE = 'blobs', VERSION = 1;
+    var _db = null;
+
+    function open(cb) {
+        if (_db) { cb(_db); return; }
+        var req = indexedDB.open(DB_NAME, VERSION);
+        req.onupgradeneeded = function(e) {
+            e.target.result.createObjectStore(STORE);
+        };
+        req.onsuccess = function(e) {
+            _db = e.target.result;
+            cb(_db);
+        };
+        req.onerror = function() { cb(null); };
+    }
+
+    function save(key, blob, cb) {
+        open(function(db) {
+            if (!db) { if (cb) cb(false); return; }
+            var tx = db.transaction(STORE, 'readwrite');
+            tx.objectStore(STORE).put(blob, key);
+            tx.oncomplete = function() { if (cb) cb(true); };
+            tx.onerror = function() { if (cb) cb(false); };
+        });
+    }
+
+    function load(key, cb) {
+        open(function(db) {
+            if (!db) { cb(null); return; }
+            var tx = db.transaction(STORE, 'readonly');
+            var req = tx.objectStore(STORE).get(key);
+            req.onsuccess = function() { cb(req.result || null); };
+            req.onerror = function() { cb(null); };
+        });
+    }
+
+    function remove(key, cb) {
+        open(function(db) {
+            if (!db) { if (cb) cb(); return; }
+            var tx = db.transaction(STORE, 'readwrite');
+            tx.objectStore(STORE).delete(key);
+            tx.oncomplete = function() { if (cb) cb(); };
+        });
+    }
+
+    function clear(cb) {
+        open(function(db) {
+            if (!db) { if (cb) cb(); return; }
+            var tx = db.transaction(STORE, 'readwrite');
+            tx.objectStore(STORE).clear();
+            tx.oncomplete = function() { if (cb) cb(); };
+        });
+    }
+
+    return { save: save, load: load, remove: remove, clear: clear };
+})();
+
 document.addEventListener('DOMContentLoaded', function() {
 
     const avi = document.querySelector('.avatar');
@@ -193,6 +252,22 @@ document.addEventListener('DOMContentLoaded', function() {
     const fallbackFavorites = [
         'assets/audio/favorites/Clairo Juna Live Ending.mp3'
     ];
+    var AVI_TRACKS_KEY = 'cyril_avi_tracks';
+    var aviTracksDefault = null; // set after schedule.json loads
+    var aviObjectURLs = {}; // localKey → object url
+
+    function aviTracksLoad() {
+        try {
+            var saved = localStorage.getItem(AVI_TRACKS_KEY);
+            if (saved) return JSON.parse(saved);
+        } catch (e) {}
+        return null;
+    }
+
+    function aviTracksSave(tracks) {
+        try { localStorage.setItem(AVI_TRACKS_KEY, JSON.stringify(tracks)); } catch (e) {}
+    }
+
     let favoriteTracks = [];
     let currentAviTrack = null;
     let aviIsPlaying = false;
@@ -244,9 +319,37 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         currentAviTrack = aviPlaylist[aviCursor];
-        audio.src = currentAviTrack;
-        audio.load();
-        audio.dataset.currentSrc = currentAviTrack;
+        loadAviTrack(currentAviTrack);
+    }
+
+    function loadAviTrack(track) {
+        // Prefer server src (permanent) when available; fall back to IndexedDB blob
+        // while waiting for Vercel to deploy an uploaded file.
+        if (track && typeof track === 'object' && track.src) {
+            audio.src = track.src;
+            audio.dataset.currentSrc = track.src;
+            audio.load();
+        } else if (track && typeof track === 'object' && track.localKey) {
+            if (aviObjectURLs[track.localKey]) {
+                audio.src = aviObjectURLs[track.localKey];
+                audio.dataset.currentSrc = track.localKey;
+                audio.load();
+            } else {
+                songDB.load(track.localKey, function(blob) {
+                    if (blob) {
+                        aviObjectURLs[track.localKey] = URL.createObjectURL(blob);
+                        audio.src = aviObjectURLs[track.localKey];
+                        audio.dataset.currentSrc = track.localKey;
+                        audio.load();
+                    }
+                });
+            }
+        } else {
+            var src = typeof track === 'object' ? track.src : track;
+            audio.src = src;
+            audio.dataset.currentSrc = src;
+            audio.load();
+        }
     }
 
     function playPrevAviTrack() {
@@ -267,8 +370,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Step back in the same playlist — no reshuffle
         aviCursor--;
         currentAviTrack = aviPlaylist[aviCursor];
-        audio.src = currentAviTrack;
-        audio.dataset.currentSrc = currentAviTrack;
+        loadAviTrack(currentAviTrack);
         audio.play().then(function() {
             aviUpdateCarousel();
             showAviNextButton();
@@ -351,14 +453,17 @@ document.addEventListener('DOMContentLoaded', function() {
             return res.json();
         })
         .then(function(data) {
-            if (data && Array.isArray(data.favorites) && data.favorites.length > 0) {
-                favoriteTracks = data.favorites;
-            } else {
-                favoriteTracks = fallbackFavorites;
-            }
+            var fromSchedule = (data && Array.isArray(data.favorites) && data.favorites.length > 0)
+                ? data.favorites
+                : fallbackFavorites;
+            aviTracksDefault = fromSchedule.slice();
+            var savedAvi = aviTracksLoad();
+            favoriteTracks = savedAvi || fromSchedule;
         })
         .catch(function() {
-            favoriteTracks = fallbackFavorites;
+            aviTracksDefault = fallbackFavorites.slice();
+            var savedAvi = aviTracksLoad();
+            favoriteTracks = savedAvi || fallbackFavorites;
         })
         .finally(function() {
             selectRandomAvatarTrack();
@@ -446,12 +551,27 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ── Inline Music Controls ──
+    var MC_TRACKS_KEY = 'cyril_mc_tracks';
+    var mcObjectURLs = {}; // localKey → object url
+
+    function mcTracksLoad() {
+        try {
+            var saved = localStorage.getItem(MC_TRACKS_KEY);
+            if (saved) return JSON.parse(saved);
+        } catch (e) {}
+        return null;
+    }
+
+    function mcTracksSave(tracks) {
+        try { localStorage.setItem(MC_TRACKS_KEY, JSON.stringify(tracks)); } catch (e) {}
+    }
+
     var mcStopAndClose;
     var mcIsPlaying = false;
     var mcCurrentTrack = 0;
     var mcIsOpen = false;
     var mcTypewriterTimeout = null;
-    var mcTracks = [
+    var mcTracksDefault = [
         { title: 'get it together', src: 'assets/audio/produced/Get it together v2 pitched up.mp3' },
         { title: '4u', src: 'assets/audio/produced/atlanta v2.mp3' },
         { title: '50 Stater', src: 'assets/audio/produced/50 Stater.mp3' },
@@ -484,6 +604,8 @@ document.addEventListener('DOMContentLoaded', function() {
         { title: 'poison my soda', src: 'assets/audio/produced/01 poison my soda.mp3' },
         { title: 'more more less green', src: 'assets/audio/produced/more more less green.mp3' }
     ];
+
+    var mcTracks = mcTracksLoad() || mcTracksDefault.slice();
 
     // Fisher-Yates shuffle
     function mcShuffle() {
@@ -610,9 +732,30 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        function mcLoadTrack() {
-            mcAudio.src = mcTracks[mcCurrentTrack].src;
-            mcAudio.load();
+        function mcLoadTrack(thenPlay) {
+            var track = mcTracks[mcCurrentTrack];
+            // Prefer server src (permanent) when available; fall back to IndexedDB blob
+            // while waiting for Vercel to deploy an uploaded file.
+            if (track.src) {
+                mcAudio.src = track.src;
+                mcAudio.load();
+                if (thenPlay) mcAudio.play();
+            } else if (track.localKey) {
+                if (mcObjectURLs[track.localKey]) {
+                    mcAudio.src = mcObjectURLs[track.localKey];
+                    mcAudio.load();
+                    if (thenPlay) mcAudio.play();
+                } else {
+                    songDB.load(track.localKey, function(blob) {
+                        if (blob) {
+                            mcObjectURLs[track.localKey] = URL.createObjectURL(blob);
+                            mcAudio.src = mcObjectURLs[track.localKey];
+                            mcAudio.load();
+                            if (thenPlay) mcAudio.play();
+                        }
+                    });
+                }
+            }
         }
 
         mcAudio.addEventListener('ended', function() {
@@ -628,8 +771,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 mcCurrentTrack = 0;
             }
-            mcLoadTrack();
-            mcAudio.play();
+            mcLoadTrack(true);
             progressReset();
             progressStart();
             mcUpdateNowPlaying(true);
@@ -735,11 +877,15 @@ document.addEventListener('DOMContentLoaded', function() {
             titleTick.sync();
         }
 
-        function getAviTrackName(src) {
+        function getAviTrackName(track) {
+            // Handle both plain path strings and {title, localKey, src} objects
+            if (track && typeof track === 'object') {
+                return track.title || track.localKey || 'unknown';
+            }
             // Extract filename from path (e.g., "juna by clairo.mp3")
-            var filename = src.split('/').pop();
+            var filename = track.split('/').pop();
             // Remove extension
-            filename = filename.replace('.mp3', '').replace('.wav', '');
+            filename = filename.replace('.mp3', '').replace('.wav', '').replace('.m4a', '');
             // Filename is already in format "song name by artist"
             return filename;
         }
@@ -914,9 +1060,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 stopAviAudio();
                 setAviWired(true);
                 if (!mcAudio.src || mcAudio.src === location.href) {
-                    mcLoadTrack();
+                    mcLoadTrack(true);
+                } else {
+                    mcAudio.play();
                 }
-                mcAudio.play();
                 progressStart();
             } else {
                 mcAudio.pause();
@@ -928,28 +1075,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
         prevBtn.addEventListener('click', function() {
             mcCurrentTrack = (mcCurrentTrack - 1 + mcTracks.length) % mcTracks.length;
-            mcLoadTrack();
             progressReset();
-            if (mcIsPlaying) {
-                mcAudio.play();
-                progressStart();
-            }
+            mcLoadTrack(mcIsPlaying);
+            if (mcIsPlaying) progressStart();
             mcUpdateNowPlaying(true);
         });
 
         nextBtn.addEventListener('click', function() {
             mcCurrentTrack = (mcCurrentTrack + 1) % mcTracks.length;
-            mcLoadTrack();
             progressReset();
-            if (mcIsPlaying) {
-                mcAudio.play();
-                progressStart();
-            }
+            mcLoadTrack(mcIsPlaying);
+            if (mcIsPlaying) progressStart();
             mcUpdateNowPlaying(true);
         });
 
         document.addEventListener('click', function(e) {
-            if (!e.target.closest('.songs-item') && mcIsOpen) {
+            if (!e.target.closest('.songs-item') && !e.target.closest('#songsPanel') && mcIsOpen) {
                 mcClose();
             }
         });
@@ -971,8 +1112,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     } else {
                         mcCurrentTrack = (mcCurrentTrack - 1 + mcTracks.length) % mcTracks.length;
                         progressReset();
-                        mcAudio.src = mcTracks[mcCurrentTrack].src;
-                        mcAudio.play();
+                        mcLoadTrack(true);
                         progressStart();
                         mcUpdateNowPlaying(true);
                     }
@@ -980,8 +1120,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Right: skip to next
                     mcCurrentTrack = (mcCurrentTrack + 1) % mcTracks.length;
                     progressReset();
-                    mcAudio.src = mcTracks[mcCurrentTrack].src;
-                    mcAudio.play();
+                    mcLoadTrack(true);
                     progressStart();
                     mcUpdateNowPlaying(true);
                 }
@@ -1207,6 +1346,419 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     })();
 
+    // ── Songs Manager Panel ──
+    (function() {
+        var songsPanel = document.getElementById('songsPanel');
+        if (!songsPanel) return;
+
+        var activeTab = 'avatar';
+        var resetAvatarPending = false;
+        var resetProducedPending = false;
+
+        // ── Open / Close ──
+        function showSongsPanel() {
+            songsPanel.classList.add('active');
+            songsPanel.setAttribute('aria-hidden', 'false');
+            renderBoth();
+        }
+
+        function hideSongsPanel() {
+            songsPanel.classList.remove('active');
+            songsPanel.setAttribute('aria-hidden', 'true');
+            resetAvatarPending = false;
+            resetProducedPending = false;
+            var rA = document.getElementById('songsResetAvatar');
+            var rP = document.getElementById('songsResetProduced');
+            if (rA) rA.textContent = 'reset to defaults';
+            if (rP) rP.textContent = 'reset to defaults';
+            rA && rA.classList.remove('confirming');
+            rP && rP.classList.remove('confirming');
+        }
+
+        window._toggleSongsPanel = function() {
+            if (songsPanel.classList.contains('active')) {
+                hideSongsPanel();
+            } else {
+                showSongsPanel();
+            }
+        };
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && songsPanel.classList.contains('active')) {
+                hideSongsPanel();
+            }
+        });
+
+        document.addEventListener('click', function(e) {
+            if (songsPanel.classList.contains('active') && !e.target.closest('#songsPanel')) {
+                hideSongsPanel();
+            }
+        });
+
+        // ── Tab switching ──
+        var tabs = songsPanel.querySelectorAll('.songs-tab');
+        tabs.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                activeTab = btn.dataset.tab;
+                tabs.forEach(function(t) { t.classList.toggle('active', t === btn); });
+                var tabAvatar = document.getElementById('songsTabAvatar');
+                var tabProduced = document.getElementById('songsTabProduced');
+                if (tabAvatar) tabAvatar.style.display = activeTab === 'avatar' ? '' : 'none';
+                if (tabProduced) tabProduced.style.display = activeTab === 'produced' ? '' : 'none';
+            });
+        });
+
+        // ── Helpers ──
+        function fileNameToTitle(filename) {
+            return filename.replace(/\.[^/.]+$/, '');
+        }
+
+        function getAviDisplayName(track) {
+            if (track && typeof track === 'object') {
+                return track.title || track.localKey || 'unknown';
+            }
+            return track.split('/').pop().replace(/\.[^/.]+$/, '');
+        }
+
+        // ── Render lists ──
+        function renderBoth() {
+            renderAvatarList();
+            renderProducedList();
+        }
+
+        function renderAvatarList() {
+            var listEl = document.getElementById('songsListAvatar');
+            if (!listEl) return;
+            listEl.innerHTML = '';
+            favoriteTracks.forEach(function(track, i) {
+                var row = document.createElement('div');
+                row.className = 'songs-row';
+
+                var upBtn = document.createElement('button');
+                upBtn.className = 'songs-row-btn';
+                upBtn.textContent = '▲';
+                upBtn.title = 'move up';
+                upBtn.disabled = i === 0;
+                upBtn.addEventListener('click', function() {
+                    if (i === 0) return;
+                    var tmp = favoriteTracks[i - 1];
+                    favoriteTracks[i - 1] = favoriteTracks[i];
+                    favoriteTracks[i] = tmp;
+                    aviTracksSave(favoriteTracks);
+                    renderAvatarList();
+                });
+
+                var downBtn = document.createElement('button');
+                downBtn.className = 'songs-row-btn';
+                downBtn.textContent = '▼';
+                downBtn.title = 'move down';
+                downBtn.disabled = i === favoriteTracks.length - 1;
+                downBtn.addEventListener('click', function() {
+                    if (i === favoriteTracks.length - 1) return;
+                    var tmp = favoriteTracks[i + 1];
+                    favoriteTracks[i + 1] = favoriteTracks[i];
+                    favoriteTracks[i] = tmp;
+                    aviTracksSave(favoriteTracks);
+                    renderAvatarList();
+                });
+
+                var titleSpan = document.createElement('span');
+                titleSpan.className = 'songs-row-title';
+                titleSpan.setAttribute('contenteditable', 'true');
+                titleSpan.setAttribute('spellcheck', 'false');
+                titleSpan.textContent = getAviDisplayName(track);
+                titleSpan.addEventListener('blur', function() {
+                    var newTitle = titleSpan.textContent.trim();
+                    if (!newTitle) return;
+                    if (typeof favoriteTracks[i] === 'object') {
+                        favoriteTracks[i].title = newTitle;
+                    } else {
+                        // Convert plain path to object so we can store a custom title
+                        favoriteTracks[i] = { title: newTitle, src: favoriteTracks[i] };
+                    }
+                    aviTracksSave(favoriteTracks);
+                });
+                titleSpan.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') { e.preventDefault(); titleSpan.blur(); }
+                });
+
+                var delBtn = document.createElement('button');
+                delBtn.className = 'songs-row-btn';
+                delBtn.textContent = '✕';
+                delBtn.title = 'remove';
+                delBtn.addEventListener('click', function() {
+                    var removed = favoriteTracks.splice(i, 1)[0];
+                    if (removed && removed.localKey) {
+                        if (aviObjectURLs[removed.localKey]) {
+                            URL.revokeObjectURL(aviObjectURLs[removed.localKey]);
+                            delete aviObjectURLs[removed.localKey];
+                        }
+                        songDB.remove(removed.localKey);
+                    }
+                    aviTracksSave(favoriteTracks);
+                    renderAvatarList();
+                });
+
+                row.appendChild(upBtn);
+                row.appendChild(downBtn);
+                row.appendChild(titleSpan);
+                row.appendChild(delBtn);
+                listEl.appendChild(row);
+            });
+        }
+
+        function renderProducedList() {
+            var listEl = document.getElementById('songsListProduced');
+            if (!listEl) return;
+            listEl.innerHTML = '';
+            mcTracks.forEach(function(track, i) {
+                var row = document.createElement('div');
+                row.className = 'songs-row';
+
+                var upBtn = document.createElement('button');
+                upBtn.className = 'songs-row-btn';
+                upBtn.textContent = '▲';
+                upBtn.title = 'move up';
+                upBtn.disabled = i === 0;
+                upBtn.addEventListener('click', function() {
+                    if (i === 0) return;
+                    var tmp = mcTracks[i - 1];
+                    mcTracks[i - 1] = mcTracks[i];
+                    mcTracks[i] = tmp;
+                    mcTracksSave(mcTracks);
+                    renderProducedList();
+                });
+
+                var downBtn = document.createElement('button');
+                downBtn.className = 'songs-row-btn';
+                downBtn.textContent = '▼';
+                downBtn.title = 'move down';
+                downBtn.disabled = i === mcTracks.length - 1;
+                downBtn.addEventListener('click', function() {
+                    if (i === mcTracks.length - 1) return;
+                    var tmp = mcTracks[i + 1];
+                    mcTracks[i + 1] = mcTracks[i];
+                    mcTracks[i] = tmp;
+                    mcTracksSave(mcTracks);
+                    renderProducedList();
+                });
+
+                var titleSpan = document.createElement('span');
+                titleSpan.className = 'songs-row-title';
+                titleSpan.setAttribute('contenteditable', 'true');
+                titleSpan.setAttribute('spellcheck', 'false');
+                titleSpan.textContent = track.title;
+                titleSpan.addEventListener('blur', function() {
+                    var newTitle = titleSpan.textContent.trim();
+                    if (!newTitle) return;
+                    mcTracks[i].title = newTitle;
+                    mcTracksSave(mcTracks);
+                });
+                titleSpan.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') { e.preventDefault(); titleSpan.blur(); }
+                });
+
+                var delBtn = document.createElement('button');
+                delBtn.className = 'songs-row-btn';
+                delBtn.textContent = '✕';
+                delBtn.title = 'remove';
+                delBtn.addEventListener('click', function() {
+                    var removed = mcTracks.splice(i, 1)[0];
+                    if (removed && removed.localKey) {
+                        if (mcObjectURLs[removed.localKey]) {
+                            URL.revokeObjectURL(mcObjectURLs[removed.localKey]);
+                            delete mcObjectURLs[removed.localKey];
+                        }
+                        songDB.remove(removed.localKey);
+                    }
+                    mcTracksSave(mcTracks);
+                    renderProducedList();
+                });
+
+                row.appendChild(upBtn);
+                row.appendChild(downBtn);
+                row.appendChild(titleSpan);
+                row.appendChild(delBtn);
+                listEl.appendChild(row);
+            });
+        }
+
+        // ── Upload handling ──
+        // Uploads POST to /api/upload which commits the file to GitHub.
+        // Vercel auto-deploys, making it a real static asset for all visitors in ~30s.
+        // While waiting for deploy, the track is also cached in IndexedDB locally
+        // so it plays immediately in your browser without waiting.
+        function handleUpload(file, type, zone) {
+            var title = fileNameToTitle(file.name);
+
+            // Show uploading state
+            if (zone) zone.textContent = 'uploading…';
+
+            // Read file as base64 for GitHub API
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                // Strip the data URL prefix (e.g. "data:audio/mpeg;base64,")
+                var base64 = e.target.result.split(',')[1];
+
+                // Also cache blob in IndexedDB for immediate local playback
+                var localKey = 'local_' + Date.now() + '_' + file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+                var blob = new Blob([atob(base64).split('').map(function(c) {
+                    return String.fromCharCode(c.charCodeAt(0));
+                })].join('') ? new Uint8Array(atob(base64).split('').map(function(c) { return c.charCodeAt(0); })) : [], { type: file.type || 'audio/mpeg' });
+                // Simpler blob reconstruction
+                var byteChars = atob(base64);
+                var byteArr = new Uint8Array(byteChars.length);
+                for (var i = 0; i < byteChars.length; i++) {
+                    byteArr[i] = byteChars.charCodeAt(i);
+                }
+                blob = new Blob([byteArr], { type: file.type || 'audio/mpeg' });
+                songDB.save(localKey, blob);
+
+                fetch('/api/upload', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        filename: file.name,
+                        dataBase64: base64,
+                        target: type,
+                    }),
+                })
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                    if (zone) zone.innerHTML = '<span>drop a file or <button class="songs-pick-btn" id="' + (type === 'avatar' ? 'songsPickAvatar' : 'songsPickProduced') + '">pick one</button></span>';
+                    // Re-attach pick button listener
+                    var newPick = document.getElementById(type === 'avatar' ? 'songsPickAvatar' : 'songsPickProduced');
+                    var inputId = type === 'avatar' ? 'songsFileAvatar' : 'songsFileProduced';
+                    if (newPick) newPick.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        var inp = document.getElementById(inputId);
+                        if (inp) inp.click();
+                    });
+
+                    if (data.error) {
+                        if (zone) zone.textContent = 'error: ' + data.error;
+                        return;
+                    }
+
+                    // Add track with server path (permanent) + localKey for immediate playback
+                    if (type === 'avatar') {
+                        favoriteTracks.push({ title: data.title || title, src: data.path, localKey: localKey });
+                        aviTracksSave(favoriteTracks);
+                        renderAvatarList();
+                    } else {
+                        mcTracks.push({ title: data.title || title, src: data.path, localKey: localKey });
+                        mcTracksSave(mcTracks);
+                        renderProducedList();
+                    }
+                })
+                .catch(function(err) {
+                    if (zone) zone.textContent = 'upload failed — check console';
+                    console.error('Upload error:', err);
+                });
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function setupUploadZone(zoneId, inputId, pickBtnId, type) {
+            var zone = document.getElementById(zoneId);
+            var input = document.getElementById(inputId);
+            var pickBtn = document.getElementById(pickBtnId);
+            if (!zone || !input || !pickBtn) return;
+
+            pickBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                input.click();
+            });
+
+            input.addEventListener('change', function() {
+                if (input.files && input.files[0]) {
+                    handleUpload(input.files[0], type, zone);
+                    input.value = '';
+                }
+            });
+
+            zone.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                zone.classList.add('drag-over');
+            });
+
+            zone.addEventListener('dragleave', function() {
+                zone.classList.remove('drag-over');
+            });
+
+            zone.addEventListener('drop', function(e) {
+                e.preventDefault();
+                zone.classList.remove('drag-over');
+                var file = e.dataTransfer.files[0];
+                if (file && file.type.startsWith('audio/')) {
+                    handleUpload(file, type, zone);
+                }
+            });
+        }
+
+        setupUploadZone('songsUploadAvatar', 'songsFileAvatar', 'songsPickAvatar', 'avatar');
+        setupUploadZone('songsUploadProduced', 'songsFileProduced', 'songsPickProduced', 'produced');
+
+        // ── Reset buttons ──
+        function setupReset(btnId, type) {
+            var btn = document.getElementById(btnId);
+            if (!btn) return;
+            btn.addEventListener('click', function() {
+                if (type === 'avatar' && !resetAvatarPending) {
+                    resetAvatarPending = true;
+                    btn.textContent = 'sure? click again';
+                    btn.classList.add('confirming');
+                    setTimeout(function() {
+                        resetAvatarPending = false;
+                        btn.textContent = 'reset to defaults';
+                        btn.classList.remove('confirming');
+                    }, 3500);
+                } else if (type === 'avatar' && resetAvatarPending) {
+                    // Clear IDB entries for any local avatar tracks
+                    favoriteTracks.forEach(function(t) {
+                        if (t && t.localKey) {
+                            if (aviObjectURLs[t.localKey]) { URL.revokeObjectURL(aviObjectURLs[t.localKey]); delete aviObjectURLs[t.localKey]; }
+                            songDB.remove(t.localKey);
+                        }
+                    });
+                    favoriteTracks = aviTracksDefault ? aviTracksDefault.slice() : fallbackFavorites.slice();
+                    localStorage.removeItem(AVI_TRACKS_KEY);
+                    resetAvatarPending = false;
+                    btn.textContent = 'reset to defaults';
+                    btn.classList.remove('confirming');
+                    renderAvatarList();
+                } else if (type === 'produced' && !resetProducedPending) {
+                    resetProducedPending = true;
+                    btn.textContent = 'sure? click again';
+                    btn.classList.add('confirming');
+                    setTimeout(function() {
+                        resetProducedPending = false;
+                        btn.textContent = 'reset to defaults';
+                        btn.classList.remove('confirming');
+                    }, 3500);
+                } else if (type === 'produced' && resetProducedPending) {
+                    // Clear IDB entries for any local produced tracks
+                    mcTracks.forEach(function(t) {
+                        if (t && t.localKey) {
+                            if (mcObjectURLs[t.localKey]) { URL.revokeObjectURL(mcObjectURLs[t.localKey]); delete mcObjectURLs[t.localKey]; }
+                            songDB.remove(t.localKey);
+                        }
+                    });
+                    mcTracks.length = 0;
+                    mcTracksDefault.forEach(function(t) { mcTracks.push({ title: t.title, src: t.src }); });
+                    localStorage.removeItem(MC_TRACKS_KEY);
+                    resetProducedPending = false;
+                    btn.textContent = 'reset to defaults';
+                    btn.classList.remove('confirming');
+                    renderProducedList();
+                }
+            });
+        }
+
+        setupReset('songsResetAvatar', 'avatar');
+        setupReset('songsResetProduced', 'produced');
+    })();
+
     (function() {
         var keyBuffer = '';
         var cooldownActive = false;
@@ -1215,7 +1767,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         var patterns = {
             'brr': triggerBrr,
-            'mp3': function() { if (typeof window._toggleMp3Panel === 'function') window._toggleMp3Panel(); }
+            'mp3': function() { if (typeof window._toggleMp3Panel === 'function') window._toggleMp3Panel(); },
+            'songs': function() { if (typeof window._toggleSongsPanel === 'function') window._toggleSongsPanel(); }
         };
 
         document.addEventListener('keydown', function(e) {

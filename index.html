@@ -183,6 +183,32 @@
         </div>
     </div>
 
+    <!-- Songs Manager (type "songs" to open — private) -->
+    <div class="songs-panel" id="songsPanel" aria-hidden="true">
+        <div class="songs-panel-inner">
+            <div class="songs-tabs">
+                <button class="songs-tab active" data-tab="avatar">avatar</button>
+                <button class="songs-tab" data-tab="produced">produced</button>
+            </div>
+            <div class="songs-tab-content" id="songsTabAvatar">
+                <div class="songs-list" id="songsListAvatar"></div>
+                <div class="songs-upload-zone" id="songsUploadAvatar">
+                    <input type="file" id="songsFileAvatar" accept="audio/*" style="display:none">
+                    <span>drop a file or <button class="songs-pick-btn" id="songsPickAvatar">pick one</button></span>
+                </div>
+                <button class="songs-reset-btn" id="songsResetAvatar">reset to defaults</button>
+            </div>
+            <div class="songs-tab-content" id="songsTabProduced" style="display:none">
+                <div class="songs-list" id="songsListProduced"></div>
+                <div class="songs-upload-zone" id="songsUploadProduced">
+                    <input type="file" id="songsFileProduced" accept="audio/*" style="display:none">
+                    <span>drop a file or <button class="songs-pick-btn" id="songsPickProduced">pick one</button></span>
+                </div>
+                <button class="songs-reset-btn" id="songsResetProduced">reset to defaults</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         window.LLM_VIZ_ASSET_BASE = '/llm-viz';
         window.LLM_VIZ_AUTO_ROTATE = true;

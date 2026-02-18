@@ -1006,6 +1006,279 @@ body.dark-mode .mp3-status.error {
     }
 }
 
+/* ── Songs Manager Panel ── */
+.songs-panel {
+    position: fixed;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%) translateX(calc(100% + 1px));
+    z-index: 900;
+    background: var(--bg-light);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-right: none;
+    border-radius: 8px 0 0 8px;
+    padding: 20px 22px 22px;
+    width: 300px;
+    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.07);
+    transition: transform 0.42s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+html.dark-mode .songs-panel,
+body.dark-mode .songs-panel {
+    background: #242424;
+    border-color: rgba(255, 255, 255, 0.09);
+    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.45);
+}
+
+.songs-panel.active {
+    transform: translateY(-50%) translateX(0);
+}
+
+.songs-panel-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Tabs */
+.songs-tabs {
+    display: flex;
+    gap: 16px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    padding-bottom: 10px;
+    margin-bottom: 2px;
+}
+
+html.dark-mode .songs-tabs,
+body.dark-mode .songs-tabs {
+    border-color: rgba(255, 255, 255, 0.09);
+}
+
+.songs-tab {
+    background: none;
+    border: none;
+    border-bottom: 1px solid transparent;
+    color: var(--text-light);
+    font-family: 'Delius', -apple-system, sans-serif;
+    font-size: 12px;
+    font-style: italic;
+    padding: 0 0 6px;
+    cursor: pointer;
+    opacity: 0.35;
+    transition: opacity 0.2s ease, border-color 0.2s ease;
+    margin-bottom: -11px;
+}
+
+html.dark-mode .songs-tab,
+body.dark-mode .songs-tab {
+    color: var(--text-dark);
+}
+
+.songs-tab:hover {
+    opacity: 0.65;
+}
+
+.songs-tab.active {
+    opacity: 1;
+    border-bottom-color: currentColor;
+}
+
+/* Track list */
+.songs-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-height: 50vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    /* Subtle scrollbar */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0,0,0,0.15) transparent;
+}
+
+html.dark-mode .songs-list,
+body.dark-mode .songs-list {
+    scrollbar-color: rgba(255,255,255,0.15) transparent;
+}
+
+.songs-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+html.dark-mode .songs-row,
+body.dark-mode .songs-row {
+    border-color: rgba(255, 255, 255, 0.04);
+}
+
+.songs-row-title {
+    flex: 1;
+    font-size: 12px;
+    font-style: italic;
+    color: var(--text-light);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    outline: none;
+    min-width: 0;
+    cursor: text;
+    padding: 1px 2px;
+    border-radius: 2px;
+    transition: background 0.15s ease;
+}
+
+html.dark-mode .songs-row-title,
+body.dark-mode .songs-row-title {
+    color: var(--text-dark);
+}
+
+.songs-row-title:focus {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    background: rgba(0, 0, 0, 0.05);
+}
+
+html.dark-mode .songs-row-title:focus,
+body.dark-mode .songs-row-title:focus {
+    background: rgba(255, 255, 255, 0.07);
+}
+
+.songs-row-btn {
+    background: none;
+    border: none;
+    color: var(--text-light);
+    font-family: 'Delius', -apple-system, sans-serif;
+    font-size: 11px;
+    padding: 0 2px;
+    cursor: pointer;
+    opacity: 0.25;
+    transition: opacity 0.15s ease;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+html.dark-mode .songs-row-btn,
+body.dark-mode .songs-row-btn {
+    color: var(--text-dark);
+}
+
+.songs-row-btn:hover {
+    opacity: 0.85;
+}
+
+/* Upload zone */
+.songs-upload-zone {
+    border: 1px dashed rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    padding: 10px 12px;
+    text-align: center;
+    font-size: 11px;
+    font-style: italic;
+    color: var(--text-light);
+    opacity: 0.5;
+    transition: opacity 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+    cursor: default;
+}
+
+html.dark-mode .songs-upload-zone,
+body.dark-mode .songs-upload-zone {
+    border-color: rgba(255, 255, 255, 0.2);
+    color: var(--text-dark);
+}
+
+.songs-upload-zone.drag-over {
+    opacity: 1;
+    border-color: var(--link-light);
+    background: rgba(207, 139, 169, 0.06);
+}
+
+html.dark-mode .songs-upload-zone.drag-over,
+body.dark-mode .songs-upload-zone.drag-over {
+    border-color: var(--link-dark);
+    background: rgba(144, 173, 104, 0.06);
+}
+
+.songs-pick-btn {
+    background: none;
+    border: none;
+    color: inherit;
+    font-family: 'Delius', -apple-system, sans-serif;
+    font-size: inherit;
+    font-style: inherit;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0;
+    opacity: 1;
+}
+
+/* Reset button */
+.songs-reset-btn {
+    align-self: flex-start;
+    background: none;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    color: var(--text-light);
+    font-family: 'Delius', -apple-system, sans-serif;
+    font-size: 11px;
+    font-style: italic;
+    padding: 3px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    opacity: 0.4;
+    transition: opacity 0.2s ease, border-color 0.2s ease;
+}
+
+html.dark-mode .songs-reset-btn,
+body.dark-mode .songs-reset-btn {
+    border-color: rgba(255, 255, 255, 0.15);
+    color: var(--text-dark);
+}
+
+.songs-reset-btn:hover {
+    opacity: 0.75;
+}
+
+.songs-reset-btn.confirming {
+    opacity: 1;
+    border-color: #c0627a;
+    color: #c0627a;
+}
+
+html.dark-mode .songs-reset-btn.confirming,
+body.dark-mode .songs-reset-btn.confirming {
+    border-color: #e07090;
+    color: #e07090;
+}
+
+/* Mobile: bottom drawer */
+@media (max-width: 900px) {
+    .songs-panel {
+        top: auto;
+        bottom: 0;
+        right: 0;
+        left: 0;
+        width: 100%;
+        border-radius: 12px 12px 0 0;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-bottom: none;
+        padding: 20px 22px 36px;
+        transform: translateY(100%);
+        transition: transform 0.38s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    .songs-panel.active {
+        transform: translateY(0);
+    }
+
+    html.dark-mode .songs-panel,
+    body.dark-mode .songs-panel {
+        border-color: rgba(255, 255, 255, 0.09);
+    }
+}
+
 /* ── Easter Egg Effects ── */
 /* Gentle shiver for brr */
 .avatar.shiver {

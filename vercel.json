@@ -6,6 +6,7 @@
   ],
   "functions": {
     "api/download.js": { "maxDuration": 60 },
-    "api/metadata.js": { "maxDuration": 15 }
+    "api/metadata.js": { "maxDuration": 15 },
+    "api/upload.js":   { "maxDuration": 30 }
   }
 }
