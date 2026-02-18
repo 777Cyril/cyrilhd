@@ -18,11 +18,19 @@ const REPO_NAME  = 'cyrilhd';
 const BRANCH     = 'main';
 const GITHUB_API = 'https://api.github.com';
 
-// Vercel serverless: parse raw body manually (no multipart libraries needed)
-// We receive JSON: { filename, type, dataBase64, target }
+// Raise Vercel's default 4.5mb body limit so large MP3s get through
+module.exports.config = {
+    api: {
+        bodyParser: {
+            sizeLimit: '50mb',
+        },
+    },
+};
+
+// We receive JSON: { filename, dataBase64, target }
 // target: 'avatar' | 'produced'
 
-module.exports = async function handler(req, res) {
+async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -123,7 +131,9 @@ module.exports = async function handler(req, res) {
         path: filePath,
         title: safe.replace(/\.[^/.]+$/, ''),
     });
-};
+}
+
+module.exports = handler;
 
 async function updateScheduleJson(newAudioPath, ghHeaders) {
     const schedulePath = 'assets/songs/schedule.json';
