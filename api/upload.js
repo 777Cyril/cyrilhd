@@ -18,15 +18,6 @@ const REPO_NAME  = 'cyrilhd';
 const BRANCH     = 'main';
 const GITHUB_API = 'https://api.github.com';
 
-// Raise Vercel's default 4.5mb body limit so large MP3s get through
-module.exports.config = {
-    api: {
-        bodyParser: {
-            sizeLimit: '50mb',
-        },
-    },
-};
-
 // We receive JSON: { filename, dataBase64, target }
 // target: 'avatar' | 'produced'
 
@@ -133,7 +124,15 @@ async function handler(req, res) {
     });
 }
 
+// Export handler + raise Vercel's default 4.5mb body limit so large MP3s get through
 module.exports = handler;
+module.exports.config = {
+    api: {
+        bodyParser: {
+            sizeLimit: '50mb',
+        },
+    },
+};
 
 async function updateScheduleJson(newAudioPath, ghHeaders) {
     const schedulePath = 'assets/songs/schedule.json';

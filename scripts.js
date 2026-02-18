@@ -1625,16 +1625,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 var localKey = 'local_' + Date.now() + '_' + file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
                 songDB.save(localKey, file);
 
+                var uploadBody;
+                try {
+                    uploadBody = JSON.stringify({ filename: file.name, dataBase64: base64, target: type });
+                } catch (jsonErr) {
+                    if (zone) zone.textContent = 'error: file too large to encode (' + jsonErr.message + ')';
+                    console.error('JSON stringify error:', jsonErr);
+                    return;
+                }
+
                 fetch('/api/upload', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        filename: file.name,
-                        dataBase64: base64,
-                        target: type,
-                    }),
+                    body: uploadBody,
                 })
-                .then(function(res) { return res.json(); })
+                .then(function(res) {
+                    if (!res.ok && res.status === 413) throw new Error('File too large for server (413)');
+                    return res.json();
+                })
                 .then(function(data) {
                     if (zone) zone.innerHTML = '<span>drop a file or <button class="songs-pick-btn" id="' + (type === 'avatar' ? 'songsPickAvatar' : 'songsPickProduced') + '">pick one</button></span>';
                     // Re-attach pick button listener
@@ -1663,7 +1671,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 })
                 .catch(function(err) {
-                    if (zone) zone.textContent = 'upload failed — check console';
+                    if (zone) zone.textContent = 'error: ' + (err.message || 'upload failed');
                     console.error('Upload error:', err);
                 });
             };
