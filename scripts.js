@@ -322,34 +322,38 @@ document.addEventListener('DOMContentLoaded', function() {
         loadAviTrack(currentAviTrack);
     }
 
-    function loadAviTrack(track) {
-        // Prefer server src (permanent) when available; fall back to IndexedDB blob
-        // while waiting for Vercel to deploy an uploaded file.
-        if (track && typeof track === 'object' && track.src) {
-            audio.src = track.src;
-            audio.dataset.currentSrc = track.src;
-            audio.load();
-        } else if (track && typeof track === 'object' && track.localKey) {
-            if (aviObjectURLs[track.localKey]) {
-                audio.src = aviObjectURLs[track.localKey];
-                audio.dataset.currentSrc = track.localKey;
-                audio.load();
+    // Shared track loader — resolves src/localKey/plain-string to a URL,
+    // sets it on audioEl, calls .load(), and optionally .play().
+    // Used by both the avatar audio element and the music controls player.
+    function resolveTrackToAudio(track, audioEl, urlCache, thenPlay) {
+        var src = typeof track === 'object' ? (track.src || null) : track;
+        var localKey = track && track.localKey;
+
+        function applyAndLoad(url) {
+            audioEl.src = url;
+            if (audioEl.dataset) audioEl.dataset.currentSrc = url;
+            audioEl.load();
+            if (thenPlay) audioEl.play();
+        }
+
+        if (src) {
+            applyAndLoad(src);
+        } else if (localKey) {
+            if (urlCache[localKey]) {
+                applyAndLoad(urlCache[localKey]);
             } else {
-                songDB.load(track.localKey, function(blob) {
+                songDB.load(localKey, function(blob) {
                     if (blob) {
-                        aviObjectURLs[track.localKey] = URL.createObjectURL(blob);
-                        audio.src = aviObjectURLs[track.localKey];
-                        audio.dataset.currentSrc = track.localKey;
-                        audio.load();
+                        urlCache[localKey] = URL.createObjectURL(blob);
+                        applyAndLoad(urlCache[localKey]);
                     }
                 });
             }
-        } else {
-            var src = typeof track === 'object' ? track.src : track;
-            audio.src = src;
-            audio.dataset.currentSrc = src;
-            audio.load();
         }
+    }
+
+    function loadAviTrack(track) {
+        resolveTrackToAudio(track, audio, aviObjectURLs, false);
     }
 
     function playPrevAviTrack() {
@@ -733,29 +737,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         function mcLoadTrack(thenPlay) {
-            var track = mcTracks[mcCurrentTrack];
-            // Prefer server src (permanent) when available; fall back to IndexedDB blob
-            // while waiting for Vercel to deploy an uploaded file.
-            if (track.src) {
-                mcAudio.src = track.src;
-                mcAudio.load();
-                if (thenPlay) mcAudio.play();
-            } else if (track.localKey) {
-                if (mcObjectURLs[track.localKey]) {
-                    mcAudio.src = mcObjectURLs[track.localKey];
-                    mcAudio.load();
-                    if (thenPlay) mcAudio.play();
-                } else {
-                    songDB.load(track.localKey, function(blob) {
-                        if (blob) {
-                            mcObjectURLs[track.localKey] = URL.createObjectURL(blob);
-                            mcAudio.src = mcObjectURLs[track.localKey];
-                            mcAudio.load();
-                            if (thenPlay) mcAudio.play();
-                        }
-                    });
-                }
-            }
+            resolveTrackToAudio(mcTracks[mcCurrentTrack], mcAudio, mcObjectURLs, thenPlay);
         }
 
         mcAudio.addEventListener('ended', function() {
