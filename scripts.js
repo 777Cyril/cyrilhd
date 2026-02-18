@@ -1352,8 +1352,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!songsPanel) return;
 
         var activeTab = 'avatar';
-        var resetAvatarPending = false;
-        var resetProducedPending = false;
 
         // ── Upload secret ──
         var SECRET_KEY = 'cyril_upload_secret';
@@ -1389,14 +1387,11 @@ document.addEventListener('DOMContentLoaded', function() {
         function hideSongsPanel() {
             songsPanel.classList.remove('active');
             songsPanel.setAttribute('aria-hidden', 'true');
-            resetAvatarPending = false;
-            resetProducedPending = false;
+            // Reset any mid-confirm reset buttons back to their default state
             var rA = document.getElementById('songsResetAvatar');
             var rP = document.getElementById('songsResetProduced');
-            if (rA) rA.textContent = 'reset to defaults';
-            if (rP) rP.textContent = 'reset to defaults';
-            rA && rA.classList.remove('confirming');
-            rP && rP.classList.remove('confirming');
+            if (rA) { rA.textContent = 'reset to defaults'; rA.classList.remove('confirming'); }
+            if (rP) { rP.textContent = 'reset to defaults'; rP.classList.remove('confirming'); }
         }
 
         window._toggleSongsPanel = function() {
@@ -1688,63 +1683,58 @@ document.addEventListener('DOMContentLoaded', function() {
         setupUploadZone('songsUploadProduced', 'songsFileProduced', 'songsPickProduced', 'produced');
 
         // ── Reset buttons ──
-        function setupReset(btnId, type) {
+        // setupReset wires a double-confirm reset button.
+        // onConfirm() contains the type-specific cleanup; the confirm/cancel
+        // UI flow is shared across both tabs.
+        function setupReset(btnId, pendingRef, onConfirm) {
             var btn = document.getElementById(btnId);
             if (!btn) return;
             btn.addEventListener('click', function() {
-                if (type === 'avatar' && !resetAvatarPending) {
-                    resetAvatarPending = true;
+                if (!pendingRef.v) {
+                    pendingRef.v = true;
                     btn.textContent = 'sure? click again';
                     btn.classList.add('confirming');
                     setTimeout(function() {
-                        resetAvatarPending = false;
+                        pendingRef.v = false;
                         btn.textContent = 'reset to defaults';
                         btn.classList.remove('confirming');
                     }, 3500);
-                } else if (type === 'avatar' && resetAvatarPending) {
-                    // Clear IDB entries for any local avatar tracks
-                    favoriteTracks.forEach(function(t) {
-                        if (t && t.localKey) {
-                            if (aviObjectURLs[t.localKey]) { URL.revokeObjectURL(aviObjectURLs[t.localKey]); delete aviObjectURLs[t.localKey]; }
-                            songDB.remove(t.localKey);
-                        }
-                    });
-                    favoriteTracks = aviTracksDefault ? aviTracksDefault.slice() : fallbackFavorites.slice();
-                    localStorage.removeItem(AVI_TRACKS_KEY);
-                    resetAvatarPending = false;
+                } else {
+                    onConfirm();
+                    pendingRef.v = false;
                     btn.textContent = 'reset to defaults';
                     btn.classList.remove('confirming');
-                    renderAvatarList();
-                } else if (type === 'produced' && !resetProducedPending) {
-                    resetProducedPending = true;
-                    btn.textContent = 'sure? click again';
-                    btn.classList.add('confirming');
-                    setTimeout(function() {
-                        resetProducedPending = false;
-                        btn.textContent = 'reset to defaults';
-                        btn.classList.remove('confirming');
-                    }, 3500);
-                } else if (type === 'produced' && resetProducedPending) {
-                    // Clear IDB entries for any local produced tracks
-                    mcTracks.forEach(function(t) {
-                        if (t && t.localKey) {
-                            if (mcObjectURLs[t.localKey]) { URL.revokeObjectURL(mcObjectURLs[t.localKey]); delete mcObjectURLs[t.localKey]; }
-                            songDB.remove(t.localKey);
-                        }
-                    });
-                    mcTracks.length = 0;
-                    mcTracksDefault.forEach(function(t) { mcTracks.push({ title: t.title, src: t.src }); });
-                    localStorage.removeItem(MC_TRACKS_KEY);
-                    resetProducedPending = false;
-                    btn.textContent = 'reset to defaults';
-                    btn.classList.remove('confirming');
-                    renderProducedList();
                 }
             });
         }
 
-        setupReset('songsResetAvatar', 'avatar');
-        setupReset('songsResetProduced', 'produced');
+        setupReset('songsResetAvatar', { v: false }, function() {
+            // Clear IDB entries for any local avatar tracks
+            favoriteTracks.forEach(function(t) {
+                if (t && t.localKey) {
+                    if (aviObjectURLs[t.localKey]) { URL.revokeObjectURL(aviObjectURLs[t.localKey]); delete aviObjectURLs[t.localKey]; }
+                    songDB.remove(t.localKey);
+                }
+            });
+            favoriteTracks = aviTracksDefault ? aviTracksDefault.slice() : fallbackFavorites.slice();
+            localStorage.removeItem(AVI_TRACKS_KEY);
+            renderAvatarList();
+        });
+
+        setupReset('songsResetProduced', { v: false }, function() {
+            // Clear IDB entries for any local produced tracks
+            mcTracks.forEach(function(t) {
+                if (t && t.localKey) {
+                    if (mcObjectURLs[t.localKey]) { URL.revokeObjectURL(mcObjectURLs[t.localKey]); delete mcObjectURLs[t.localKey]; }
+                    songDB.remove(t.localKey);
+                }
+            });
+            mcTracks.length = 0;
+            mcTracksDefault.forEach(function(t) { mcTracks.push({ title: t.title, src: t.src }); });
+            localStorage.removeItem(MC_TRACKS_KEY);
+            renderProducedList();
+        });
+
     })();
 
     (function() {
