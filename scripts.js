@@ -1414,7 +1414,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         document.addEventListener('click', function(e) {
-            if (songsPanel.classList.contains('active') && !e.target.closest('#songsPanel')) {
+            if (!songsPanel.classList.contains('active')) return;
+            // Use composedPath so clicks on elements removed from DOM (e.g. deleted rows)
+            // don't falsely appear as outside-clicks and close the panel.
+            var path = e.composedPath ? e.composedPath() : [];
+            var insidePanel = path.some(function(el) { return el === songsPanel; });
+            if (!insidePanel && !e.target.closest('#songsPanel')) {
                 hideSongsPanel();
             }
         });
