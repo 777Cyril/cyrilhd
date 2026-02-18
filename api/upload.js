@@ -36,11 +36,17 @@ async function handler(req, res) {
         });
     }
 
+    // Read raw stream to bypass Vercel's built-in body parser (which caps at 4.5mb).
+    // This lets us accept large base64-encoded audio files (up to ~50mb encoded).
     let body;
     try {
-        // Vercel automatically parses JSON bodies
-        body = req.body;
-        if (typeof body === 'string') body = JSON.parse(body);
+        const rawBody = await new Promise((resolve, reject) => {
+            const chunks = [];
+            req.on('data', chunk => chunks.push(chunk));
+            req.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
+            req.on('error', reject);
+        });
+        body = JSON.parse(rawBody);
     } catch (e) {
         return res.status(400).json({ error: 'Invalid JSON body' });
     }
@@ -124,15 +130,9 @@ async function handler(req, res) {
     });
 }
 
-// Export handler + raise Vercel's default 4.5mb body limit so large MP3s get through
+// Body size limit is handled by reading the raw stream (see handler above),
+// which bypasses Vercel's 4.5mb built-in body parser cap entirely.
 module.exports = handler;
-module.exports.config = {
-    api: {
-        bodyParser: {
-            sizeLimit: '50mb',
-        },
-    },
-};
 
 async function updateScheduleJson(newAudioPath, ghHeaders) {
     const schedulePath = 'assets/songs/schedule.json';
