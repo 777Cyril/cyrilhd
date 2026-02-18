@@ -1610,72 +1610,101 @@ document.addEventListener('DOMContentLoaded', function() {
         // so it plays immediately in your browser without waiting.
         function handleUpload(file, type, zone) {
             var title = fileNameToTitle(file.name);
-
-            // Show uploading state
             if (zone) zone.textContent = 'uploading…';
 
-            // Read file as base64 for GitHub API
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                // Strip the data URL prefix (e.g. "data:audio/mpeg;base64,")
-                var base64 = e.target.result.split(',')[1];
+            // Cache file in IndexedDB immediately for local playback while deploy happens
+            var localKey = 'local_' + Date.now() + '_' + file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+            songDB.save(localKey, file);
 
-                // Cache original file blob in IndexedDB for immediate local playback
-                // (no need to re-decode base64 — the File object is already a Blob)
-                var localKey = 'local_' + Date.now() + '_' + file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-                songDB.save(localKey, file);
+            // Phase 1: ask the server for the upload target (filePath, SHA, token)
+            // Only { filename, target } go through Vercel — no file data, no size limit hit.
+            fetch('/api/upload', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filename: file.name, target: type }),
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(prep) {
+                if (prep.error) throw new Error(prep.error);
 
-                var uploadBody;
-                try {
-                    uploadBody = JSON.stringify({ filename: file.name, dataBase64: base64, target: type });
-                } catch (jsonErr) {
-                    if (zone) zone.textContent = 'error: file too large to encode (' + jsonErr.message + ')';
-                    console.error('JSON stringify error:', jsonErr);
-                    return;
-                }
+                // Phase 2: read file as base64 and PUT directly to GitHub from the browser.
+                // This bypasses Vercel entirely — no 4.5mb limit.
+                return new Promise(function(resolve, reject) {
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        var base64 = e.target.result.split(',')[1];
+                        var commitBody = {
+                            message: 'upload: add ' + file.name,
+                            content: base64,
+                            branch: prep.branch,
+                        };
+                        if (prep.existingSha) commitBody.sha = prep.existingSha;
 
-                fetch('/api/upload', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: uploadBody,
-                })
-                .then(function(res) {
-                    if (!res.ok && res.status === 413) throw new Error('File too large for server (413)');
-                    return res.json();
-                })
-                .then(function(data) {
-                    if (zone) zone.innerHTML = '<span>drop a file or <button class="songs-pick-btn" id="' + (type === 'avatar' ? 'songsPickAvatar' : 'songsPickProduced') + '">pick one</button></span>';
-                    // Re-attach pick button listener
-                    var newPick = document.getElementById(type === 'avatar' ? 'songsPickAvatar' : 'songsPickProduced');
-                    var inputId = type === 'avatar' ? 'songsFileAvatar' : 'songsFileProduced';
-                    if (newPick) newPick.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        var inp = document.getElementById(inputId);
-                        if (inp) inp.click();
-                    });
-
-                    if (data.error) {
-                        if (zone) zone.textContent = 'error: ' + data.error;
-                        return;
-                    }
-
-                    // Add track with server path (permanent) + localKey for immediate playback
-                    if (type === 'avatar') {
-                        favoriteTracks.push({ title: data.title || title, src: data.path, localKey: localKey });
-                        aviTracksSave(favoriteTracks);
-                        renderAvatarList();
-                    } else {
-                        mcTracks.push({ title: data.title || title, src: data.path, localKey: localKey });
-                        mcTracksSave(mcTracks);
-                        renderProducedList();
-                    }
-                })
-                .catch(function(err) {
-                    if (zone) zone.textContent = 'error: ' + (err.message || 'upload failed');
-                    console.error('Upload error:', err);
+                        fetch(
+                            'https://api.github.com/repos/' + prep.repoOwner + '/' + prep.repoName + '/contents/' + prep.filePath,
+                            {
+                                method: 'PUT',
+                                headers: {
+                                    'Authorization': 'token ' + prep.token,
+                                    'Accept': 'application/vnd.github.v3+json',
+                                    'Content-Type': 'application/json',
+                                    'User-Agent': 'cyrilhd-upload',
+                                },
+                                body: JSON.stringify(commitBody),
+                            }
+                        )
+                        .then(function(ghRes) {
+                            if (!ghRes.ok) {
+                                return ghRes.json().then(function(e) {
+                                    throw new Error('GitHub error (' + ghRes.status + '): ' + (e.message || 'unknown'));
+                                });
+                            }
+                            return ghRes.json();
+                        })
+                        .then(function() {
+                            // Phase 3: tell the server to update schedule.json (tiny call, no file)
+                            return fetch('/api/upload', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ target: type, filePath: prep.filePath, finalize: true }),
+                            }).then(function(r) { return r.json(); });
+                        })
+                        .then(resolve)
+                        .catch(reject);
+                    };
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
                 });
-            };
-            reader.readAsDataURL(file);
+            })
+            .then(function(data) {
+                if (data.error) throw new Error(data.error);
+
+                // Restore upload zone
+                var pickId = type === 'avatar' ? 'songsPickAvatar' : 'songsPickProduced';
+                var inputId = type === 'avatar' ? 'songsFileAvatar' : 'songsFileProduced';
+                if (zone) zone.innerHTML = '<span>drop a file or <button class="songs-pick-btn" id="' + pickId + '">pick one</button></span>';
+                var newPick = document.getElementById(pickId);
+                if (newPick) newPick.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    var inp = document.getElementById(inputId);
+                    if (inp) inp.click();
+                });
+
+                // Add track to the live list
+                if (type === 'avatar') {
+                    favoriteTracks.push({ title: data.title || title, src: data.path, localKey: localKey });
+                    aviTracksSave(favoriteTracks);
+                    renderAvatarList();
+                } else {
+                    mcTracks.push({ title: data.title || title, src: data.path, localKey: localKey });
+                    mcTracksSave(mcTracks);
+                    renderProducedList();
+                }
+            })
+            .catch(function(err) {
+                if (zone) zone.textContent = 'error: ' + (err.message || 'upload failed');
+                console.error('Upload error:', err);
+            });
         }
 
         function setupUploadZone(zoneId, inputId, pickBtnId, type) {
