@@ -19,10 +19,15 @@ const GITHUB_API = 'https://api.github.com';
 module.exports = async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-upload-secret');
 
     if (req.method === 'OPTIONS') return res.status(200).end();
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+    const uploadSecret = process.env.UPLOAD_SECRET;
+    if (uploadSecret && req.headers['x-upload-secret'] !== uploadSecret) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
 
     const token = process.env.GITHUB_TOKEN;
     if (!token) {

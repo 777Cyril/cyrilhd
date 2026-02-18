@@ -1355,8 +1355,32 @@ document.addEventListener('DOMContentLoaded', function() {
         var resetAvatarPending = false;
         var resetProducedPending = false;
 
+        // ── Upload secret ──
+        var SECRET_KEY = 'cyril_upload_secret';
+
+        function getUploadSecret() {
+            try { return localStorage.getItem(SECRET_KEY) || ''; } catch (e) { return ''; }
+        }
+
+        function setUploadSecret(val) {
+            try { localStorage.setItem(SECRET_KEY, val); } catch (e) {}
+        }
+
+        function clearUploadSecret() {
+            try { localStorage.removeItem(SECRET_KEY); } catch (e) {}
+        }
+
+        // Prompt for the secret if it's not stored. Returns true if we have one.
+        function ensureSecret() {
+            if (getUploadSecret()) return true;
+            var s = window.prompt('Enter upload secret:');
+            if (s && s.trim()) { setUploadSecret(s.trim()); return true; }
+            return false;
+        }
+
         // ── Open / Close ──
         function showSongsPanel() {
+            if (!ensureSecret()) return; // abort open if no secret entered
             songsPanel.classList.add('active');
             songsPanel.setAttribute('aria-hidden', 'false');
             renderBoth();
@@ -1503,7 +1527,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (repoPath && repoPath.startsWith('assets/audio/')) {
                         fetch('/api/delete', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: { 'Content-Type': 'application/json', 'x-upload-secret': getUploadSecret() },
                             body: JSON.stringify({ path: repoPath, target: 'avatar' }),
                         }).catch(function(err) { console.error('Delete API error:', err); });
                     }
@@ -1589,7 +1613,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (repoPath && repoPath.startsWith('assets/audio/')) {
                         fetch('/api/delete', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: { 'Content-Type': 'application/json', 'x-upload-secret': getUploadSecret() },
                             body: JSON.stringify({ path: repoPath, target: 'produced' }),
                         }).catch(function(err) { console.error('Delete API error:', err); });
                     }
@@ -1620,10 +1644,13 @@ document.addEventListener('DOMContentLoaded', function() {
             // Only { filename, target } go through Vercel — no file data, no size limit hit.
             fetch('/api/upload', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'x-upload-secret': getUploadSecret() },
                 body: JSON.stringify({ filename: file.name, target: type }),
             })
-            .then(function(r) { return r.json(); })
+            .then(function(r) {
+                if (r.status === 401) { clearUploadSecret(); throw new Error('Wrong secret — re-open panel to try again'); }
+                return r.json();
+            })
             .then(function(prep) {
                 if (prep.error) throw new Error(prep.error);
 
@@ -1665,7 +1692,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             // Phase 3: tell the server to update schedule.json (tiny call, no file)
                             return fetch('/api/upload', {
                                 method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
+                                headers: { 'Content-Type': 'application/json', 'x-upload-secret': getUploadSecret() },
                                 body: JSON.stringify({ target: type, filePath: prep.filePath, finalize: true }),
                             }).then(function(r) { return r.json(); });
                         })
