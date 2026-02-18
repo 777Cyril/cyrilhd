@@ -234,15 +234,19 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem(GREETING_KEY, String(Date.now()));
     })();
 
+    // Restarts a CSS animation class on an element (force-reflow pattern).
+    function triggerAnimation(el, cls, ms) {
+        el.classList.remove(cls);
+        void el.offsetWidth;
+        el.classList.add(cls);
+        setTimeout(function() { el.classList.remove(cls); }, ms);
+    }
+
     function triggerTapFlash() {
+        if (flashTimeoutId) clearTimeout(flashTimeoutId);
         avi.classList.remove('tap-flash');
-        // Force reflow so the animation restarts on repeated taps.
         void avi.offsetWidth;
         avi.classList.add('tap-flash');
-
-        if (flashTimeoutId) {
-            clearTimeout(flashTimeoutId);
-        }
         flashTimeoutId = setTimeout(function() {
             avi.classList.remove('tap-flash');
         }, 650);
@@ -370,11 +374,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Nod animation
-        avi.classList.remove('nod');
-        void avi.offsetWidth;
-        avi.classList.add('nod');
-        setTimeout(function() { avi.classList.remove('nod'); }, 400);
+        triggerAnimation(avi, 'nod', 400);
 
         // Step back in the same playlist — no reshuffle
         aviCursor--;
@@ -437,13 +437,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function playNextAviTrack() {
-        // Trigger nod animation
-        avi.classList.remove('nod');
-        void avi.offsetWidth; // Force reflow
-        avi.classList.add('nod');
-        setTimeout(function() {
-            avi.classList.remove('nod');
-        }, 400);
+        triggerAnimation(avi, 'nod', 400);
 
         selectRandomAvatarTrack();
         audio.play().then(function() {
@@ -1005,12 +999,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         function triggerAvatarSongsReaction() {
-            avi.classList.remove('react-songs');
-            void avi.offsetWidth;
-            avi.classList.add('react-songs');
-            setTimeout(function() {
-                avi.classList.remove('react-songs');
-            }, 260);
+            triggerAnimation(avi, 'react-songs', 260);
         }
 
         songsLink.addEventListener('mouseenter', triggerAvatarSongsReaction);
