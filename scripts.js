@@ -834,10 +834,10 @@ document.addEventListener('DOMContentLoaded', function() {
             function start(trackName) {
                 stop();
                 _phase = false;
-                document.title = '♪ ' + trackName + ' — cyril';
+                document.title = '♪ ' + trackName;
                 _intervalId = setInterval(function() {
                     _phase = !_phase;
-                    document.title = _phase ? BASE_TITLE : '♪ ' + trackName + ' — cyril';
+                    document.title = _phase ? BASE_TITLE : '♪ ' + trackName;
                 }, 3000);
             }
 
