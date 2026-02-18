@@ -1455,57 +1455,26 @@ document.addEventListener('DOMContentLoaded', function() {
             renderProducedList();
         }
 
-        function renderAvatarList() {
-            var listEl = document.getElementById('songsListAvatar');
+        // Shared row builder — both tabs use this; reorder buttons removed since
+        // both playlists are Fisher-Yates shuffled on playback (order never matters).
+        function renderTrackList(config) {
+            var listEl = document.getElementById(config.listElId);
             if (!listEl) return;
             listEl.innerHTML = '';
-            favoriteTracks.forEach(function(track, i) {
+            config.tracks.forEach(function(track, i) {
                 var row = document.createElement('div');
                 row.className = 'songs-row';
-
-                var upBtn = document.createElement('button');
-                upBtn.className = 'songs-row-btn';
-                upBtn.textContent = '▲';
-                upBtn.title = 'move up';
-                upBtn.disabled = i === 0;
-                upBtn.addEventListener('click', function() {
-                    if (i === 0) return;
-                    var tmp = favoriteTracks[i - 1];
-                    favoriteTracks[i - 1] = favoriteTracks[i];
-                    favoriteTracks[i] = tmp;
-                    aviTracksSave(favoriteTracks);
-                    renderAvatarList();
-                });
-
-                var downBtn = document.createElement('button');
-                downBtn.className = 'songs-row-btn';
-                downBtn.textContent = '▼';
-                downBtn.title = 'move down';
-                downBtn.disabled = i === favoriteTracks.length - 1;
-                downBtn.addEventListener('click', function() {
-                    if (i === favoriteTracks.length - 1) return;
-                    var tmp = favoriteTracks[i + 1];
-                    favoriteTracks[i + 1] = favoriteTracks[i];
-                    favoriteTracks[i] = tmp;
-                    aviTracksSave(favoriteTracks);
-                    renderAvatarList();
-                });
 
                 var titleSpan = document.createElement('span');
                 titleSpan.className = 'songs-row-title';
                 titleSpan.setAttribute('contenteditable', 'true');
                 titleSpan.setAttribute('spellcheck', 'false');
-                titleSpan.textContent = getAviDisplayName(track);
+                titleSpan.textContent = config.getTitle(track);
                 titleSpan.addEventListener('blur', function() {
                     var newTitle = titleSpan.textContent.trim();
                     if (!newTitle) return;
-                    if (typeof favoriteTracks[i] === 'object') {
-                        favoriteTracks[i].title = newTitle;
-                    } else {
-                        // Convert plain path to object so we can store a custom title
-                        favoriteTracks[i] = { title: newTitle, src: favoriteTracks[i] };
-                    }
-                    aviTracksSave(favoriteTracks);
+                    config.setTitle(config.tracks, i, newTitle);
+                    config.saveFn(config.tracks);
                 });
                 titleSpan.addEventListener('keydown', function(e) {
                     if (e.key === 'Enter') { e.preventDefault(); titleSpan.blur(); }
@@ -1516,119 +1485,58 @@ document.addEventListener('DOMContentLoaded', function() {
                 delBtn.textContent = '✕';
                 delBtn.title = 'remove';
                 delBtn.addEventListener('click', function() {
-                    var removed = favoriteTracks.splice(i, 1)[0];
-                    // Clean up local IndexedDB cache if it was an uploaded file
+                    var removed = config.tracks.splice(i, 1)[0];
                     if (removed && removed.localKey) {
-                        if (aviObjectURLs[removed.localKey]) {
-                            URL.revokeObjectURL(aviObjectURLs[removed.localKey]);
-                            delete aviObjectURLs[removed.localKey];
+                        if (config.objectURLs[removed.localKey]) {
+                            URL.revokeObjectURL(config.objectURLs[removed.localKey]);
+                            delete config.objectURLs[removed.localKey];
                         }
                         songDB.remove(removed.localKey);
                     }
-                    aviTracksSave(favoriteTracks);
-                    renderAvatarList();
-                    // Delete from GitHub so it's gone for all visitors
+                    config.saveFn(config.tracks);
+                    config.rerenderFn();
                     var repoPath = removed && (typeof removed === 'object' ? (removed.src || null) : removed);
                     if (repoPath && repoPath.startsWith('assets/audio/')) {
                         fetch('/api/delete', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'x-upload-secret': getUploadSecret() },
-                            body: JSON.stringify({ path: repoPath, target: 'avatar' }),
+                            body: JSON.stringify({ path: repoPath, target: config.apiTarget }),
                         }).catch(function(err) { console.error('Delete API error:', err); });
                     }
                 });
 
-                row.appendChild(upBtn);
-                row.appendChild(downBtn);
                 row.appendChild(titleSpan);
                 row.appendChild(delBtn);
                 listEl.appendChild(row);
             });
         }
 
+        function renderAvatarList() {
+            renderTrackList({
+                listElId:   'songsListAvatar',
+                tracks:     favoriteTracks,
+                objectURLs: aviObjectURLs,
+                saveFn:     aviTracksSave,
+                rerenderFn: renderAvatarList,
+                getTitle:   function(track) { return getAviDisplayName(track); },
+                setTitle:   function(tracks, i, val) {
+                    if (typeof tracks[i] === 'object') { tracks[i].title = val; }
+                    else { tracks[i] = { title: val, src: tracks[i] }; }
+                },
+                apiTarget: 'avatar',
+            });
+        }
+
         function renderProducedList() {
-            var listEl = document.getElementById('songsListProduced');
-            if (!listEl) return;
-            listEl.innerHTML = '';
-            mcTracks.forEach(function(track, i) {
-                var row = document.createElement('div');
-                row.className = 'songs-row';
-
-                var upBtn = document.createElement('button');
-                upBtn.className = 'songs-row-btn';
-                upBtn.textContent = '▲';
-                upBtn.title = 'move up';
-                upBtn.disabled = i === 0;
-                upBtn.addEventListener('click', function() {
-                    if (i === 0) return;
-                    var tmp = mcTracks[i - 1];
-                    mcTracks[i - 1] = mcTracks[i];
-                    mcTracks[i] = tmp;
-                    mcTracksSave(mcTracks);
-                    renderProducedList();
-                });
-
-                var downBtn = document.createElement('button');
-                downBtn.className = 'songs-row-btn';
-                downBtn.textContent = '▼';
-                downBtn.title = 'move down';
-                downBtn.disabled = i === mcTracks.length - 1;
-                downBtn.addEventListener('click', function() {
-                    if (i === mcTracks.length - 1) return;
-                    var tmp = mcTracks[i + 1];
-                    mcTracks[i + 1] = mcTracks[i];
-                    mcTracks[i] = tmp;
-                    mcTracksSave(mcTracks);
-                    renderProducedList();
-                });
-
-                var titleSpan = document.createElement('span');
-                titleSpan.className = 'songs-row-title';
-                titleSpan.setAttribute('contenteditable', 'true');
-                titleSpan.setAttribute('spellcheck', 'false');
-                titleSpan.textContent = track.title;
-                titleSpan.addEventListener('blur', function() {
-                    var newTitle = titleSpan.textContent.trim();
-                    if (!newTitle) return;
-                    mcTracks[i].title = newTitle;
-                    mcTracksSave(mcTracks);
-                });
-                titleSpan.addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter') { e.preventDefault(); titleSpan.blur(); }
-                });
-
-                var delBtn = document.createElement('button');
-                delBtn.className = 'songs-row-btn';
-                delBtn.textContent = '✕';
-                delBtn.title = 'remove';
-                delBtn.addEventListener('click', function() {
-                    var removed = mcTracks.splice(i, 1)[0];
-                    // Clean up local IndexedDB cache if it was an uploaded file
-                    if (removed && removed.localKey) {
-                        if (mcObjectURLs[removed.localKey]) {
-                            URL.revokeObjectURL(mcObjectURLs[removed.localKey]);
-                            delete mcObjectURLs[removed.localKey];
-                        }
-                        songDB.remove(removed.localKey);
-                    }
-                    mcTracksSave(mcTracks);
-                    renderProducedList();
-                    // Delete from GitHub so the audio file is gone from the server
-                    var repoPath = removed && (removed.src || null);
-                    if (repoPath && repoPath.startsWith('assets/audio/')) {
-                        fetch('/api/delete', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'x-upload-secret': getUploadSecret() },
-                            body: JSON.stringify({ path: repoPath, target: 'produced' }),
-                        }).catch(function(err) { console.error('Delete API error:', err); });
-                    }
-                });
-
-                row.appendChild(upBtn);
-                row.appendChild(downBtn);
-                row.appendChild(titleSpan);
-                row.appendChild(delBtn);
-                listEl.appendChild(row);
+            renderTrackList({
+                listElId:   'songsListProduced',
+                tracks:     mcTracks,
+                objectURLs: mcObjectURLs,
+                saveFn:     mcTracksSave,
+                rerenderFn: renderProducedList,
+                getTitle:   function(track) { return track.title; },
+                setTitle:   function(tracks, i, val) { tracks[i].title = val; },
+                apiTarget: 'produced',
             });
         }
 
