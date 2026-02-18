@@ -256,17 +256,22 @@ document.addEventListener('DOMContentLoaded', function() {
     var aviTracksDefault = null; // set after schedule.json loads
     var aviObjectURLs = {}; // localKey → object url
 
-    function aviTracksLoad() {
-        try {
-            var saved = localStorage.getItem(AVI_TRACKS_KEY);
-            if (saved) return JSON.parse(saved);
-        } catch (e) {}
-        return null;
+    // Generic localStorage JSON store — returns { load, save } bound to a key.
+    function makeTracksStorage(key) {
+        return {
+            load: function() {
+                try { var s = localStorage.getItem(key); if (s) return JSON.parse(s); } catch (e) {}
+                return null;
+            },
+            save: function(tracks) {
+                try { localStorage.setItem(key, JSON.stringify(tracks)); } catch (e) {}
+            },
+        };
     }
 
-    function aviTracksSave(tracks) {
-        try { localStorage.setItem(AVI_TRACKS_KEY, JSON.stringify(tracks)); } catch (e) {}
-    }
+    var _aviStorage  = makeTracksStorage(AVI_TRACKS_KEY);
+    function aviTracksLoad()         { return _aviStorage.load(); }
+    function aviTracksSave(tracks)   { _aviStorage.save(tracks); }
 
     let favoriteTracks = [];
     let currentAviTrack = null;
@@ -558,17 +563,9 @@ document.addEventListener('DOMContentLoaded', function() {
     var MC_TRACKS_KEY = 'cyril_mc_tracks';
     var mcObjectURLs = {}; // localKey → object url
 
-    function mcTracksLoad() {
-        try {
-            var saved = localStorage.getItem(MC_TRACKS_KEY);
-            if (saved) return JSON.parse(saved);
-        } catch (e) {}
-        return null;
-    }
-
-    function mcTracksSave(tracks) {
-        try { localStorage.setItem(MC_TRACKS_KEY, JSON.stringify(tracks)); } catch (e) {}
-    }
+    var _mcStorage   = makeTracksStorage(MC_TRACKS_KEY);
+    function mcTracksLoad()          { return _mcStorage.load(); }
+    function mcTracksSave(tracks)    { _mcStorage.save(tracks); }
 
     var mcStopAndClose;
     var mcIsPlaying = false;
