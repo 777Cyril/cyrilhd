@@ -280,6 +280,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let favoriteTracks = [];
     let currentAviTrack = null;
     let aviIsPlaying = false;
+    let aviIsPaused = false;
     let aviNextBtnTimeout = null;
     let aviNextBtnHovering = false;
     const aviNextBtn = document.getElementById('aviNextBtn');
@@ -366,6 +367,10 @@ document.addEventListener('DOMContentLoaded', function() {
         resolveTrackToAudio(track, audio, aviObjectURLs, false);
     }
 
+    function isAviActive() {
+        return aviIsPlaying || aviIsPaused;
+    }
+
     function updateAviPauseButton() {
         if (!aviPauseBtn) return;
         var playIcon = aviPauseBtn.querySelector('.avi-play-icon');
@@ -381,6 +386,7 @@ document.addEventListener('DOMContentLoaded', function() {
             mcStopAndClose();
         }
         aviIsPlaying = true;
+        aviIsPaused = false;
         setAviWired(true);
         audio.play().then(function() {
             aviUpdateCarousel();
@@ -396,10 +402,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function pauseAviAudio() {
         aviIsPlaying = false;
+        aviIsPaused = true;
         audio.pause();
-        setAviWired(false);
+        setAviWired(true);
         aviUpdateCarousel();
-        hideAviNextButton();
+        showAviNextButton();
         updateAviPauseButton();
     }
 
@@ -412,7 +419,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function playPrevAviTrack() {
-        if (aviPlaylist.length === 0) return;
+        if (aviPlaylist.length === 0 || !isAviActive()) return;
 
         if (aviCursor <= 0) {
             // Already at the start — just rewind
@@ -426,6 +433,8 @@ document.addEventListener('DOMContentLoaded', function() {
         aviCursor--;
         currentAviTrack = aviPlaylist[aviCursor];
         loadAviTrack(currentAviTrack);
+        aviIsPlaying = true;
+        aviIsPaused = false;
         audio.play().then(function() {
             aviUpdateCarousel();
             showAviNextButton();
@@ -435,7 +444,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function showAviNextButton() {
-        if (!aviIsPlaying) return;
+        if (!isAviActive()) return;
 
         if (aviNextBtn) {
             aviNextBtn.classList.add('show');
@@ -457,6 +466,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // Clear existing timeout
         if (aviNextBtnTimeout) {
             clearTimeout(aviNextBtnTimeout);
+        }
+
+        if (aviIsPaused) {
+            return;
         }
 
         // Hide after 4 seconds (unless hovering)
@@ -497,9 +510,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function playNextAviTrack() {
+        if (!isAviActive()) return;
         triggerAnimation(avi, 'nod', 400);
 
         selectRandomAvatarTrack();
+        aviIsPlaying = true;
+        aviIsPaused = false;
         audio.play().then(function() {
             aviUpdateCarousel();
             showAviNextButton(); // Show button again after skip
@@ -561,9 +577,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (aviNextBtn) {
         aviNextBtn.addEventListener('click', function(e) {
             e.stopPropagation();
-            if (aviIsPlaying) {
-                playNextAviTrack();
-            }
+            playNextAviTrack();
         });
 
         // Track hover state to prevent auto-fade while hovering
@@ -582,9 +596,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (aviPrevBtn) {
         aviPrevBtn.addEventListener('click', function(e) {
             e.stopPropagation();
-            if (aviIsPlaying) {
-                playPrevAviTrack();
-            }
+            playPrevAviTrack();
         });
 
         aviPrevBtn.addEventListener('mouseenter', function() {
@@ -883,7 +895,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             function sync() {
-                if (aviIsPlaying && currentAviTrack) {
+                if (isAviActive() && currentAviTrack) {
                     start(getAviTrackName(currentAviTrack));
                 } else if (mcIsPlaying) {
                     start(mcTracks[mcCurrentTrack].title);
@@ -897,7 +909,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         function carouselUpdate() {
             // Avatar takes priority over music controls
-            if (aviIsPlaying && currentAviTrack) {
+            if (isAviActive() && currentAviTrack) {
                 var trackName = getAviTrackName(currentAviTrack);
                 var title = 'you are now listening to ' + trackName;
                 carouselShow(title);
@@ -982,7 +994,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 500);
             mcIsOpen = false;
             progressHide();
-            if (!aviIsPlaying && !mcIsPlaying) setAviWired(false);
+            if (!isAviActive() && !mcIsPlaying) setAviWired(false);
             carouselUpdate();
         }
 
@@ -1009,6 +1021,7 @@ document.addEventListener('DOMContentLoaded', function() {
             audio.pause();
             audio.currentTime = 0;
             aviIsPlaying = false;
+            aviIsPaused = false;
             setAviWired(false);
             carouselUpdate();
             hideAviNextButton();
@@ -1025,14 +1038,14 @@ document.addEventListener('DOMContentLoaded', function() {
             if (isTouchDevice) {
                 // On mobile: use click
                 carouselViewport.addEventListener('click', function() {
-                    if (aviIsPlaying) {
+                    if (isAviActive()) {
                         showAviNextButton();
                     }
                 });
             } else {
                 // On desktop: use hover
                 carouselViewport.addEventListener('mouseenter', function() {
-                    if (aviIsPlaying) {
+                    if (isAviActive()) {
                         showAviNextButton();
                     }
                 });
@@ -1044,14 +1057,14 @@ document.addEventListener('DOMContentLoaded', function() {
             if (isTouchDevice) {
                 // On mobile: use click
                 bannerSlot.addEventListener('click', function() {
-                    if (aviIsPlaying) {
+                    if (isAviActive()) {
                         showAviNextButton();
                     }
                 });
             } else {
                 // On desktop: use hover
                 bannerSlot.addEventListener('mouseenter', function() {
-                    if (aviIsPlaying) {
+                    if (isAviActive()) {
                         showAviNextButton();
                     }
                 });
@@ -1069,7 +1082,7 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             if (mcIsOpen) {
                 mcClose();
-                if (!aviIsPlaying) setAviWired(false);
+                if (!isAviActive()) setAviWired(false);
             } else {
                 mcControls.classList.remove('closing');
                 mcControls.classList.add('active');
@@ -1152,7 +1165,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     progressStart();
                     mcUpdateNowPlaying(true);
                 }
-            } else if (aviIsPlaying) {
+            } else if (isAviActive()) {
                 e.preventDefault();
                 if (e.key === 'ArrowLeft') {
                     // Rewind if > 3s in, else go to previous in history
