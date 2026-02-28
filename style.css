@@ -561,8 +561,10 @@ body.dark-mode .carousel-viewport {
     }
 }
 
-/* ── Avatar Next Track Button ── */
-.avi-next-btn {
+/* ── Avatar Playback Buttons ── */
+.avi-next-btn,
+.avi-prev-btn,
+.avi-pause-btn {
     display: none;
     position: relative;
     margin-left: 8px;
@@ -575,73 +577,47 @@ body.dark-mode .carousel-viewport {
     vertical-align: middle;
 }
 
-.avi-next-btn.visible {
-    opacity: 1;
-}
-
-.avi-next-btn.show {
-    display: inline-block;
-}
-
-.avi-next-btn svg {
+.avi-next-btn svg,
+.avi-prev-btn svg,
+.avi-pause-btn svg {
     width: 16px;
     height: 16px;
     color: rgba(0, 0, 0, 0.5);
 }
 
 html.dark-mode .avi-next-btn svg,
-body.dark-mode .avi-next-btn svg {
+body.dark-mode .avi-next-btn svg,
+html.dark-mode .avi-prev-btn svg,
+body.dark-mode .avi-prev-btn svg,
+html.dark-mode .avi-pause-btn svg,
+body.dark-mode .avi-pause-btn svg {
     color: rgba(255, 255, 255, 0.6);
 }
 
-.avi-next-btn:hover svg {
+.avi-next-btn.visible,
+.avi-prev-btn.visible,
+.avi-pause-btn.visible {
+    opacity: 1;
+}
+
+.avi-next-btn.show,
+.avi-prev-btn.show,
+.avi-pause-btn.show {
+    display: inline-block;
+}
+
+.avi-next-btn:hover svg,
+.avi-prev-btn:hover svg,
+.avi-pause-btn:hover svg {
     color: rgba(0, 0, 0, 0.8);
 }
 
 html.dark-mode .avi-next-btn:hover svg,
-body.dark-mode .avi-next-btn:hover svg {
-    color: rgba(255, 255, 255, 0.9);
-}
-
-/* ── Avatar Prev Track Button ── */
-.avi-prev-btn {
-    display: none;
-    position: relative;
-    margin-left: 8px;
-    padding: 4px 6px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    vertical-align: middle;
-}
-
-.avi-prev-btn.visible {
-    opacity: 1;
-}
-
-.avi-prev-btn.show {
-    display: inline-block;
-}
-
-.avi-prev-btn svg {
-    width: 16px;
-    height: 16px;
-    color: rgba(0, 0, 0, 0.5);
-}
-
-html.dark-mode .avi-prev-btn svg,
-body.dark-mode .avi-prev-btn svg {
-    color: rgba(255, 255, 255, 0.6);
-}
-
-.avi-prev-btn:hover svg {
-    color: rgba(0, 0, 0, 0.8);
-}
-
+body.dark-mode .avi-next-btn:hover svg,
 html.dark-mode .avi-prev-btn:hover svg,
-body.dark-mode .avi-prev-btn:hover svg {
+body.dark-mode .avi-prev-btn:hover svg,
+html.dark-mode .avi-pause-btn:hover svg,
+body.dark-mode .avi-pause-btn:hover svg {
     color: rgba(255, 255, 255, 0.9);
 }
 

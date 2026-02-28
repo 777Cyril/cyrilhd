@@ -284,6 +284,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let aviNextBtnHovering = false;
     const aviNextBtn = document.getElementById('aviNextBtn');
     const aviPrevBtn = document.getElementById('aviPrevBtn');
+    const aviPauseBtn = document.getElementById('aviPauseBtn');
     // Fisher-Yates shuffle
     function shuffleArray(array) {
         const shuffled = array.slice();
@@ -365,6 +366,51 @@ document.addEventListener('DOMContentLoaded', function() {
         resolveTrackToAudio(track, audio, aviObjectURLs, false);
     }
 
+    function updateAviPauseButton() {
+        if (!aviPauseBtn) return;
+        var playIcon = aviPauseBtn.querySelector('.avi-play-icon');
+        var pauseIcon = aviPauseBtn.querySelector('.avi-pause-icon');
+        var isPaused = audio.paused;
+        if (playIcon) playIcon.style.display = isPaused ? 'block' : 'none';
+        if (pauseIcon) pauseIcon.style.display = isPaused ? 'none' : 'block';
+        aviPauseBtn.setAttribute('aria-label', isPaused ? 'Resume track' : 'Pause track');
+    }
+
+    function playAviAudio() {
+        if (typeof mcStopAndClose === 'function') {
+            mcStopAndClose();
+        }
+        aviIsPlaying = true;
+        setAviWired(true);
+        audio.play().then(function() {
+            aviUpdateCarousel();
+            showAviNextButton();
+            updateAviPauseButton();
+        }).catch(function(err) {
+            aviIsPlaying = false;
+            setAviWired(false);
+            updateAviPauseButton();
+            console.error('Avatar play error:', err);
+        });
+    }
+
+    function pauseAviAudio() {
+        aviIsPlaying = false;
+        audio.pause();
+        setAviWired(false);
+        aviUpdateCarousel();
+        hideAviNextButton();
+        updateAviPauseButton();
+    }
+
+    function toggleAviPlayback() {
+        if (audio.paused) {
+            playAviAudio();
+        } else {
+            pauseAviAudio();
+        }
+    }
+
     function playPrevAviTrack() {
         if (aviPlaylist.length === 0) return;
 
@@ -401,6 +447,12 @@ document.addEventListener('DOMContentLoaded', function() {
             void aviPrevBtn.offsetWidth;
             aviPrevBtn.classList.add('visible');
         }
+        if (aviPauseBtn) {
+            aviPauseBtn.classList.add('show');
+            void aviPauseBtn.offsetWidth;
+            aviPauseBtn.classList.add('visible');
+        }
+        updateAviPauseButton();
 
         // Clear existing timeout
         if (aviNextBtnTimeout) {
@@ -418,6 +470,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     aviPrevBtn.classList.remove('visible');
                     setTimeout(function() { aviPrevBtn.classList.remove('show'); }, 300);
                 }
+                if (aviPauseBtn) {
+                    aviPauseBtn.classList.remove('visible');
+                    setTimeout(function() { aviPauseBtn.classList.remove('show'); }, 300);
+                }
             }
         }, 4000);
     }
@@ -433,6 +489,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (aviPrevBtn) {
             aviPrevBtn.classList.remove('visible');
             setTimeout(function() { aviPrevBtn.classList.remove('show'); }, 300);
+        }
+        if (aviPauseBtn) {
+            aviPauseBtn.classList.remove('visible');
+            setTimeout(function() { aviPauseBtn.classList.remove('show'); }, 300);
         }
     }
 
@@ -477,27 +537,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     avi.addEventListener('click', function() {
         triggerTapFlash();
-        if (audio.paused) {
-            if (typeof mcStopAndClose === 'function') {
-                mcStopAndClose();
-            }
-            aviIsPlaying = true;
-            setAviWired(true);
-            audio.play().then(function() {
-                aviUpdateCarousel();
-                showAviNextButton();
-            }).catch(function(err) {
-                aviIsPlaying = false;
-                setAviWired(false);
-                console.error('Avatar play error:', err);
-            });
-        } else {
-            aviIsPlaying = false;
-            audio.pause();
-            setAviWired(false);
-            aviUpdateCarousel();
-            hideAviNextButton();
-        }
+        toggleAviPlayback();
     });
 
     // Avatar ended event - play next random track
@@ -507,11 +547,15 @@ document.addEventListener('DOMContentLoaded', function() {
             audio.play().then(function() {
                 aviUpdateCarousel();
                 showAviNextButton();
+                updateAviPauseButton();
             }).catch(function(err) {
                 console.error('Auto-play error:', err);
             });
         }
     });
+
+    audio.addEventListener('play', updateAviPauseButton);
+    audio.addEventListener('pause', updateAviPauseButton);
 
     // Next track button click handler
     if (aviNextBtn) {
@@ -548,6 +592,22 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         aviPrevBtn.addEventListener('mouseleave', function() {
+            aviNextBtnHovering = false;
+            showAviNextButton();
+        });
+    }
+
+    if (aviPauseBtn) {
+        aviPauseBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            toggleAviPlayback();
+        });
+
+        aviPauseBtn.addEventListener('mouseenter', function() {
+            aviNextBtnHovering = true;
+        });
+
+        aviPauseBtn.addEventListener('mouseleave', function() {
             aviNextBtnHovering = false;
             showAviNextButton();
         });
