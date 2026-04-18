@@ -401,6 +401,9 @@
     },
     "assets/audio/favorites/HEAVEN [PROD. 454].mp3",
     "assets/audio/favorites/BACKR00MS FT TRAVIS SCOTT SEXISDEATH INDIANA420BITCH.mp3",
-    "assets/audio/favorites/Sippy Cup.mp3"
+    {
+      "title": "Sippy Cup Lionmilk",
+      "src": "assets/audio/favorites/Sippy Cup.mp3"
+    }
   ]
 }
