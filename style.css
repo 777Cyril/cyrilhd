@@ -1297,3 +1297,28 @@ body.dark-mode .songs-reset-btn.confirming {
     25% { transform: translateX(-3px) rotate(-1deg); }
     75% { transform: translateX(3px) rotate(1deg); }
 }
+
+/* ── Theme Variants ── */
+/* Theme 1: Mustard Yellow + Warm Mauve (x/1) */
+html.theme-1 {
+    --bg-light: #E8C547;        /* Mustard yellow */
+    --bg-dark: #2a2a1a;         /* Dark warm brown */
+    --text-light: #2c2c2c;      /* Dark text on light */
+    --text-dark: #F5EDE0;       /* Warm cream on dark */
+    --link-light: #B8956A;      /* Warm mauve accent */
+    --link-dark: #E8C547;       /* Yellow accent in dark mode */
+}
+
+html.theme-1.dark-mode {
+    --bg-dark: #1a1a0f;
+    --text-dark: #F5EDE0;
+}
+
+/* Placeholder for future themes */
+html.theme-2 {
+    /* Define variables for x/2 here */
+}
+
+html.theme-3 {
+    /* Define variables for x/3 here */
+}

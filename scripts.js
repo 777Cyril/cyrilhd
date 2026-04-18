@@ -1831,6 +1831,24 @@ document.addEventListener('DOMContentLoaded', function() {
     })();
 
     (function() {
+        window.switchTheme = function(themeNum) {
+            var html = document.documentElement;
+            var currentTheme = html.className.match(/theme-(\d+)/);
+
+            if (currentTheme && parseInt(currentTheme[1]) === themeNum) {
+                // Already on this theme, toggle back to default
+                html.classList.remove('theme-' + themeNum);
+            } else {
+                // Remove any existing theme class, add new one
+                if (currentTheme) {
+                    html.classList.remove('theme-' + currentTheme[1]);
+                }
+                html.classList.add('theme-' + themeNum);
+            }
+        };
+    })();
+
+    (function() {
         var keyBuffer = '';
         var cooldownActive = false;
         var COOLDOWN_MS = 3000;
@@ -1865,6 +1883,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     }, COOLDOWN_MS);
                     break;
                 }
+            }
+
+            // Handle theme switching via x/[number] pattern
+            var themeMatch = keyBuffer.match(/x\/(\d+)$/);
+            if (themeMatch) {
+                var themeNum = parseInt(themeMatch[1]);
+                if (typeof window.switchTheme === 'function') {
+                    window.switchTheme(themeNum);
+                }
+                cooldownActive = true;
+                keyBuffer = '';
+                setTimeout(function() {
+                    cooldownActive = false;
+                }, COOLDOWN_MS);
             }
         });
 
