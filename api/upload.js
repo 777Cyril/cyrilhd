@@ -70,20 +70,30 @@ module.exports = async function handler(req, res) {
             return res.status(400).json({ error: `filePath must be within ${allowed}` });
         }
 
+        const safe = finalFilePath.split('/').pop();
+        const title = safe.replace(/\.[^/.]+$/, '');
+
         if (target === 'avatar') {
             try {
                 await updateScheduleJson(finalFilePath, ghHeaders);
             } catch (e) {
                 console.error('schedule.json update failed:', e.message);
-                // Non-fatal
+                return res.status(500).json({ error: 'File uploaded to GitHub but schedule.json update failed: ' + e.message });
+            }
+        } else {
+            try {
+                await updateProducedJson(finalFilePath, title, ghHeaders);
+            } catch (e) {
+                console.error('produced.json update failed:', e.message);
+                return res.status(500).json({ error: 'File uploaded to GitHub but produced.json update failed: ' + e.message });
             }
         }
 
-        const safe = finalFilePath.split('/').pop();
         return res.status(200).json({
             ok: true,
             path: finalFilePath,
-            title: safe.replace(/\.[^/.]+$/, ''),
+            title,
+            scheduleUpdated: true,
         });
     }
 
@@ -123,6 +133,43 @@ module.exports = async function handler(req, res) {
         branch: BRANCH,
     });
 };
+
+async function updateProducedJson(newAudioPath, title, ghHeaders) {
+    const producedPath = 'assets/songs/produced.json';
+    const producedUrl = `${GITHUB_API}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${producedPath}?ref=${BRANCH}`;
+
+    const getRes = await fetch(producedUrl, { headers: ghHeaders });
+    if (!getRes.ok) throw new Error(`Could not fetch produced.json (${getRes.status})`);
+
+    const fileData = await getRes.json();
+    const current = JSON.parse(Buffer.from(fileData.content, 'base64').toString('utf8'));
+
+    const alreadyExists = current.produced.some(function(t) { return t.src === newAudioPath; });
+    if (!alreadyExists) {
+        current.produced.push({ title, src: newAudioPath });
+    }
+
+    const updatedContent = Buffer.from(JSON.stringify(current, null, 2) + '\n').toString('base64');
+
+    const putRes = await fetch(
+        `${GITHUB_API}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${producedPath}`,
+        {
+            method: 'PUT',
+            headers: ghHeaders,
+            body: JSON.stringify({
+                message: `upload: add ${newAudioPath.split('/').pop()} to produced`,
+                content: updatedContent,
+                sha: fileData.sha,
+                branch: BRANCH,
+            }),
+        }
+    );
+
+    if (!putRes.ok) {
+        const err = await putRes.json().catch(() => ({}));
+        throw new Error(`produced.json commit failed: ${err.message || putRes.status}`);
+    }
+}
 
 async function updateScheduleJson(newAudioPath, ghHeaders) {
     const schedulePath = 'assets/songs/schedule.json';

@@ -78,10 +78,11 @@ module.exports = async function handler(req, res) {
 
     if (!getRes.ok) {
         if (getRes.status === 404) {
-            // File already gone — treat as success
-            if (target === 'avatar') {
-                try { await removeFromSchedule(filePath, ghHeaders); } catch (_) {}
-            }
+            // File already gone — still clean up the manifest
+            try {
+                if (target === 'avatar') await removeFromSchedule(filePath, ghHeaders);
+                else await removeFromProduced(filePath, ghHeaders);
+            } catch (_) {}
             return res.status(200).json({ ok: true, note: 'file not found on GitHub, already deleted' });
         }
         return res.status(502).json({ error: `GitHub API error (${getRes.status})` });
@@ -110,18 +111,61 @@ module.exports = async function handler(req, res) {
         });
     }
 
-    // For avatar tracks: also remove from schedule.json
     if (target === 'avatar') {
         try {
             await removeFromSchedule(filePath, ghHeaders);
         } catch (e) {
-            // Non-fatal — file was deleted, schedule update failed
             console.error('schedule.json update failed:', e.message);
+            return res.status(500).json({ error: 'File deleted from GitHub but schedule.json update failed: ' + e.message });
+        }
+    } else {
+        try {
+            await removeFromProduced(filePath, ghHeaders);
+        } catch (e) {
+            console.error('produced.json update failed:', e.message);
+            return res.status(500).json({ error: 'File deleted from GitHub but produced.json update failed: ' + e.message });
         }
     }
 
     return res.status(200).json({ ok: true });
 };
+
+async function removeFromProduced(deletedPath, ghHeaders) {
+    const producedPath = 'assets/songs/produced.json';
+    const producedUrl = `${GITHUB_API}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${producedPath}?ref=${BRANCH}`;
+
+    const getRes = await fetch(producedUrl, { headers: ghHeaders });
+    if (!getRes.ok) throw new Error(`Could not fetch produced.json (${getRes.status})`);
+
+    const fileData = await getRes.json();
+    const current = JSON.parse(Buffer.from(fileData.content, 'base64').toString('utf8'));
+
+    const before = current.produced.length;
+    current.produced = current.produced.filter(function(t) { return t.src !== deletedPath; });
+
+    if (current.produced.length === before) return;
+
+    const updatedContent = Buffer.from(JSON.stringify(current, null, 2) + '\n').toString('base64');
+
+    const putRes = await fetch(
+        `${GITHUB_API}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${producedPath}`,
+        {
+            method: 'PUT',
+            headers: ghHeaders,
+            body: JSON.stringify({
+                message: `delete: remove ${deletedPath.split('/').pop()} from produced`,
+                content: updatedContent,
+                sha: fileData.sha,
+                branch: BRANCH,
+            }),
+        }
+    );
+
+    if (!putRes.ok) {
+        const err = await putRes.json().catch(() => ({}));
+        throw new Error(`produced.json commit failed: ${err.message || putRes.status}`);
+    }
+}
 
 async function removeFromSchedule(deletedPath, ghHeaders) {
     const schedulePath = 'assets/songs/schedule.json';

@@ -685,6 +685,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     mcShuffle();
 
+    fetch('assets/songs/produced.json', { cache: 'no-store' })
+        .then(function(res) { if (!res.ok) throw new Error('produced fetch failed'); return res.json(); })
+        .then(function(data) {
+            if (data && Array.isArray(data.produced) && data.produced.length > 0) {
+                mcTracksDefault = data.produced.slice();
+                if (!mcTracksLoad()) {
+                    mcTracks = mcTracksDefault.slice();
+                    mcShuffle();
+                }
+            }
+        })
+        .catch(function() {});
+
     var songsLink = document.getElementById('songsLink');
     var mcControls = document.getElementById('musicControls');
     var playPauseBtn = document.getElementById('playPauseBtn');
@@ -1655,16 +1668,20 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(function(data) {
                 if (data.error) throw new Error(data.error);
 
-                // Restore upload zone
+                // Show confirmation, then restore upload zone
                 var pickId = type === 'avatar' ? 'songsPickAvatar' : 'songsPickProduced';
                 var inputId = type === 'avatar' ? 'songsFileAvatar' : 'songsFileProduced';
-                if (zone) zone.innerHTML = '<span>drop a file or <button class="songs-pick-btn" id="' + pickId + '">pick one</button></span>';
-                var newPick = document.getElementById(pickId);
-                if (newPick) newPick.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    var inp = document.getElementById(inputId);
-                    if (inp) inp.click();
-                });
+                var confirmMsg = 'uploaded successfully';
+                if (zone) zone.textContent = confirmMsg;
+                setTimeout(function() {
+                    if (zone) zone.innerHTML = '<span>drop a file or <button class="songs-pick-btn" id="' + pickId + '">pick one</button></span>';
+                    var newPick = document.getElementById(pickId);
+                    if (newPick) newPick.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        var inp = document.getElementById(inputId);
+                        if (inp) inp.click();
+                    });
+                }, 3000);
 
                 // Add track to the live list
                 if (type === 'avatar') {
