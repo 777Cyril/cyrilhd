@@ -360,6 +360,9 @@
       "src": "assets/audio/favorites/forreal.mp3"
     },
     "assets/audio/favorites/forreal.mp3",
-    "assets/audio/favorites/triple deuce.mp3"
+    {
+      "title": "triple deuce by swapa",
+      "src": "assets/audio/favorites/triple deuce.mp3"
+    }
   ]
 }
