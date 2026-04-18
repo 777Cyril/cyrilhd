@@ -406,6 +406,9 @@
       "src": "assets/audio/favorites/Sippy Cup.mp3"
     },
     "assets/audio/favorites/Sippy Cup.mp3",
-    "assets/audio/favorites/CHEAT CODE [PROD. BY TNFDEMON].mp3"
+    {
+      "title": "CHEAT CODE - Joony",
+      "src": "assets/audio/favorites/CHEAT CODE [PROD. BY TNFDEMON].mp3"
+    }
   ]
 }
