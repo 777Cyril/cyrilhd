@@ -273,6 +273,9 @@
       "src": "assets/audio/favorites/Ye - Ninevicious (Prod. 406ahmad).mp3"
     },
     "assets/audio/favorites/new plans by Swapa.mp3",
-    "assets/audio/favorites/iyrus - designer problemz (cade + revisitingearth + ero) [slump audios exclusive + v8gve + a6].mp3"
+    {
+      "title": "iyrus - designer problemz [slump audios exclusive ]",
+      "src": "assets/audio/favorites/iyrus - designer problemz (cade + revisitingearth + ero) [slump audios exclusive + v8gve + a6].mp3"
+    }
   ]
 }
