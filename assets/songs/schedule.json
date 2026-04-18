@@ -257,7 +257,10 @@
     "assets/audio/favorites/Johnny Cinco - That's Fasho.mp3",
     "assets/audio/favorites/NBA YoungBoy - BossManeDlow (TOP MIX).mp3",
     "assets/audio/favorites/Out my body by Lucki.mp3",
-    "assets/audio/favorites/Fairytale by Lucki.mp3",
+    {
+      "title": "Fairytale by Lucki",
+      "src": "assets/audio/favorites/Fairytale by Lucki.mp3"
+    },
     "assets/audio/favorites/Lucki - Group Home (prod. Brent Rambo).mp3"
   ]
 }
