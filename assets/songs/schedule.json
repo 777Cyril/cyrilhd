@@ -302,6 +302,9 @@
       "src": "assets/audio/favorites/50 Stater.mp3"
     },
     "assets/audio/favorites/50 Stater.mp3",
-    "assets/audio/favorites/going crazy.mp3"
+    {
+      "title": "swapa - going crazy",
+      "src": "assets/audio/favorites/going crazy.mp3"
+    }
   ]
 }
