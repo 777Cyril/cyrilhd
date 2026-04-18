@@ -355,6 +355,9 @@
       "src": "assets/audio/favorites/tap in.mp3"
     },
     "assets/audio/favorites/tap in.mp3",
-    "assets/audio/favorites/forreal.mp3"
+    {
+      "title": "forreal by swapa",
+      "src": "assets/audio/favorites/forreal.mp3"
+    }
   ]
 }
