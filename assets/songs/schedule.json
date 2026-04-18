@@ -345,6 +345,9 @@
       "src": "assets/audio/favorites/again.mp3"
     },
     "assets/audio/favorites/again.mp3",
-    "assets/audio/favorites/fully chop.mp3"
+    {
+      "title": "fully chop by swapa",
+      "src": "assets/audio/favorites/fully chop.mp3"
+    }
   ]
 }
