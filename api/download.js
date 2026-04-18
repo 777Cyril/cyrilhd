@@ -1,6 +1,7 @@
 const ffmpeg = require('fluent-ffmpeg');
 const ffmpegStatic = require('ffmpeg-static');
 const { Readable } = require('stream');
+const { getClientId } = require('./sc-client');
 
 ffmpeg.setFfmpegPath(ffmpegStatic);
 
@@ -24,9 +25,9 @@ function sanitizeFilename(name) {
 }
 
 async function getSoundCloudStream(url) {
-    const clientId = process.env.SOUNDCLOUD_CLIENT_ID;
+    const clientId = await getClientId();
     if (!clientId) {
-        throw new Error('SoundCloud is not configured (missing SOUNDCLOUD_CLIENT_ID env var)');
+        throw new Error('SoundCloud is not configured — could not obtain client ID');
     }
 
     const resolveRes = await fetch(

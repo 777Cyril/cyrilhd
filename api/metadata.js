@@ -1,3 +1,5 @@
+const { getClientId } = require('./sc-client');
+
 const SC_HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     'Accept': 'application/json, text/plain, */*',
@@ -28,7 +30,7 @@ module.exports = async function handler(req, res) {
             return res.status(400).json({ error: 'Only SoundCloud URLs are supported' });
         }
 
-        const clientId = process.env.SOUNDCLOUD_CLIENT_ID;
+        const clientId = await getClientId();
         if (!clientId) return res.status(503).json({ error: 'SoundCloud is not configured' });
 
         const resolveRes = await fetch(
