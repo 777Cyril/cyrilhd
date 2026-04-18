@@ -7,6 +7,10 @@ on:
       - 'assets/audio/produced/**'
       - 'assets/audio/favorites/**'
 
+concurrency:
+  group: sync-audio
+  cancel-in-progress: false
+
 jobs:
   sync-audio:
     runs-on: ubuntu-latest
@@ -36,5 +40,6 @@ jobs:
             echo "No playlist changes detected, skipping commit."
           else
             git commit -m "chore: auto-register new audio files [skip ci]"
+            git pull --rebase origin main
             git push origin main
           fi
