@@ -375,6 +375,9 @@
       "src": "assets/audio/favorites/freak.mp3"
     },
     "assets/audio/favorites/freak.mp3",
-    "assets/audio/favorites/rosetta stone.mp3"
+    {
+      "title": "rosetta stone by swapa",
+      "src": "assets/audio/favorites/rosetta stone.mp3"
+    }
   ]
 }
