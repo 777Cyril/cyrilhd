@@ -307,6 +307,9 @@
       "src": "assets/audio/favorites/going crazy.mp3"
     },
     "assets/audio/favorites/going crazy.mp3",
-    "assets/audio/favorites/irving.mp3"
+    {
+      "title": "irving by swapa",
+      "src": "assets/audio/favorites/irving.mp3"
+    }
   ]
 }
