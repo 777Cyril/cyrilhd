@@ -395,6 +395,9 @@
     },
     "assets/audio/favorites/Honest.mp3",
     "assets/audio/favorites/Why Do Fools Fall in Love.mp3",
-    "assets/audio/favorites/HEAVEN [PROD. 454].mp3"
+    {
+      "title": "HEAVEN by 454",
+      "src": "assets/audio/favorites/HEAVEN [PROD. 454].mp3"
+    }
   ]
 }
