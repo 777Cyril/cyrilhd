@@ -1546,6 +1546,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (!newTitle) return;
                     config.setTitle(config.tracks, i, newTitle);
                     config.saveFn(config.tracks);
+                    var trackSrc = typeof track === 'object' ? track.src : track;
+                    if (trackSrc && trackSrc.startsWith('assets/audio/')) {
+                        fetch('/api/rename', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'x-upload-secret': getUploadSecret() },
+                            body: JSON.stringify({ target: config.apiTarget, src: trackSrc, title: newTitle }),
+                        }).catch(function(err) { console.error('Rename API error:', err); });
+                    }
                 });
                 titleSpan.addEventListener('keydown', function(e) {
                     if (e.key === 'Enter') { e.preventDefault(); titleSpan.blur(); }
