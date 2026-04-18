@@ -370,6 +370,9 @@
       "src": "assets/audio/favorites/dont force.mp3"
     },
     "assets/audio/favorites/dont force.mp3",
-    "assets/audio/favorites/freak.mp3"
+    {
+      "title": "freak by swapa",
+      "src": "assets/audio/favorites/freak.mp3"
+    }
   ]
 }
