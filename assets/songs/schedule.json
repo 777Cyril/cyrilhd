@@ -264,6 +264,9 @@
     "assets/audio/favorites/Lucki - Group Home (prod. Brent Rambo).mp3",
     "assets/audio/favorites/Bby Kell - 2019 (prod. Creamseats).mp3",
     "assets/audio/favorites/Swapa - Oprah.mp3",
-    "assets/audio/favorites/Diorvsyou ft Sk8star - M8's.mp3"
+    {
+      "title": "diorVSyou ft Sk8star - M8's",
+      "src": "assets/audio/favorites/Diorvsyou ft Sk8star - M8's.mp3"
+    }
   ]
 }
