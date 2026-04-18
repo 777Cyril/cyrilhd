@@ -389,6 +389,9 @@
       "title": "Honest - Abhi Dijon",
       "src": "assets/audio/favorites/Honest.mp3"
     },
-    "assets/audio/favorites/Why Do Fools Fall in Love.mp3"
+    {
+      "title": "Why Do Fools Fall in Love - Gina Thom",
+      "src": "assets/audio/favorites/Why Do Fools Fall in Love.mp3"
+    }
   ]
 }
