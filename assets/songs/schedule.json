@@ -319,6 +319,9 @@
       "src": "assets/audio/favorites/going crazy.mp3"
     },
     "assets/audio/favorites/irving.mp3",
-    "assets/audio/favorites/why not.mp3"
+    {
+      "title": "why not by swapa",
+      "src": "assets/audio/favorites/why not.mp3"
+    }
   ]
 }
