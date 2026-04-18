@@ -303,10 +303,13 @@
     },
     "assets/audio/favorites/50 Stater.mp3",
     {
-      "title": "swapa - going crazy",
+      "title": "songsgoing crazy",
       "src": "assets/audio/favorites/going crazy.mp3"
     },
-    "assets/audio/favorites/going crazy.mp3",
+    {
+      "title": "songsgoing crazy",
+      "src": "assets/audio/favorites/going crazy.mp3"
+    },
     {
       "title": "irving by swapa",
       "src": "assets/audio/favorites/irving.mp3"
