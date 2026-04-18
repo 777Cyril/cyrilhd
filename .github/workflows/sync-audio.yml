@@ -29,17 +29,20 @@ jobs:
           node-version: '20'
 
       - name: Run audio sync script
-        run: node scripts/sync-audio.js
-
-      - name: Commit updated playlists if changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          # Always sync from the true latest state of main before computing
+          git fetch origin main
+          git reset --hard origin/main
+          node scripts/sync-audio.js
+
+      - name: Commit updated playlists if changed
+        run: |
           git add scripts.js assets/songs/schedule.json
           if git diff --cached --quiet; then
             echo "No playlist changes detected, skipping commit."
           else
             git commit -m "chore: auto-register new audio files [skip ci]"
-            git pull --rebase origin main
             git push origin main
           fi
