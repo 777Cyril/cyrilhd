@@ -1,55 +1,209 @@
 {
   "favorites": [
-    { "title": "juna by clairo", "src": "assets/audio/favorites/juna by clairo.mp3" },
-    { "title": "old habits by swapa", "src": "assets/audio/favorites/old habits by swapa.mp3" },
-    { "title": "use to care by swapa", "src": "assets/audio/favorites/use to care by swapa.mp3" },
-    { "title": "meeting god by swapa", "src": "assets/audio/favorites/meeting god by swapa.mp3" },
-    { "title": "place by playboi carti", "src": "assets/audio/favorites/place by playboi carti.mp3" },
-    { "title": "taliban music by texako + bagboybando", "src": "assets/audio/favorites/taliban music by texako + bagboybando.mp3" },
-    { "title": "building a ladder by hiatus kaiyote", "src": "assets/audio/favorites/building a ladder by hiatus kaiyote.mp3" },
-    { "title": "havana by pz", "src": "assets/audio/favorites/havana by pz.mp3" },
-    { "title": "long time by playboi carti", "src": "assets/audio/favorites/long time by playboi carti.mp3" },
-    { "title": "Since Way Back", "src": "assets/audio/favorites/Since Way Back.mp3" },
-    { "title": "Deposit - Boof x 2ski", "src": "assets/audio/favorites/Deposit - Boof x 2ski.mp3" },
-    { "title": "AMIAT JEANS - NOAH SINCERE", "src": "assets/audio/favorites/AMIAT JEANS - NOAH SINCERE.mp3" },
-    { "title": "Cash Cow", "src": "assets/audio/favorites/Cash Cow.mp3" },
-    { "title": "Days Are Cold by Shawny Binladen", "src": "assets/audio/favorites/Days Are Cold by Shawny Binladen.mp3" },
-    { "title": "Dear X by Xuperp", "src": "assets/audio/favorites/Dear X by Xuperp.mp3" },
-    { "title": "ICYTWAT - Need U", "src": "assets/audio/favorites/ICYTWAT - Need U.mp3" },
-    { "title": "Keys - Pz", "src": "assets/audio/favorites/Keys - Pz.mp3" },
-    { "title": "NOAH SINCERE - PERPETUAL SADNESS", "src": "assets/audio/favorites/NOAH SINCERE - PERPETUAL SADNESS.mp3" },
-    { "title": "Over 2 by lunchbox", "src": "assets/audio/favorites/Over 2 by lunchbox.mp3" },
-    { "title": "Oxy Interlude - KanKan", "src": "assets/audio/favorites/Oxy Interlude - KanKan.mp3" },
-    { "title": "So What:Money Faction - KanKan", "src": "assets/audio/favorites/So What:Money Faction - KanKan.mp3" },
-    { "title": "Sojas! - iayze", "src": "assets/audio/favorites/Sojas! - iayze.mp3" },
-    { "title": "Spike's Hotline - 454", "src": "assets/audio/favorites/Spike's Hotline - 454.mp3" },
-    { "title": "Stuntin My Cho - oym", "src": "assets/audio/favorites/Stuntin My Cho - oym.mp3" },
-    { "title": "Uh Uh - Chief Keef x Carti", "src": "assets/audio/favorites/Uh Uh - Chief Keef x Carti.mp3" },
-    { "title": "Xan! by BEAR1BOSS", "src": "assets/audio/favorites/Xan! by BEAR1BOSS.mp3" },
-    { "title": "YhapoJJ - Not On My Level", "src": "assets/audio/favorites/YhapoJJ - Not On My Level.mp3" },
-    { "title": "trendy - sk8star", "src": "assets/audio/favorites/trendy - sk8star.mp3" },
-    { "title": "24Hrs - Nine Vicious", "src": "assets/audio/favorites/24Hrs - Nine Vicious.mp3" },
-    { "title": "Gunna ft. Young Thug - Good Day (Unreleased)", "src": "assets/audio/favorites/Gunna ft. Young Thug - Good Day (Unreleased).mp3" },
-    { "title": "The Sweetest Taboo - Sade", "src": "assets/audio/favorites/The Sweetest Taboo - Sade.mp3" },
-    { "title": "E85 - Don Toliver", "src": "assets/audio/favorites/E85 - Don Toliver.mp3" },
-    { "title": "ball before i leave", "src": "assets/audio/favorites/ball before i leave.mp3" },
-    { "title": "BABY OSAMA - SEE THANGS", "src": "assets/audio/favorites/BABY OSAMA - SEE THANGS.mp3" },
-    { "title": "BABY OSAMA - Pacer Test", "src": "assets/audio/favorites/BABY OSAMA - Pacer Test.mp3" },
-    { "title": "Returned The Favor - Boof Ft Kkanii", "src": "assets/audio/favorites/Returned The Favor - Boof Ft Kkanii.mp3" },
-    { "title": "swapa - i wouldve been drunk", "src": "assets/audio/favorites/swapa - i wouldve been drunk.mp3" },
-    { "title": "untiljapan - my bad shorty (reidmd) [slump audios exclusive]", "src": "assets/audio/favorites/untiljapan - my bad shorty (reidmd) [slump audios exclusive].mp3" },
-    { "title": "Heartfelt", "src": "assets/audio/favorites/Heartfelt.mp3" },
-    { "title": "Swapa - commas", "src": "assets/audio/favorites/Swapa - commas.mp3" },
-    { "title": "Jumbo Kay - Billion", "src": "assets/audio/favorites/Jumbo Kay - Billion.mp3" },
-    { "title": "30inchRIMS (GRAX)", "src": "assets/audio/favorites/30inchRIMS (GRAX).mp3" },
-    { "title": "SOFT SERVE by Laila", "src": "assets/audio/favorites/SOFT SERVE by Laila.mp3" },
-    { "title": "Drake - Free Spirit (ft. Rick Ross)", "src": "assets/audio/favorites/Drake - Free Spirit (ft. Rick Ross).mp3" },
-    { "title": "From Time By Drake", "src": "assets/audio/favorites/From Time By Drake.mp3" },
-    { "title": "Cameras + Good Ones Go Interlude by Drake", "src": "assets/audio/favorites/Cameras + Good Ones Go Interlude by Drake.mp3" },
-    { "title": "Drake - Paris Morton Music", "src": "assets/audio/favorites/Drake - Paris Morton Music.mp3" },
-    { "title": "Drake - Sweeterman", "src": "assets/audio/favorites/Drake - Sweeterman.mp3" },
-    { "title": "Drake - Jungle", "src": "assets/audio/favorites/Drake - Jungle.mp3" },
-    { "title": "PARTYNEXTDOOR - Kehlani's Freestyle", "src": "assets/audio/favorites/PARTYNEXTDOOR - Kehlani's Freestyle.mp3" },
-    { "title": "Bby Kell - LEAN N OVA", "src": "assets/audio/favorites/Bby Kell - LEAN N OVA.mp3" }
+    {
+      "title": "juna by clairo",
+      "src": "assets/audio/favorites/juna by clairo.mp3"
+    },
+    {
+      "title": "old habits by swapa",
+      "src": "assets/audio/favorites/old habits by swapa.mp3"
+    },
+    {
+      "title": "use to care by swapa",
+      "src": "assets/audio/favorites/use to care by swapa.mp3"
+    },
+    {
+      "title": "meeting god by swapa",
+      "src": "assets/audio/favorites/meeting god by swapa.mp3"
+    },
+    {
+      "title": "place by playboi carti",
+      "src": "assets/audio/favorites/place by playboi carti.mp3"
+    },
+    {
+      "title": "taliban music by texako + bagboybando",
+      "src": "assets/audio/favorites/taliban music by texako + bagboybando.mp3"
+    },
+    {
+      "title": "building a ladder by hiatus kaiyote",
+      "src": "assets/audio/favorites/building a ladder by hiatus kaiyote.mp3"
+    },
+    {
+      "title": "havana by pz",
+      "src": "assets/audio/favorites/havana by pz.mp3"
+    },
+    {
+      "title": "long time by playboi carti",
+      "src": "assets/audio/favorites/long time by playboi carti.mp3"
+    },
+    {
+      "title": "Since Way Back",
+      "src": "assets/audio/favorites/Since Way Back.mp3"
+    },
+    {
+      "title": "Deposit - Boof x 2ski",
+      "src": "assets/audio/favorites/Deposit - Boof x 2ski.mp3"
+    },
+    {
+      "title": "AMIAT JEANS - NOAH SINCERE",
+      "src": "assets/audio/favorites/AMIAT JEANS - NOAH SINCERE.mp3"
+    },
+    {
+      "title": "Cash Cow",
+      "src": "assets/audio/favorites/Cash Cow.mp3"
+    },
+    {
+      "title": "Days Are Cold by Shawny Binladen",
+      "src": "assets/audio/favorites/Days Are Cold by Shawny Binladen.mp3"
+    },
+    {
+      "title": "Dear X by Xuperp",
+      "src": "assets/audio/favorites/Dear X by Xuperp.mp3"
+    },
+    {
+      "title": "ICYTWAT - Need U",
+      "src": "assets/audio/favorites/ICYTWAT - Need U.mp3"
+    },
+    {
+      "title": "Keys - Pz",
+      "src": "assets/audio/favorites/Keys - Pz.mp3"
+    },
+    {
+      "title": "NOAH SINCERE - PERPETUAL SADNESS",
+      "src": "assets/audio/favorites/NOAH SINCERE - PERPETUAL SADNESS.mp3"
+    },
+    {
+      "title": "Over 2 by lunchbox",
+      "src": "assets/audio/favorites/Over 2 by lunchbox.mp3"
+    },
+    {
+      "title": "Oxy Interlude - KanKan",
+      "src": "assets/audio/favorites/Oxy Interlude - KanKan.mp3"
+    },
+    {
+      "title": "So What:Money Faction - KanKan",
+      "src": "assets/audio/favorites/So What:Money Faction - KanKan.mp3"
+    },
+    {
+      "title": "Sojas! - iayze",
+      "src": "assets/audio/favorites/Sojas! - iayze.mp3"
+    },
+    {
+      "title": "Spike's Hotline - 454",
+      "src": "assets/audio/favorites/Spike's Hotline - 454.mp3"
+    },
+    {
+      "title": "Stuntin My Cho - oym",
+      "src": "assets/audio/favorites/Stuntin My Cho - oym.mp3"
+    },
+    {
+      "title": "Uh Uh - Chief Keef x Carti",
+      "src": "assets/audio/favorites/Uh Uh - Chief Keef x Carti.mp3"
+    },
+    {
+      "title": "Xan! by BEAR1BOSS",
+      "src": "assets/audio/favorites/Xan! by BEAR1BOSS.mp3"
+    },
+    {
+      "title": "YhapoJJ - Not On My Level",
+      "src": "assets/audio/favorites/YhapoJJ - Not On My Level.mp3"
+    },
+    {
+      "title": "trendy - sk8star",
+      "src": "assets/audio/favorites/trendy - sk8star.mp3"
+    },
+    {
+      "title": "24Hrs - Nine Vicious",
+      "src": "assets/audio/favorites/24Hrs - Nine Vicious.mp3"
+    },
+    {
+      "title": "Gunna ft. Young Thug - Good Day (Unreleased)",
+      "src": "assets/audio/favorites/Gunna ft. Young Thug - Good Day (Unreleased).mp3"
+    },
+    {
+      "title": "The Sweetest Taboo - Sade",
+      "src": "assets/audio/favorites/The Sweetest Taboo - Sade.mp3"
+    },
+    {
+      "title": "E85 - Don Toliver",
+      "src": "assets/audio/favorites/E85 - Don Toliver.mp3"
+    },
+    {
+      "title": "ball before i leave",
+      "src": "assets/audio/favorites/ball before i leave.mp3"
+    },
+    {
+      "title": "BABY OSAMA - SEE THANGS",
+      "src": "assets/audio/favorites/BABY OSAMA - SEE THANGS.mp3"
+    },
+    {
+      "title": "BABY OSAMA - Pacer Test",
+      "src": "assets/audio/favorites/BABY OSAMA - Pacer Test.mp3"
+    },
+    {
+      "title": "Returned The Favor - Boof Ft Kkanii",
+      "src": "assets/audio/favorites/Returned The Favor - Boof Ft Kkanii.mp3"
+    },
+    {
+      "title": "swapa - i wouldve been drunk",
+      "src": "assets/audio/favorites/swapa - i wouldve been drunk.mp3"
+    },
+    {
+      "title": "untiljapan - my bad shorty (reidmd) [slump audios exclusive]",
+      "src": "assets/audio/favorites/untiljapan - my bad shorty (reidmd) [slump audios exclusive].mp3"
+    },
+    {
+      "title": "Heartfelt",
+      "src": "assets/audio/favorites/Heartfelt.mp3"
+    },
+    {
+      "title": "Swapa - commas",
+      "src": "assets/audio/favorites/Swapa - commas.mp3"
+    },
+    {
+      "title": "Jumbo Kay - Billion",
+      "src": "assets/audio/favorites/Jumbo Kay - Billion.mp3"
+    },
+    {
+      "title": "30inchRIMS (GRAX)",
+      "src": "assets/audio/favorites/30inchRIMS (GRAX).mp3"
+    },
+    {
+      "title": "SOFT SERVE by Laila",
+      "src": "assets/audio/favorites/SOFT SERVE by Laila.mp3"
+    },
+    {
+      "title": "Drake - Free Spirit (ft. Rick Ross)",
+      "src": "assets/audio/favorites/Drake - Free Spirit (ft. Rick Ross).mp3"
+    },
+    {
+      "title": "From Time By Drake",
+      "src": "assets/audio/favorites/From Time By Drake.mp3"
+    },
+    {
+      "title": "Cameras + Good Ones Go Interlude by Drake",
+      "src": "assets/audio/favorites/Cameras + Good Ones Go Interlude by Drake.mp3"
+    },
+    {
+      "title": "Drake - Paris Morton Music",
+      "src": "assets/audio/favorites/Drake - Paris Morton Music.mp3"
+    },
+    {
+      "title": "Drake - Sweeterman",
+      "src": "assets/audio/favorites/Drake - Sweeterman.mp3"
+    },
+    {
+      "title": "Drake - Jungle",
+      "src": "assets/audio/favorites/Drake - Jungle.mp3"
+    },
+    {
+      "title": "PARTYNEXTDOOR - Kehlani's Freestyle",
+      "src": "assets/audio/favorites/PARTYNEXTDOOR - Kehlani's Freestyle.mp3"
+    },
+    {
+      "title": "Bby Kell - LEAN N OVA",
+      "src": "assets/audio/favorites/Bby Kell - LEAN N OVA.mp3"
+    },
+    "assets/audio/favorites/beget_again_prodnoahsincere_KLICKAUD.mp3"
   ]
 }
