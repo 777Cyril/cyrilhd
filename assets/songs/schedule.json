@@ -340,6 +340,9 @@
       "src": "assets/audio/favorites/rigged.mp3"
     },
     "assets/audio/favorites/rigged.mp3",
-    "assets/audio/favorites/again.mp3"
+    {
+      "title": "again by swapa",
+      "src": "assets/audio/favorites/again.mp3"
+    }
   ]
 }
