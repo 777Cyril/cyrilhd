@@ -1849,6 +1849,99 @@ document.addEventListener('DOMContentLoaded', function() {
     })();
 
     (function() {
+        // Mobile-only: tap counter on h1 to open theme selector (Konami code style)
+        // Detect touch device locally to avoid scope issues
+        var isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        // For testing: allow tap counter on desktop too if needed
+        // if (!isTouch) return;
+
+        var h1 = document.querySelector('h1');
+        var themeSelectorPanel = document.getElementById('themeSelectorPanel');
+        var themeList = document.getElementById('themeList');
+
+        var tapCount = 0;
+        var tapTimeout;
+        var DEFINED_THEMES = {
+            '1': 'mustard'
+            // Will expand as new themes with CSS variables are added
+        };
+
+        h1.addEventListener('click', function() {
+            tapCount++;
+
+            if (tapCount === 1) {
+                tapTimeout = setTimeout(function() { tapCount = 0; }, 2000); // Reset after 2 sec
+            }
+
+            if (tapCount === 3) {
+                clearTimeout(tapTimeout);
+                tapCount = 0;
+                showThemeSelectorPanel();
+            }
+        });
+
+        function showThemeSelectorPanel() {
+            themeSelectorPanel.classList.add('active');
+            themeSelectorPanel.setAttribute('aria-hidden', 'false');
+            renderThemeList();
+        }
+
+        function hideThemeSelectorPanel() {
+            themeSelectorPanel.classList.remove('active');
+            themeSelectorPanel.setAttribute('aria-hidden', 'true');
+        }
+
+        function renderThemeList() {
+            var currentTheme = document.documentElement.className.match(/theme-(\d+)/);
+            var currentThemeNum = currentTheme ? currentTheme[1] : '0';
+
+            themeList.innerHTML = '';
+
+            // Default theme
+            var defaultItem = document.createElement('button');
+            defaultItem.className = 'theme-item' + (currentThemeNum === '0' ? ' active' : '');
+            defaultItem.textContent = 'default';
+            defaultItem.addEventListener('click', function() {
+                if (currentThemeNum !== '0') {
+                    window.switchTheme(parseInt(currentThemeNum)); // Toggle off current
+                }
+                hideThemeSelectorPanel();
+            });
+            themeList.appendChild(defaultItem);
+
+            // Only render defined themes (those in DEFINED_THEMES)
+            Object.keys(DEFINED_THEMES).forEach(function(themeNum) {
+                var item = document.createElement('button');
+                item.className = 'theme-item' + (currentThemeNum === themeNum ? ' active' : '');
+                item.textContent = DEFINED_THEMES[themeNum];
+                (function(num) {
+                    item.addEventListener('click', function() {
+                        window.switchTheme(parseInt(num));
+                        hideThemeSelectorPanel();
+                    });
+                })(themeNum);
+                themeList.appendChild(item);
+            });
+        }
+
+        // Close on Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && themeSelectorPanel.classList.contains('active')) {
+                hideThemeSelectorPanel();
+            }
+        });
+
+        // Close on click outside
+        document.addEventListener('click', function(e) {
+            if (themeSelectorPanel.classList.contains('active') &&
+                !themeSelectorPanel.contains(e.target) &&
+                e.target !== h1) {
+                hideThemeSelectorPanel();
+            }
+        });
+    })();
+
+    (function() {
         var keyBuffer = '';
         var cooldownActive = false;
         var COOLDOWN_MS = 3000;
