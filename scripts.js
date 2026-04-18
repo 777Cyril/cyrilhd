@@ -1440,6 +1440,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         function hideSongsPanel() {
             songsPanel.classList.remove('active');
+            ['Avatar', 'Produced'].forEach(function(tab) {
+                var input = document.getElementById('songsSearch' + tab);
+                if (input) input.value = '';
+            });
             songsPanel.setAttribute('aria-hidden', 'true');
             // Reset any mid-confirm reset buttons back to their default state
             var rA = document.getElementById('songsResetAvatar');
@@ -1497,6 +1501,24 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             return track.split('/').pop().replace(/\.[^/.]+$/, '');
         }
+
+        // ── Search filter ──
+        function applySearch(listElId, query) {
+            var q = query.toLowerCase().trim();
+            var rows = document.querySelectorAll('#' + listElId + ' .songs-row');
+            rows.forEach(function(row) {
+                var title = (row.querySelector('.songs-row-title') || {}).textContent || '';
+                row.style.display = (!q || title.toLowerCase().includes(q)) ? '' : 'none';
+            });
+        }
+
+        ['Avatar', 'Produced'].forEach(function(tab) {
+            var input = document.getElementById('songsSearch' + tab);
+            if (!input) return;
+            input.addEventListener('input', function() {
+                applySearch('songsList' + tab, input.value);
+            });
+        });
 
         // ── Render lists ──
         function renderBoth() {

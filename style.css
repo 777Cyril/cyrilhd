@@ -1130,6 +1130,31 @@ body.dark-mode .songs-row-btn {
     opacity: 0.85;
 }
 
+/* Search */
+.songs-search {
+    width: 100%;
+    box-sizing: border-box;
+    background: none;
+    border: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+    padding: 4px 0 6px;
+    margin-bottom: 8px;
+    font-size: 12px;
+    font-family: inherit;
+    color: inherit;
+    outline: none;
+}
+
+.songs-search::placeholder {
+    opacity: 0.35;
+}
+
+html.dark-mode .songs-search,
+body.dark-mode .songs-search {
+    border-color: rgba(255, 255, 255, 0.1);
+    color: var(--text-dark);
+}
+
 /* Upload zone */
 .songs-upload-zone {
     border: 1px dashed rgba(0, 0, 0, 0.2);
