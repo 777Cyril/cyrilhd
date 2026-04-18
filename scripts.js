@@ -1628,81 +1628,74 @@ document.addEventListener('DOMContentLoaded', function() {
             var title = fileNameToTitle(file.name);
             if (zone) zone.textContent = 'uploading…';
 
-            // Cache file in IndexedDB immediately for local playback while deploy happens
             var localKey = 'local_' + Date.now() + '_' + file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
             songDB.save(localKey, file);
 
-            // Phase 1: ask the server for the upload target (filePath, SHA, token)
-            // Only { filename, target } go through Vercel — no file data, no size limit hit.
-            fetch('/api/upload', {
+            // Phase 1 + FileReader run in parallel — base64 encoding overlaps with the
+            // server round-trip instead of waiting for it to finish first.
+            var phase1 = fetch('/api/upload', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'x-upload-secret': getUploadSecret() },
                 body: JSON.stringify({ filename: file.name, target: type }),
-            })
-            .then(function(r) {
+            }).then(function(r) {
                 if (r.status === 401) { clearUploadSecret(); throw new Error('Wrong secret — re-open panel to try again'); }
                 return r.json();
-            })
-            .then(function(prep) {
+            }).then(function(prep) {
                 if (prep.error) throw new Error(prep.error);
+                return prep;
+            });
 
-                // Phase 2: read file as base64 and PUT directly to GitHub from the browser.
-                // This bypasses Vercel entirely — no 4.5mb limit.
-                return new Promise(function(resolve, reject) {
-                    var reader = new FileReader();
-                    reader.onload = function(e) {
-                        var base64 = e.target.result.split(',')[1];
-                        var commitBody = {
-                            message: 'upload: add ' + file.name,
-                            content: base64,
-                            branch: prep.branch,
-                        };
-                        if (prep.existingSha) commitBody.sha = prep.existingSha;
+            var fileRead = new Promise(function(resolve, reject) {
+                var reader = new FileReader();
+                reader.onload = function(e) { resolve(e.target.result.split(',')[1]); };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
 
-                        fetch(
-                            'https://api.github.com/repos/' + prep.repoOwner + '/' + prep.repoName + '/contents/' + prep.filePath,
-                            {
-                                method: 'PUT',
-                                headers: {
-                                    'Authorization': 'token ' + prep.token,
-                                    'Accept': 'application/vnd.github.v3+json',
-                                    'Content-Type': 'application/json',
-                                    'User-Agent': 'cyrilhd-upload',
-                                },
-                                body: JSON.stringify(commitBody),
-                            }
-                        )
-                        .then(function(ghRes) {
-                            if (!ghRes.ok) {
-                                return ghRes.json().then(function(e) {
-                                    throw new Error('GitHub error (' + ghRes.status + '): ' + (e.message || 'unknown'));
-                                });
-                            }
-                            return ghRes.json();
-                        })
-                        .then(function() {
-                            // Phase 3: tell the server to update schedule.json (tiny call, no file)
-                            return fetch('/api/upload', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json', 'x-upload-secret': getUploadSecret() },
-                                body: JSON.stringify({ target: type, filePath: prep.filePath, finalize: true }),
-                            }).then(function(r) { return r.json(); });
-                        })
-                        .then(resolve)
-                        .catch(reject);
-                    };
-                    reader.onerror = reject;
-                    reader.readAsDataURL(file);
+            Promise.all([phase1, fileRead])
+            .then(function(results) {
+                var prep   = results[0];
+                var base64 = results[1];
+                var commitBody = {
+                    message: 'upload: add ' + file.name,
+                    content: base64,
+                    branch: prep.branch,
+                };
+                if (prep.existingSha) commitBody.sha = prep.existingSha;
+
+                return fetch(
+                    'https://api.github.com/repos/' + prep.repoOwner + '/' + prep.repoName + '/contents/' + prep.filePath,
+                    {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': 'token ' + prep.token,
+                            'Accept': 'application/vnd.github.v3+json',
+                            'Content-Type': 'application/json',
+                            'User-Agent': 'cyrilhd-upload',
+                        },
+                        body: JSON.stringify(commitBody),
+                    }
+                ).then(function(ghRes) {
+                    if (!ghRes.ok) {
+                        return ghRes.json().then(function(e) {
+                            throw new Error('GitHub error (' + ghRes.status + '): ' + (e.message || 'unknown'));
+                        });
+                    }
+                    return ghRes.json();
+                }).then(function() {
+                    return fetch('/api/upload', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'x-upload-secret': getUploadSecret() },
+                        body: JSON.stringify({ target: type, filePath: prep.filePath, finalize: true }),
+                    }).then(function(r) { return r.json(); });
                 });
             })
             .then(function(data) {
                 if (data.error) throw new Error(data.error);
 
-                // Show confirmation, then restore upload zone
                 var pickId = type === 'avatar' ? 'songsPickAvatar' : 'songsPickProduced';
                 var inputId = type === 'avatar' ? 'songsFileAvatar' : 'songsFileProduced';
-                var confirmMsg = 'uploaded successfully';
-                if (zone) zone.textContent = confirmMsg;
+                if (zone) zone.textContent = 'uploaded successfully';
                 setTimeout(function() {
                     if (zone) zone.innerHTML = '<span>drop a file or <button class="songs-pick-btn" id="' + pickId + '">pick one</button></span>';
                     var newPick = document.getElementById(pickId);
@@ -1713,7 +1706,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                 }, 3000);
 
-                // Add track to the live list
                 if (type === 'avatar') {
                     favoriteTracks.push({ title: data.title || title, src: data.path, localKey: localKey });
                     aviTracksSave(favoriteTracks);
@@ -1730,10 +1722,11 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        function setupUploadZone(zoneId, inputId, pickBtnId, type) {
-            var zone = document.getElementById(zoneId);
-            var input = document.getElementById(inputId);
-            var pickBtn = document.getElementById(pickBtnId);
+        function setupUploadZone(zoneId, inputId, pickBtnId, type, containerId) {
+            var zone      = document.getElementById(zoneId);
+            var input     = document.getElementById(inputId);
+            var pickBtn   = document.getElementById(pickBtnId);
+            var container = document.getElementById(containerId);
             if (!zone || !input || !pickBtn) return;
 
             pickBtn.addEventListener('click', function(e) {
@@ -1748,17 +1741,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
 
-            zone.addEventListener('dragover', function(e) {
+            // Attach drag-and-drop to the whole tab container so dropping anywhere works.
+            // Use a depth counter to avoid dragleave flickering when crossing child elements.
+            var dragTarget = container || zone;
+            var dragDepth = 0;
+
+            dragTarget.addEventListener('dragenter', function(e) {
                 e.preventDefault();
+                dragDepth++;
                 zone.classList.add('drag-over');
             });
 
-            zone.addEventListener('dragleave', function() {
-                zone.classList.remove('drag-over');
+            dragTarget.addEventListener('dragover', function(e) {
+                e.preventDefault();
             });
 
-            zone.addEventListener('drop', function(e) {
+            dragTarget.addEventListener('dragleave', function() {
+                dragDepth--;
+                if (dragDepth === 0) zone.classList.remove('drag-over');
+            });
+
+            dragTarget.addEventListener('drop', function(e) {
                 e.preventDefault();
+                dragDepth = 0;
                 zone.classList.remove('drag-over');
                 var file = e.dataTransfer.files[0];
                 if (file && file.type.startsWith('audio/')) {
@@ -1767,8 +1772,8 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        setupUploadZone('songsUploadAvatar', 'songsFileAvatar', 'songsPickAvatar', 'avatar');
-        setupUploadZone('songsUploadProduced', 'songsFileProduced', 'songsPickProduced', 'produced');
+        setupUploadZone('songsUploadAvatar',   'songsFileAvatar',   'songsPickAvatar',   'avatar',   'songsTabAvatar');
+        setupUploadZone('songsUploadProduced',  'songsFileProduced', 'songsPickProduced', 'produced', 'songsTabProduced');
 
         // ── Reset buttons ──
         // setupReset wires a double-confirm reset button.
