@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="cyril h dowuona - principles">
+    <title>principles - cyril h dowuona</title>
+    <link rel="stylesheet" href="style.css">
+    <script>
+      // Critical theme logic - runs synchronously before render
+      (function() {
+        const hour = new Date().getHours();
+        const isDarkTime = hour >= 19 || hour < 7;
+
+        if (isDarkTime) {
+          document.documentElement.classList.add('dark-mode');
+        }
+
+        document.documentElement.classList.add('no-transition');
+
+        window.addEventListener('load', function() {
+          setTimeout(function() {
+            document.documentElement.classList.remove('no-transition');
+          }, 100);
+        });
+      })();
+    </script>
+</head>
+<body>
+    <main>
+        <p style="margin-bottom: 0.8em;"><a href="index.html"><<</a></p>
+
+        <p>Most useful lessons are simple. That doesn't mean they are easy. A lot of life is taking something simple seriously longer than other people are willing to. These are a few ideas I keep returning to because they seem to explain more than they should.</p>
+
+        <h2>1. If you do everything, you'll win.</h2>
+        <p>Borrowed from Lyndon Johnson, I find the inevitability in this his statement to be quite powerful. If you leave no room for failure, how could you possibly loose? Make the call, send that cold email, do the prep work, follow up, learn the thing: the point is not that outcomes are guaranteed. It's that if you keep removing the something can fail, at some point failure runs out of hiding spaces.</p>
+    </main>
+
+    <script src="scripts.js"></script>
+</body>
+</html>
