@@ -1310,7 +1310,7 @@ html.theme-1 {
 }
 
 html.theme-1.dark-mode {
-    --bg-dark: #1a1a0f;
+    --bg-dark: #1a1a1a;
     --text-dark: #F5EDE0;
 }
 
@@ -1326,7 +1326,7 @@ html.theme-2 {
 }
 
 html.theme-2.dark-mode {
-    --bg-dark: #1a1a0f;
+    --bg-dark: #1a1a1a;
     --text-dark: #F5EDE0;
 }
 
