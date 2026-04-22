@@ -1862,7 +1862,8 @@ document.addEventListener('DOMContentLoaded', function() {
         var tapCount = 0;
         var tapTimeout;
         var DEFINED_THEMES = {
-            '1': 'mustard'
+            '1': 'mustard',
+            '2': 'cream & blue'
             // Will expand as new themes with CSS variables are added
         };
 
