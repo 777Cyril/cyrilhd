@@ -426,6 +426,9 @@
     "assets/audio/favorites/Playboi Carti - Vivienne Westwood.mp3",
     "assets/audio/favorites/Playboi Carti - Pimp Shit.mp3",
     "assets/audio/favorites/Devil In A New Dress.mp3",
-    "assets/audio/favorites/Playboi Carti - They Go Off (Official Audio).mp3"
+    {
+      "title": "Playboi Carti - They Go Off",
+      "src": "assets/audio/favorites/Playboi Carti - They Go Off (Official Audio).mp3"
+    }
   ]
 }
