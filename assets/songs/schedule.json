@@ -476,6 +476,9 @@
     "assets/audio/favorites/Right Now.mp3",
     "assets/audio/favorites/Bby Kell - How Im Living.mp3",
     "assets/audio/favorites/Bby Kell - Jumpinjcks.mp3",
-    "assets/audio/favorites/Playboi Carti - EVIL J0RDAN (Official Music Video).mp3"
+    {
+      "title": "Playboi Carti - EVIL J0RDAN",
+      "src": "assets/audio/favorites/Playboi Carti - EVIL J0RDAN (Official Music Video).mp3"
+    }
   ]
 }
