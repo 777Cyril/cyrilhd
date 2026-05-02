@@ -7,12 +7,12 @@
 
 /* CSS Variables for theming */
 :root {
-    --bg-light: #dcdcdc;
+    --bg-light: #F0E5D5;        /* Cream background (default) */
     --bg-dark: #1a1a1a;
     --text-light: #2c2c2c;
     --text-dark: #e0e0e0;
-    --link-light: #CF8BA9;
-    --link-dark: #90ad68;
+    --link-light: #004080;      /* Deep blue links (default) */
+    --link-dark: #6BA3D8;       /* Light blue for dark mode */
     --link-underline: currentColor;
 }
 
@@ -1314,20 +1314,19 @@ html.theme-1.dark-mode {
     --text-dark: #F5EDE0;
 }
 
-/* Placeholder for future themes */
-/* Theme 2: Cream + Blue Links */
+/* Theme 2: Grey + Mauve/Sage (Original Default) */
 html.theme-2 {
-    --bg-light: #F0E5D5;        /* Warm cream background */
-    --bg-dark: #1a1a0f;         /* Keep dark mode from theme-1 or customize */
-    --text-light: #2c2c2c;      /* Dark text on cream */
-    --text-dark: #F5EDE0;       /* Light text in dark mode */
-    --link-light: #004080;      /* Deep blue links */
-    --link-dark: #6BA3D8;       /* Lighter blue for dark mode */
+    --bg-light: #dcdcdc;        /* Grey background */
+    --bg-dark: #1a1a1a;
+    --text-light: #2c2c2c;      /* Dark text on grey */
+    --text-dark: #e0e0e0;       /* Light text in dark mode */
+    --link-light: #CF8BA9;      /* Dusty rose/mauve links */
+    --link-dark: #90ad68;       /* Sage green links in dark mode */
 }
 
 html.theme-2.dark-mode {
     --bg-dark: #1a1a1a;
-    --text-dark: #F5EDE0;
+    --text-dark: #e0e0e0;
 }
 
 html.theme-3 {
