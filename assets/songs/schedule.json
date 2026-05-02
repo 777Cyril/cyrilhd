@@ -436,6 +436,9 @@
       "src": "assets/audio/favorites/FlatBed Freestyle.mp3"
     },
     "assets/audio/favorites/FlatBed Freestyle.mp3",
-    "assets/audio/favorites/Foreign.mp3"
+    {
+      "title": "Playboi Carti - Foreign",
+      "src": "assets/audio/favorites/Foreign.mp3"
+    }
   ]
 }
