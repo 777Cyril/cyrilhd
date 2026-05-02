@@ -482,6 +482,9 @@
     },
     "assets/audio/favorites/Cash Cow.mp3",
     "assets/audio/favorites/Playboi Carti - EVIL J0RDAN (Official Music Video).mp3",
-    "assets/audio/favorites/Playboi Carti - NO. 9 (Official Audio).mp3"
+    {
+      "title": "Playboi Carti - NO. 9",
+      "src": "assets/audio/favorites/Playboi Carti - NO. 9 (Official Audio).mp3"
+    }
   ]
 }
