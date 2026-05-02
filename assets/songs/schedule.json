@@ -431,6 +431,9 @@
       "src": "assets/audio/favorites/Playboi Carti - They Go Off (Official Audio).mp3"
     },
     "assets/audio/favorites/Playboi Carti - They Go Off (Official Audio).mp3",
-    "assets/audio/favorites/FlatBed Freestyle.mp3"
+    {
+      "title": "Playboi Carti - FlatBed Freestyle",
+      "src": "assets/audio/favorites/FlatBed Freestyle.mp3"
+    }
   ]
 }
