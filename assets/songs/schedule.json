@@ -415,6 +415,9 @@
       "src": "assets/audio/favorites/DIFFERENT DAY.mp3"
     },
     "assets/audio/favorites/DIFFERENT DAY.mp3",
-    "assets/audio/favorites/Devil In A New Dress.mp3"
+    {
+      "title": "Devil In A New Dress - Kanye West",
+      "src": "assets/audio/favorites/Devil In A New Dress.mp3"
+    }
   ]
 }
