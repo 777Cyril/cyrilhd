@@ -49,7 +49,7 @@
       "src": "assets/audio/favorites/AMIAT JEANS - NOAH SINCERE.mp3"
     },
     {
-      "title": "Cash Cow",
+      "title": "Cash Cow by Pradabagshawty",
       "src": "assets/audio/favorites/Cash Cow.mp3"
     },
     {
@@ -211,13 +211,15 @@
     "assets/audio/favorites/BABY OSAMA - Pacer Test.mp3",
     "assets/audio/favorites/BABY OSAMA - SEE THANGS.mp3",
     "assets/audio/favorites/Bby Kell - LEAN N OVA.mp3",
-    "assets/audio/favorites/Cash Cow.mp3",
+    {
+      "title": "Cash Cow by Pradabagshawty",
+      "src": "assets/audio/favorites/Cash Cow.mp3"
+    },
     "assets/audio/favorites/Days Are Cold by Shawny Binladen.mp3",
     "assets/audio/favorites/Dear X by Xuperp.mp3",
     "assets/audio/favorites/Deposit - Boof x 2ski.mp3",
     "assets/audio/favorites/Drake - Free Spirit (ft. Rick Ross).mp3",
     "assets/audio/favorites/Drake - Paris Morton Music.mp3",
-    "assets/audio/favorites/E85 - Don Toliver.mp3",
     "assets/audio/favorites/Gunna ft. Young Thug - Good Day (Unreleased).mp3",
     "assets/audio/favorites/Heartfelt.mp3",
     "assets/audio/favorites/ICYTWAT - Need U.mp3",
@@ -415,6 +417,75 @@
       "title": "DIFFERENT DAY - Carti",
       "src": "assets/audio/favorites/DIFFERENT DAY.mp3"
     },
-    "assets/audio/favorites/DIFFERENT DAY.mp3"
+    "assets/audio/favorites/DIFFERENT DAY.mp3",
+    {
+      "title": "Kanye West - Devil In A New Dress",
+      "src": "assets/audio/favorites/Devil In A New Dress.mp3"
+    },
+    {
+      "title": "Kanye West - Devil In A New Dress",
+      "src": "assets/audio/favorites/Devil In A New Dress.mp3"
+    },
+    "assets/audio/favorites/Playboi Carti - Vivienne Westwood.mp3",
+    "assets/audio/favorites/Playboi Carti - Pimp Shit.mp3",
+    "assets/audio/favorites/Devil In A New Dress.mp3",
+    {
+      "title": "Playboi Carti - They Go Off",
+      "src": "assets/audio/favorites/Playboi Carti - They Go Off (Official Audio).mp3"
+    },
+    "assets/audio/favorites/Playboi Carti - They Go Off (Official Audio).mp3",
+    {
+      "title": "Playboi Carti - FlatBed Freestyle",
+      "src": "assets/audio/favorites/FlatBed Freestyle.mp3"
+    },
+    "assets/audio/favorites/FlatBed Freestyle.mp3",
+    {
+      "title": "Playboi Carti - Foreign",
+      "src": "assets/audio/favorites/Foreign.mp3"
+    },
+    "assets/audio/favorites/Foreign.mp3",
+    {
+      "title": "Playboi Carti - No Time ft. Gunna",
+      "src": "assets/audio/favorites/Playboi Carti - No Time (Official Audio) ft. Gunna.mp3"
+    },
+    {
+      "title": "Drake - Pain 1993 ft. Playboi Carti",
+      "src": "assets/audio/favorites/Drake - Pain 1993 (Audio) ft. Playboi Carti.mp3"
+    },
+    "assets/audio/favorites/Playboi Carti - No Time (Official Audio) ft. Gunna.mp3",
+    {
+      "title": "Playboi Carti - Mileage",
+      "src": "assets/audio/favorites/Mileage.mp3"
+    },
+    "assets/audio/favorites/Drake - Pain 1993 (Audio) ft. Playboi Carti.mp3",
+    "assets/audio/favorites/Mileage.mp3",
+    {
+      "title": "Playboi Carti - Let It Go",
+      "src": "assets/audio/favorites/Playboi Carti - Let It Go (Official Audio).mp3"
+    },
+    {
+      "title": "Playboi Carti - R.I.P. Fredo (Notice Me)",
+      "src": "assets/audio/favorites/R.I.P. Fredo (Notice Me).mp3"
+    },
+    "assets/audio/favorites/Playboi Carti - Let It Go (Official Audio).mp3",
+    {
+      "title": "Right Now by Playboi Carti",
+      "src": "assets/audio/favorites/Right Now.mp3"
+    },
+    "assets/audio/favorites/R.I.P. Fredo (Notice Me).mp3",
+    "assets/audio/favorites/Right Now.mp3",
+    "assets/audio/favorites/Bby Kell - How Im Living.mp3",
+    "assets/audio/favorites/Bby Kell - Jumpinjcks.mp3",
+    {
+      "title": "Playboi Carti - EVIL J0RDAN",
+      "src": "assets/audio/favorites/Playboi Carti - EVIL J0RDAN (Official Music Video).mp3"
+    },
+    "assets/audio/favorites/Cash Cow.mp3",
+    "assets/audio/favorites/Playboi Carti - EVIL J0RDAN (Official Music Video).mp3",
+    {
+      "title": "Playboi Carti - NO. 9",
+      "src": "assets/audio/favorites/Playboi Carti - NO. 9 (Official Audio).mp3"
+    },
+    "assets/audio/favorites/Playboi Carti - NO. 9 (Official Audio).mp3"
   ]
 }
