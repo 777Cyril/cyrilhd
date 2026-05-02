@@ -460,7 +460,10 @@
       "title": "Playboi Carti - Let It Go",
       "src": "assets/audio/favorites/Playboi Carti - Let It Go (Official Audio).mp3"
     },
-    "assets/audio/favorites/R.I.P. Fredo (Notice Me).mp3",
+    {
+      "title": "Playboi Carti - R.I.P. Fredo (Notice Me)",
+      "src": "assets/audio/favorites/R.I.P. Fredo (Notice Me).mp3"
+    },
     "assets/audio/favorites/Playboi Carti - Let It Go (Official Audio).mp3"
   ]
 }
