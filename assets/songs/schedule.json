@@ -243,7 +243,10 @@
     "assets/audio/favorites/havana by pz.mp3",
     "assets/audio/favorites/juna by clairo.mp3",
     "assets/audio/favorites/long time by playboi carti.mp3",
-    "assets/audio/favorites/meeting god by swapa.mp3",
+    {
+      "title": "meeting god by swapa",
+      "src": "assets/audio/favorites/meeting god by swapa.mp3"
+    },
     "assets/audio/favorites/old habits by swapa.mp3",
     "assets/audio/favorites/place by playboi carti.mp3",
     "assets/audio/favorites/swapa - i wouldve been drunk.mp3",
