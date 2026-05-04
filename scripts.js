@@ -1544,8 +1544,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 titleSpan.addEventListener('blur', function() {
                     var newTitle = titleSpan.textContent.trim();
                     if (!newTitle) return;
+                    var oldTrack = config.tracks[i];
                     config.setTitle(config.tracks, i, newTitle);
                     config.saveFn(config.tracks);
+                    if (config.postRename) config.postRename(oldTrack, config.tracks[i]);
                     var trackSrc = typeof track === 'object' ? track.src : track;
                     if (trackSrc && trackSrc.startsWith('assets/audio/')) {
                         fetch('/api/rename', {
@@ -1602,6 +1604,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (typeof tracks[i] === 'object') { tracks[i].title = val; }
                     else { tracks[i] = { title: val, src: tracks[i] }; }
                 },
+                postRename: function(oldTrack, newTrack) {
+                    for (var j = 0; j < aviPlaylist.length; j++) {
+                        if (aviPlaylist[j] === oldTrack) { aviPlaylist[j] = newTrack; break; }
+                    }
+                    if (currentAviTrack === oldTrack) currentAviTrack = newTrack;
+                    carouselUpdate();
+                },
                 apiTarget: 'avatar',
             });
         }
@@ -1615,6 +1624,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 rerenderFn: renderProducedList,
                 getTitle:   function(track) { return track.title; },
                 setTitle:   function(tracks, i, val) { tracks[i].title = val; },
+                postRename: function() { carouselUpdate(); },
                 apiTarget: 'produced',
             });
         }
