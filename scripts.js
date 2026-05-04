@@ -1123,20 +1123,39 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        // Long-press avatar (600ms) on touch devices → open songs panel
+        // Swipe-up on avatar → open songs panel
+        // Mirrors isSwipeUp() in test-swipe-gesture.js — keep thresholds in sync.
+        var AVI_SWIPE_Y = 40;   // px upward to fire
+        var AVI_SWIPE_X = 35;   // px horizontal max drift
         if (isTouchDevice && avi) {
-            var _aviLongPressTimer = null;
-            avi.addEventListener('touchstart', function() {
-                _aviLongPressTimer = setTimeout(function() {
-                    _aviLongPressTimer = null;
+            var _swipeStartX = 0;
+            var _swipeStartY = 0;
+            var _swipeFired  = false;
+
+            avi.addEventListener('touchstart', function(e) {
+                var t = e.touches[0];
+                _swipeStartX = t.clientX;
+                _swipeStartY = t.clientY;
+                _swipeFired  = false;
+            }, { passive: true });
+
+            avi.addEventListener('touchmove', function(e) {
+                if (_swipeFired) return;
+                var t = e.touches[0];
+                var deltaY = t.clientY - _swipeStartY;   // negative = finger moved up
+                var deltaX = t.clientX - _swipeStartX;
+                if (deltaY <= -AVI_SWIPE_Y && Math.abs(deltaX) <= AVI_SWIPE_X) {
+                    _swipeFired = true;
                     if (typeof window._toggleSongsPanel === 'function') window._toggleSongsPanel();
-                }, 600);
+                }
             }, { passive: true });
+
             avi.addEventListener('touchend', function() {
-                if (_aviLongPressTimer) { clearTimeout(_aviLongPressTimer); _aviLongPressTimer = null; }
+                _swipeFired = false;
             }, { passive: true });
-            avi.addEventListener('touchmove', function() {
-                if (_aviLongPressTimer) { clearTimeout(_aviLongPressTimer); _aviLongPressTimer = null; }
+
+            avi.addEventListener('touchcancel', function() {
+                _swipeFired = false;
             }, { passive: true });
         }
 
