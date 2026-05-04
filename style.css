@@ -1000,14 +1000,35 @@ body.dark-mode .mp3-status.error {
         left: 0;
         right: 0;
         width: 100%;
+        max-height: 78vh;
         border-radius: 12px 12px 0 0;
         transform: translateY(100%);
         opacity: 1;
         pointer-events: auto;
         transition: transform 0.38s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        display: flex;
+        flex-direction: column;
     }
     .songs-panel.active {
         transform: translateY(0);
+    }
+    .songs-panel .songs-panel-inner {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+    }
+    .songs-panel .songs-tab-content {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+    }
+    .songs-panel .songs-list {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
     }
 }
 
@@ -1041,6 +1062,46 @@ body.dark-mode .songs-panel {
     pointer-events: auto;
 }
 
+/* Mobile override must come after the desktop .songs-panel rules to win the cascade */
+@media (max-width: 900px) {
+    .songs-panel {
+        top: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        max-height: 78vh;
+        border-radius: 12px 12px 0 0;
+        transform: translateY(100%);
+        opacity: 1;
+        pointer-events: auto;
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.38s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+    .songs-panel.active {
+        transform: translateY(0);
+    }
+    .songs-panel .songs-panel-inner {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+    }
+    .songs-panel .songs-tab-content {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+    }
+    .songs-panel .songs-list {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
 .songs-panel-inner {
     display: flex;
     flex-direction: column;
@@ -1069,9 +1130,10 @@ body.dark-mode .songs-tabs {
     font-family: 'Delius', -apple-system, sans-serif;
     font-size: 12px;
     font-style: italic;
-    padding: 0 0 6px;
+    padding: 0 4px 6px 0;
     cursor: pointer;
     opacity: 0.35;
+    overflow: visible;
     transition: opacity 0.2s ease, border-color 0.2s ease;
     margin-bottom: -11px;
 }
