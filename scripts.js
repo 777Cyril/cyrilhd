@@ -365,6 +365,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function loadAviTrack(track) {
         resolveTrackToAudio(track, audio, aviObjectURLs, false);
+        syncMediaSession();
     }
 
     function isAviActive() {
@@ -572,6 +573,44 @@ document.addEventListener('DOMContentLoaded', function() {
 
     audio.addEventListener('play', updateAviPauseButton);
     audio.addEventListener('pause', updateAviPauseButton);
+
+    // ── Media Session API ──
+    // Wires hardware/OS media keys (next, previous, play/pause) and
+    // keeps the lock-screen / browser media HUD metadata up to date.
+    function aviTrackTitle(track) {
+        if (!track) return 'cyrilhd';
+        if (typeof track === 'object') return track.title || 'cyrilhd';
+        return track.split('/').pop().replace(/\.[^/.]+$/, '');
+    }
+
+    function syncMediaSession() {
+        if (!('mediaSession' in navigator)) return;
+        if ('MediaMetadata' in window) {
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: aviTrackTitle(currentAviTrack),
+                artist: 'cyrilhd.com',
+            });
+        }
+        navigator.mediaSession.playbackState = audio.paused ? 'paused' : 'playing';
+    }
+
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.setActionHandler('play', function() {
+            if (isAviActive()) { playAviAudio(); } else { avi.click(); }
+        });
+        navigator.mediaSession.setActionHandler('pause', function() {
+            pauseAviAudio();
+        });
+        navigator.mediaSession.setActionHandler('nexttrack', function() {
+            playNextAviTrack();
+        });
+        navigator.mediaSession.setActionHandler('previoustrack', function() {
+            playPrevAviTrack();
+        });
+    }
+
+    audio.addEventListener('play', syncMediaSession);
+    audio.addEventListener('pause', syncMediaSession);
 
     // Next track button click handler
     if (aviNextBtn) {
