@@ -374,7 +374,10 @@
       "title": "triple deuce by swapa",
       "src": "assets/audio/favorites/triple deuce.mp3"
     },
-    "assets/audio/favorites/triple deuce.mp3",
+    {
+      "title": "triple deuce by swapa",
+      "src": "assets/audio/favorites/triple deuce.mp3"
+    },
     {
       "title": "dont force by swapa",
       "src": "assets/audio/favorites/dont force.mp3"
