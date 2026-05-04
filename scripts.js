@@ -1084,6 +1084,23 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
+        // Long-press avatar (600ms) on touch devices → open songs panel
+        if (isTouchDevice && avi) {
+            var _aviLongPressTimer = null;
+            avi.addEventListener('touchstart', function() {
+                _aviLongPressTimer = setTimeout(function() {
+                    _aviLongPressTimer = null;
+                    if (typeof window._toggleSongsPanel === 'function') window._toggleSongsPanel();
+                }, 600);
+            }, { passive: true });
+            avi.addEventListener('touchend', function() {
+                if (_aviLongPressTimer) { clearTimeout(_aviLongPressTimer); _aviLongPressTimer = null; }
+            }, { passive: true });
+            avi.addEventListener('touchmove', function() {
+                if (_aviLongPressTimer) { clearTimeout(_aviLongPressTimer); _aviLongPressTimer = null; }
+            }, { passive: true });
+        }
+
         function triggerAvatarSongsReaction() {
             triggerAnimation(avi, 'react-songs', 260);
         }
@@ -1586,6 +1603,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 });
 
+                var isActive = config.activePredicate && config.activePredicate(track);
+                if (isActive) row.classList.add('playing');
+
+                if (config.onPlay) {
+                    var playBtn = document.createElement('button');
+                    playBtn.className = 'songs-row-btn songs-row-play-btn';
+                    playBtn.title = isActive ? 'pause' : 'play';
+                    playBtn.textContent = isActive ? '⏸' : '▶';
+                    playBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        config.onPlay(i);
+                    });
+                    row.appendChild(playBtn);
+                }
+
                 row.appendChild(titleSpan);
                 row.appendChild(delBtn);
                 listEl.appendChild(row);
@@ -1612,6 +1644,43 @@ document.addEventListener('DOMContentLoaded', function() {
                     carouselUpdate();
                 },
                 apiTarget: 'avatar',
+                activePredicate: function(track) {
+                    if (!currentAviTrack) return false;
+                    if (track === currentAviTrack) return true;
+                    var tSrc = typeof track === 'object' ? track.src : track;
+                    var cSrc = typeof currentAviTrack === 'object' ? currentAviTrack.src : currentAviTrack;
+                    return tSrc && cSrc && tSrc === cSrc;
+                },
+                onPlay: function(idx) {
+                    var track = favoriteTracks[idx];
+                    if (!track) return;
+                    var found = -1;
+                    for (var j = 0; j < aviPlaylist.length; j++) {
+                        if (aviPlaylist[j] === track) { found = j; break; }
+                        var pSrc = typeof aviPlaylist[j] === 'object' ? aviPlaylist[j].src : aviPlaylist[j];
+                        var tSrc = typeof track === 'object' ? track.src : track;
+                        if (pSrc && tSrc && pSrc === tSrc) { found = j; break; }
+                    }
+                    if (found >= 0) {
+                        aviCursor = found;
+                    } else {
+                        aviPlaylist.splice(aviCursor + 1, 0, track);
+                        aviCursor = aviCursor + 1;
+                    }
+                    currentAviTrack = aviPlaylist[aviCursor];
+                    aviIsPlaying = true;
+                    aviIsPaused = false;
+                    loadAviTrack(currentAviTrack);
+                    audio.play().then(function() {
+                        aviUpdateCarousel();
+                        showAviNextButton();
+                        triggerAnimation(avi, 'nod', 400);
+                        updateAviPauseButton();
+                        renderAvatarList();
+                    }).catch(function(err) {
+                        console.error('Song select play error:', err);
+                    });
+                },
             });
         }
 
@@ -1784,6 +1853,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
         setupUploadZone('songsUploadAvatar',   'songsFileAvatar',   'songsPickAvatar',   'avatar',   'songsTabAvatar');
         setupUploadZone('songsUploadProduced',  'songsFileProduced', 'songsPickProduced', 'produced', 'songsTabProduced');
+
+        if (isTouchDevice) {
+            var _upAvatar = document.getElementById('songsUploadAvatar');
+            var _upProduced = document.getElementById('songsUploadProduced');
+            if (_upAvatar) _upAvatar.style.display = 'none';
+            if (_upProduced) _upProduced.style.display = 'none';
+        }
 
         // ── Reset buttons ──
         // setupReset wires a double-confirm reset button.

@@ -1177,6 +1177,32 @@ body.dark-mode .songs-row-btn {
     opacity: 0.85;
 }
 
+.songs-row.playing .songs-row-title {
+    font-style: normal;
+    font-weight: 600;
+    opacity: 1;
+}
+
+html.dark-mode .songs-row.playing .songs-row-title,
+body.dark-mode .songs-row.playing .songs-row-title {
+    color: var(--text-dark);
+    opacity: 1;
+}
+
+.songs-row-play-btn {
+    font-size: 9px;
+    opacity: 0.4;
+    flex-shrink: 0;
+}
+
+.songs-row-play-btn:hover {
+    opacity: 1;
+}
+
+.songs-row.playing .songs-row-play-btn {
+    opacity: 0.75;
+}
+
 /* Search */
 .songs-search {
     width: 100%;
