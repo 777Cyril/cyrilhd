@@ -1105,13 +1105,28 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Banner slot interaction to show next button (includes carousel area)
+        // On mobile, also supports long-press (600ms) to open the songs panel.
+        var _bannerLongPressTimer = null;
+        var _bannerLongPressFired = false;
         if (bannerSlot) {
             if (isTouchDevice) {
-                // On mobile: use click
+                bannerSlot.addEventListener('touchstart', function() {
+                    _bannerLongPressFired = false;
+                    _bannerLongPressTimer = setTimeout(function() {
+                        _bannerLongPressFired = true;
+                        _bannerLongPressTimer = null;
+                        if (typeof window._toggleSongsPanel === 'function') window._toggleSongsPanel();
+                    }, 600);
+                }, { passive: true });
+                bannerSlot.addEventListener('touchmove', function() {
+                    if (_bannerLongPressTimer) { clearTimeout(_bannerLongPressTimer); _bannerLongPressTimer = null; }
+                }, { passive: true });
+                bannerSlot.addEventListener('touchend', function() {
+                    if (_bannerLongPressTimer) { clearTimeout(_bannerLongPressTimer); _bannerLongPressTimer = null; }
+                }, { passive: true });
                 bannerSlot.addEventListener('click', function() {
-                    if (isAviActive()) {
-                        showAviNextButton();
-                    }
+                    if (_bannerLongPressFired) { _bannerLongPressFired = false; return; }
+                    if (isAviActive()) showAviNextButton();
                 });
             } else {
                 // On desktop: use hover
@@ -1123,41 +1138,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        // Swipe-up on avatar → open songs panel
-        // Mirrors isSwipeUp() in test-swipe-gesture.js — keep thresholds in sync.
-        var AVI_SWIPE_Y = 40;   // px upward to fire
-        var AVI_SWIPE_X = 35;   // px horizontal max drift
-        if (isTouchDevice && avi) {
-            var _swipeStartX = 0;
-            var _swipeStartY = 0;
-            var _swipeFired  = false;
-
-            avi.addEventListener('touchstart', function(e) {
-                var t = e.touches[0];
-                _swipeStartX = t.clientX;
-                _swipeStartY = t.clientY;
-                _swipeFired  = false;
-            }, { passive: true });
-
-            avi.addEventListener('touchmove', function(e) {
-                if (_swipeFired) return;
-                var t = e.touches[0];
-                var deltaY = t.clientY - _swipeStartY;   // negative = finger moved up
-                var deltaX = t.clientX - _swipeStartX;
-                if (deltaY <= -AVI_SWIPE_Y && Math.abs(deltaX) <= AVI_SWIPE_X) {
-                    _swipeFired = true;
-                    if (typeof window._toggleSongsPanel === 'function') window._toggleSongsPanel();
-                }
-            }, { passive: true });
-
-            avi.addEventListener('touchend', function() {
-                _swipeFired = false;
-            }, { passive: true });
-
-            avi.addEventListener('touchcancel', function() {
-                _swipeFired = false;
-            }, { passive: true });
-        }
+        // Songs panel trigger: long-press the banner/carousel area (600ms).
+        // Handled above in the bannerSlot block.
 
         function triggerAvatarSongsReaction() {
             triggerAnimation(avi, 'react-songs', 260);
@@ -1661,7 +1643,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 });
 
-                var isActive = config.activePredicate && config.activePredicate(track);
+                var isActive = config.activePredicate && config.activePredicate(track, i);
                 if (isActive) row.classList.add('playing');
 
                 if (config.onPlay) {
@@ -1753,6 +1735,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 setTitle:   function(tracks, i, val) { tracks[i].title = val; },
                 postRename: function() { carouselUpdate(); },
                 apiTarget: 'produced',
+                activePredicate: function(track, i) {
+                    return mcIsPlaying && i === mcCurrentTrack;
+                },
+                onPlay: function(idx) {
+                    mcCurrentTrack = idx;
+                    mcIsPlaying = true;
+                    if (typeof stopAviAudio === 'function') stopAviAudio();
+                    setAviWired(true);
+                    if (playIcon) playIcon.style.display = 'none';
+                    if (pauseIcon) pauseIcon.style.display = 'block';
+                    if (!mcIsOpen && mcControls) {
+                        mcControls.classList.remove('closing');
+                        mcControls.classList.add('active');
+                        mcIsOpen = true;
+                    }
+                    mcLoadTrack(true);
+                    if (typeof progressStart === 'function') progressStart();
+                    mcUpdateNowPlaying(true);
+                    renderProducedList();
+                },
             });
         }
 
@@ -1915,8 +1917,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (isTouchDevice) {
             var _upAvatar = document.getElementById('songsUploadAvatar');
             var _upProduced = document.getElementById('songsUploadProduced');
-            if (_upAvatar) _upAvatar.style.display = 'none';
-            if (_upProduced) _upProduced.style.display = 'none';
+            var _rstAvatar = document.getElementById('songsResetAvatar');
+            var _rstProduced = document.getElementById('songsResetProduced');
+            if (_upAvatar)   _upAvatar.style.display   = 'none';
+            if (_upProduced) _upProduced.style.display  = 'none';
+            if (_rstAvatar)  _rstAvatar.style.display   = 'none';
+            if (_rstProduced) _rstProduced.style.display = 'none';
         }
 
         // ── Reset buttons ──
