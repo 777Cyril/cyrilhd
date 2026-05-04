@@ -248,7 +248,10 @@
       "src": "assets/audio/favorites/meeting god by swapa.mp3"
     },
     "assets/audio/favorites/old habits by swapa.mp3",
-    "assets/audio/favorites/place by playboi carti.mp3",
+    {
+      "title": "place by playboi carti",
+      "src": "assets/audio/favorites/place by playboi carti.mp3"
+    },
     "assets/audio/favorites/swapa - i wouldve been drunk.mp3",
     "assets/audio/favorites/taliban music by texako + bagboybando.mp3",
     "assets/audio/favorites/trendy - sk8star.mp3",
