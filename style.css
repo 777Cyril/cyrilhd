@@ -12,7 +12,7 @@
     --text-light: #2c2c2c;
     --text-dark: #e0e0e0;
     --link-light: #004080;      /* Deep blue links (default) */
-    --link-dark: #6BA3D8;       /* Light blue for dark mode */
+    --link-dark: #90ad68;       /* Sage green for dark mode */
     --link-underline: currentColor;
 }
 
