@@ -4,6 +4,8 @@
  * POST { target: 'avatar'|'produced', src: 'assets/audio/...', title: 'new title' }
  */
 
+const lib = require('../scripts/playlist-lib.js');
+
 const REPO_OWNER = '777Cyril';
 const REPO_NAME  = 'cyrilhd';
 const BRANCH     = 'main';
@@ -62,11 +64,10 @@ module.exports = async function handler(req, res) {
 
     let updated = false;
     current[listKey] = current[listKey].map(function(entry) {
-        // handle both plain-string entries (legacy) and {title, src} objects
-        const entrySrc = typeof entry === 'object' ? entry.src : entry;
-        if (entrySrc === src) {
+        // lib.srcOf handles both legacy plain-string entries and {title, src}
+        if (lib.srcOf(entry) === src) {
             updated = true;
-            return { title, src: entrySrc };
+            return { title, src };
         }
         return entry;
     });

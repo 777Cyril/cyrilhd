@@ -256,7 +256,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const fallbackFavorites = [
         'assets/audio/favorites/Clairo Juna Live Ending.mp3'
     ];
-    var AVI_TRACKS_KEY = 'cyril_avi_tracks';
+    // _v2: schedule.json was cleaned up (deduped, legacy plain-string entries
+    // converted to {title, src}, dead references dropped). A saved list wins
+    // over schedule.json forever once written, so browsers holding the old
+    // 196-entry snapshot would never see the cleanup. Bumping the key re-seeds
+    // them once. Safe to drop: renames and deletes are already mirrored to the
+    // server via /api/rename and /api/delete, and order is irrelevant because
+    // the playlist is shuffled on load.
+    var AVI_TRACKS_KEY = 'cyril_avi_tracks_v2';
     var aviTracksDefault = null; // set after schedule.json loads
     var aviObjectURLs = {}; // localKey → object url
 
@@ -571,7 +578,32 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    audio.addEventListener('play', updateAviPauseButton);
+    // A track whose file is missing (404) would otherwise reject play() and
+    // leave the avatar silent with nothing but a console error. Skip to the
+    // next one instead, so a bad reference is a hiccup rather than dead air.
+    // aviSkipErrors guards against spinning through an entire broken playlist.
+    var aviSkipErrors = 0;
+    audio.addEventListener('error', function() {
+        if (!aviIsPlaying) return;
+        if (aviSkipErrors >= 5 || favoriteTracks.length === 0) {
+            aviSkipErrors = 0;
+            aviIsPlaying = false;
+            console.error('Avatar playback stopped: too many unplayable tracks in a row.');
+            return;
+        }
+        aviSkipErrors++;
+        console.warn('Skipping unplayable track:', audio.currentSrc || '(none)');
+        selectRandomAvatarTrack();
+        audio.play().then(function() {
+            aviUpdateCarousel();
+            updateAviPauseButton();
+        }).catch(function() { /* the error listener handles the next failure */ });
+    });
+
+    audio.addEventListener('play', function() {
+        aviSkipErrors = 0; // a successful play clears the run of failures
+        updateAviPauseButton();
+    });
     audio.addEventListener('pause', updateAviPauseButton);
 
     // ── Media Session API ──
@@ -677,39 +709,11 @@ document.addEventListener('DOMContentLoaded', function() {
     var mcCurrentTrack = 0;
     var mcIsOpen = false;
     var mcTypewriterTimeout = null;
-    var mcTracksDefault = [
-        { title: 'get it together', src: 'assets/audio/produced/Get it together v2 pitched up.mp3' },
-        { title: '4u', src: 'assets/audio/produced/atlanta v2.mp3' },
-        { title: '50 Stater', src: 'assets/audio/produced/50 Stater.mp3' },
-        { title: 'caught up', src: 'assets/audio/produced/SOF v2.mp3' },
-        { title: 'doin me dirty', src: 'assets/audio/produced/doin me dirty @lifecrzy.mp3' },
-        { title: 'all the way', src: 'assets/audio/produced/All the way (so crazy) v2 @lifecrzy.mp3' },
-        { title: 'choosey lover', src: 'assets/audio/produced/choosey lover (atlanta).mp3' },
-        { title: 'mulino prime', src: 'assets/audio/produced/MULINO PRIME @lifecrzy.mp3' },
-        { title: 'touchdown', src: 'assets/audio/produced/Khalil Lifestyle x Boofinesse - Touchdown Prod. LIFECRZY.mp3' },
-        { title: 'diamond', src: 'assets/audio/produced/DIAMOND v2.mp3' },
-        { title: 'share', src: 'assets/audio/produced/share.mp3' },
-        { title: 'in the garden', src: 'assets/audio/produced/sex in the garden.mp3' },
-        { title: 'know you', src: 'assets/audio/produced/cayman @lifecrzy.mp3' },
-        { title: 'familiar', src: 'assets/audio/produced/familiar @lifecrzy.mp3' },
-        { title: 'lovely day in may', src: 'assets/audio/produced/Lovely Day in May.mp3' },
-        { title: 'broken hearts', src: 'assets/audio/produced/broken hearts 87 bpm.mp3' },
-        { title: 'teezn u', src: 'assets/audio/produced/Teezn u @jlitt @lifecrzy.mp3' },
-        { title: 'motorola', src: 'assets/audio/produced/Motorola.wav' },
-        { title: 'immature', src: 'assets/audio/produced/IMMATURE.wav' },
-        { title: 'love me no more', src: 'assets/audio/produced/love me nomore (mixed and mastered).m4a' },
-        { title: 'hella options', src: 'assets/audio/produced/hella options @lifecrzy @fggy.mp3' },
-        { title: 'rubies', src: 'assets/audio/produced/Rubies.mp3' },
-        { title: 'good company', src: 'assets/audio/produced/goodcompany.mp3' },
-        { title: 'nicaraguay', src: 'assets/audio/produced/nicaraguay v2 @lifecrzy.mp3' },
-        { title: 'you send me', src: 'assets/audio/produced/you send me v3.mp3' },
-        { title: 'in order', src: 'assets/audio/produced/in order.mp3' },
-        { title: 'miu miu', src: 'assets/audio/produced/miu miu.mp3' },
-        { title: 'money dance', src: 'assets/audio/produced/01 Khalil.Lifestyle - Money Dance.mp3' },
-        { title: 'something soft', src: 'assets/audio/produced/something soft v2.mp3' },
-        { title: 'poison my soda', src: 'assets/audio/produced/01 poison my soda.mp3' },
-        { title: 'more more less green', src: 'assets/audio/produced/more more less green.mp3' }
-    ];
+    // Populated from assets/songs/produced.json below — that file is the single
+    // source of truth for produced tracks. A hardcoded copy used to live here, but
+    // the fetch overwrote it on every load, so entries added to the array by the
+    // sync workflow silently never appeared. Keeping one copy removes that trap.
+    var mcTracksDefault = [];
 
     var mcTracks = mcTracksLoad() || mcTracksDefault.slice();
 

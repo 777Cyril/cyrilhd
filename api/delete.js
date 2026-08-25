@@ -4,17 +4,22 @@
  * Requires the same GITHUB_TOKEN env var as api/upload.js.
  * (Settings → Environment Variables in Vercel dashboard)
  *
- * For avatar tracks: deletes the audio file AND removes it from
- * assets/songs/schedule.json so other visitors stop hearing it too.
- *
- * For produced tracks: deletes only the audio file (the default track
- * list is hardcoded in scripts.js; localStorage handles the rest).
+ * Deletes the audio file AND removes it from its playlist JSON
+ * (schedule.json or produced.json) so other visitors stop hearing it too.
  */
+
+const lib = require('../scripts/playlist-lib.js');
 
 const REPO_OWNER = '777Cyril';
 const REPO_NAME  = 'cyrilhd';
 const BRANCH     = 'main';
 const GITHUB_API = 'https://api.github.com';
+
+// Per-target config — the only thing that differs between the two playlists.
+const TARGETS = {
+    avatar:   { audioDir: 'assets/audio/favorites/', jsonPath: 'assets/songs/schedule.json', listKey: 'favorites' },
+    produced: { audioDir: 'assets/audio/produced/',  jsonPath: 'assets/songs/produced.json', listKey: 'produced'  },
+};
 
 module.exports = async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -55,12 +60,9 @@ module.exports = async function handler(req, res) {
     }
 
     // Only allow deletion from the expected folders
-    const allowed = target === 'avatar'
-        ? 'assets/audio/favorites/'
-        : 'assets/audio/produced/';
-
-    if (!filePath.startsWith(allowed)) {
-        return res.status(400).json({ error: `Path must be within ${allowed}` });
+    const cfg = TARGETS[target];
+    if (!filePath.startsWith(cfg.audioDir)) {
+        return res.status(400).json({ error: `Path must be within ${cfg.audioDir}` });
     }
 
     const ghHeaders = {
@@ -111,87 +113,52 @@ module.exports = async function handler(req, res) {
         });
     }
 
-    if (target === 'avatar') {
-        try {
-            await removeFromSchedule(filePath, ghHeaders);
-        } catch (e) {
-            console.error('schedule.json update failed:', e.message);
-            return res.status(500).json({ error: 'File deleted from GitHub but schedule.json update failed: ' + e.message });
-        }
-    } else {
-        try {
-            await removeFromProduced(filePath, ghHeaders);
-        } catch (e) {
-            console.error('produced.json update failed:', e.message);
-            return res.status(500).json({ error: 'File deleted from GitHub but produced.json update failed: ' + e.message });
-        }
+    try {
+        await removeFromPlaylist(cfg, filePath, ghHeaders);
+    } catch (e) {
+        console.error(`${cfg.jsonPath} update failed:`, e.message);
+        return res.status(500).json({
+            error: `File deleted from GitHub but ${cfg.jsonPath} update failed: ` + e.message,
+        });
     }
 
     return res.status(200).json({ ok: true });
 };
 
-async function removeFromProduced(deletedPath, ghHeaders) {
-    const producedPath = 'assets/songs/produced.json';
-    const producedUrl = `${GITHUB_API}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${producedPath}?ref=${BRANCH}`;
+/*
+ * Remove a track from its playlist JSON.
+ *
+ * Uses lib.removeSrc, which matches by `src` whatever the entry shape. The
+ * previous favorites path filtered with `p !== deletedPath`, comparing a
+ * string against entries that may be objects — so deleting a track that had
+ * ever been renamed silently removed nothing, stranding a reference to a file
+ * that no longer existed. Ten such entries had accumulated.
+ */
+async function removeFromPlaylist(cfg, deletedPath, ghHeaders) {
+    const url = `${GITHUB_API}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${cfg.jsonPath}?ref=${BRANCH}`;
 
-    const getRes = await fetch(producedUrl, { headers: ghHeaders });
-    if (!getRes.ok) throw new Error(`Could not fetch produced.json (${getRes.status})`);
-
-    const fileData = await getRes.json();
-    const current = JSON.parse(Buffer.from(fileData.content, 'base64').toString('utf8'));
-
-    const before = current.produced.length;
-    current.produced = current.produced.filter(function(t) { return t.src !== deletedPath; });
-
-    if (current.produced.length === before) return;
-
-    const updatedContent = Buffer.from(JSON.stringify(current, null, 2) + '\n').toString('base64');
-
-    const putRes = await fetch(
-        `${GITHUB_API}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${producedPath}`,
-        {
-            method: 'PUT',
-            headers: ghHeaders,
-            body: JSON.stringify({
-                message: `delete: remove ${deletedPath.split('/').pop()} from produced`,
-                content: updatedContent,
-                sha: fileData.sha,
-                branch: BRANCH,
-            }),
-        }
-    );
-
-    if (!putRes.ok) {
-        const err = await putRes.json().catch(() => ({}));
-        throw new Error(`produced.json commit failed: ${err.message || putRes.status}`);
-    }
-}
-
-async function removeFromSchedule(deletedPath, ghHeaders) {
-    const schedulePath = 'assets/songs/schedule.json';
-    const scheduleUrl = `${GITHUB_API}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${schedulePath}?ref=${BRANCH}`;
-
-    const getRes = await fetch(scheduleUrl, { headers: ghHeaders });
-    if (!getRes.ok) throw new Error(`Could not fetch schedule.json (${getRes.status})`);
+    const getRes = await fetch(url, { headers: ghHeaders });
+    if (!getRes.ok) throw new Error(`Could not fetch ${cfg.jsonPath} (${getRes.status})`);
 
     const fileData = await getRes.json();
     const current = JSON.parse(Buffer.from(fileData.content, 'base64').toString('utf8'));
 
-    const before = current.favorites.length;
-    current.favorites = current.favorites.filter(function(p) { return p !== deletedPath; });
+    const before = current[cfg.listKey];
+    const after = lib.removeSrc(before, deletedPath);
 
     // Nothing changed — skip unnecessary commit
-    if (current.favorites.length === before) return;
+    if (after.length === before.length) return;
 
+    current[cfg.listKey] = after;
     const updatedContent = Buffer.from(JSON.stringify(current, null, 2) + '\n').toString('base64');
 
     const putRes = await fetch(
-        `${GITHUB_API}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${schedulePath}`,
+        `${GITHUB_API}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${cfg.jsonPath}`,
         {
             method: 'PUT',
             headers: ghHeaders,
             body: JSON.stringify({
-                message: `delete: remove ${deletedPath.split('/').pop()} from favorites`,
+                message: `delete: remove ${deletedPath.split('/').pop()} from ${cfg.listKey}`,
                 content: updatedContent,
                 sha: fileData.sha,
                 branch: BRANCH,
@@ -201,6 +168,6 @@ async function removeFromSchedule(deletedPath, ghHeaders) {
 
     if (!putRes.ok) {
         const err = await putRes.json().catch(() => ({}));
-        throw new Error(`schedule.json commit failed: ${err.message || putRes.status}`);
+        throw new Error(`${cfg.jsonPath} commit failed: ${err.message || putRes.status}`);
     }
 }

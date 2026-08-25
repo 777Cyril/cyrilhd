@@ -10,7 +10,7 @@
  *
  * Phase 2 — POST { filePath, target, finalize: true }
  *   Called after the client has committed the file to GitHub.
- *   For avatar uploads: updates assets/songs/schedule.json.
+ *   Registers the track in its playlist JSON (schedule.json or produced.json).
  *   Returns { ok, path, title }.
  *
  * SETUP (one-time):
@@ -18,10 +18,28 @@
  *   Add: GITHUB_TOKEN = <your repo-scoped token>  (all environments)
  */
 
+const lib = require('../scripts/playlist-lib.js');
+
 const REPO_OWNER = '777Cyril';
 const REPO_NAME  = 'cyrilhd';
 const BRANCH     = 'main';
 const GITHUB_API = 'https://api.github.com';
+
+// Per-target config — the only thing that differs between the two playlists.
+const TARGETS = {
+    avatar: {
+        audioDir: 'assets/audio/favorites/',
+        jsonPath: 'assets/songs/schedule.json',
+        listKey:  'favorites',
+        titleFn:  lib.deriveTitleSimple,
+    },
+    produced: {
+        audioDir: 'assets/audio/produced/',
+        jsonPath: 'assets/songs/produced.json',
+        listKey:  'produced',
+        titleFn:  lib.deriveTitle,
+    },
+};
 
 module.exports = async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -61,32 +79,24 @@ module.exports = async function handler(req, res) {
         'User-Agent': 'cyrilhd-upload',
     };
 
-    // ── Phase 2: finalize (update schedule.json after client committed the file) ──
+    // ── Phase 2: finalize (register the track after client committed the file) ──
     if (finalize) {
         if (!finalFilePath) return res.status(400).json({ error: 'Missing filePath for finalize' });
 
-        const allowed = target === 'avatar' ? 'assets/audio/favorites/' : 'assets/audio/produced/';
-        if (!finalFilePath.startsWith(allowed)) {
-            return res.status(400).json({ error: `filePath must be within ${allowed}` });
+        const cfg = TARGETS[target];
+        if (!finalFilePath.startsWith(cfg.audioDir)) {
+            return res.status(400).json({ error: `filePath must be within ${cfg.audioDir}` });
         }
 
-        const safe = finalFilePath.split('/').pop();
-        const title = safe.replace(/\.[^/.]+$/, '');
+        const title = cfg.titleFn(finalFilePath.split('/').pop());
 
-        if (target === 'avatar') {
-            try {
-                await updateScheduleJson(finalFilePath, ghHeaders);
-            } catch (e) {
-                console.error('schedule.json update failed:', e.message);
-                return res.status(500).json({ error: 'File uploaded to GitHub but schedule.json update failed: ' + e.message });
-            }
-        } else {
-            try {
-                await updateProducedJson(finalFilePath, title, ghHeaders);
-            } catch (e) {
-                console.error('produced.json update failed:', e.message);
-                return res.status(500).json({ error: 'File uploaded to GitHub but produced.json update failed: ' + e.message });
-            }
+        try {
+            await addToPlaylist(cfg, finalFilePath, title, ghHeaders);
+        } catch (e) {
+            console.error(`${cfg.jsonPath} update failed:`, e.message);
+            return res.status(500).json({
+                error: `File uploaded to GitHub but ${cfg.jsonPath} update failed: ` + e.message,
+            });
         }
 
         return res.status(200).json({
@@ -108,8 +118,7 @@ module.exports = async function handler(req, res) {
 
     if (!safe) return res.status(400).json({ error: 'Invalid filename' });
 
-    const folder = target === 'avatar' ? 'assets/audio/favorites' : 'assets/audio/produced';
-    const filePath = `${folder}/${safe}`;
+    const filePath = `${TARGETS[target].audioDir}${safe}`;
 
     // Check if file already exists (need its SHA to overwrite)
     let existingSha = null;
@@ -134,30 +143,39 @@ module.exports = async function handler(req, res) {
     });
 };
 
-async function updateProducedJson(newAudioPath, title, ghHeaders) {
-    const producedPath = 'assets/songs/produced.json';
-    const producedUrl = `${GITHUB_API}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${producedPath}?ref=${BRANCH}`;
+/*
+ * Register a track in its playlist JSON.
+ *
+ * Both playlists go through lib.upsert, which compares by `src` regardless of
+ * entry shape. The previous favorites path used `Array.includes(path)`, which
+ * could never match an object entry — so every renamed track got silently
+ * re-added as a duplicate. Comparing by src is what prevents that.
+ */
+async function addToPlaylist(cfg, newAudioPath, title, ghHeaders) {
+    const url = `${GITHUB_API}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${cfg.jsonPath}?ref=${BRANCH}`;
 
-    const getRes = await fetch(producedUrl, { headers: ghHeaders });
-    if (!getRes.ok) throw new Error(`Could not fetch produced.json (${getRes.status})`);
+    const getRes = await fetch(url, { headers: ghHeaders });
+    if (!getRes.ok) throw new Error(`Could not fetch ${cfg.jsonPath} (${getRes.status})`);
 
     const fileData = await getRes.json();
     const current = JSON.parse(Buffer.from(fileData.content, 'base64').toString('utf8'));
 
-    const alreadyExists = current.produced.some(function(t) { return t.src === newAudioPath; });
-    if (!alreadyExists) {
-        current.produced.push({ title, src: newAudioPath });
-    }
+    const before = current[cfg.listKey];
+    const after = lib.upsert(before, { title, src: newAudioPath }, cfg.titleFn);
 
+    // Already registered — skip an empty commit (and the deploy it would cost).
+    if (after.length === before.length) return;
+
+    current[cfg.listKey] = after;
     const updatedContent = Buffer.from(JSON.stringify(current, null, 2) + '\n').toString('base64');
 
     const putRes = await fetch(
-        `${GITHUB_API}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${producedPath}`,
+        `${GITHUB_API}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${cfg.jsonPath}`,
         {
             method: 'PUT',
             headers: ghHeaders,
             body: JSON.stringify({
-                message: `upload: add ${newAudioPath.split('/').pop()} to produced`,
+                message: `upload: add ${newAudioPath.split('/').pop()} to ${cfg.listKey}`,
                 content: updatedContent,
                 sha: fileData.sha,
                 branch: BRANCH,
@@ -167,42 +185,6 @@ async function updateProducedJson(newAudioPath, title, ghHeaders) {
 
     if (!putRes.ok) {
         const err = await putRes.json().catch(() => ({}));
-        throw new Error(`produced.json commit failed: ${err.message || putRes.status}`);
-    }
-}
-
-async function updateScheduleJson(newAudioPath, ghHeaders) {
-    const schedulePath = 'assets/songs/schedule.json';
-    const scheduleUrl = `${GITHUB_API}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${schedulePath}?ref=${BRANCH}`;
-
-    const getRes = await fetch(scheduleUrl, { headers: ghHeaders });
-    if (!getRes.ok) throw new Error(`Could not fetch schedule.json (${getRes.status})`);
-
-    const fileData = await getRes.json();
-    const current = JSON.parse(Buffer.from(fileData.content, 'base64').toString('utf8'));
-
-    if (!current.favorites.includes(newAudioPath)) {
-        current.favorites.push(newAudioPath);
-    }
-
-    const updatedContent = Buffer.from(JSON.stringify(current, null, 2) + '\n').toString('base64');
-
-    const putRes = await fetch(
-        `${GITHUB_API}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${schedulePath}`,
-        {
-            method: 'PUT',
-            headers: ghHeaders,
-            body: JSON.stringify({
-                message: `upload: add ${newAudioPath.split('/').pop()} to favorites`,
-                content: updatedContent,
-                sha: fileData.sha,
-                branch: BRANCH,
-            }),
-        }
-    );
-
-    if (!putRes.ok) {
-        const err = await putRes.json().catch(() => ({}));
-        throw new Error(`schedule.json commit failed: ${err.message || putRes.status}`);
+        throw new Error(`${cfg.jsonPath} commit failed: ${err.message || putRes.status}`);
     }
 }

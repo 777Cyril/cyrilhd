@@ -1,5 +1,10 @@
 {
   "private": true,
+  "scripts": {
+    "add-song": "bash scripts/add-song.sh",
+    "sync-audio": "node scripts/sync-audio.js",
+    "test": "node scripts/playlist-lib.test.js"
+  },
   "dependencies": {
     "ffmpeg-static": "^5.2.0",
     "fluent-ffmpeg": "^2.1.3"

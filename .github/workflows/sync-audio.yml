@@ -39,10 +39,16 @@ jobs:
 
       - name: Commit updated playlists if changed
         run: |
-          git add scripts.js assets/songs/schedule.json
+          git add assets/songs/schedule.json assets/songs/produced.json
           if git diff --cached --quiet; then
             echo "No playlist changes detected, skipping commit."
           else
-            git commit -m "chore: auto-register new audio files [skip ci]"
+            # No [skip ci] marker here on purpose. vercel.json's ignoreCommand
+            # cancels the build for any commit carrying it, which meant the
+            # commit that actually registered a new track never deployed — the
+            # mp3 went live while the playlist referencing it did not.
+            # This commit only touches assets/songs/*.json and the workflow
+            # triggers only on assets/audio/**, so it cannot re-trigger itself.
+            git commit -m "chore: auto-register new audio files"
             git push origin main
           fi

@@ -1,155 +1,96 @@
 #!/usr/bin/env node
 'use strict';
 
+/*
+ * sync-audio.js — reconcile the playlist JSON files with the audio folders.
+ *
+ * Run by .github/workflows/sync-audio.yml on every push that touches
+ * assets/audio/**. Both playlists converge on "the JSON matches the folder":
+ * new files are registered, entries whose file is gone are dropped, and
+ * duplicates are collapsed.
+ *
+ * All entry handling lives in scripts/playlist-lib.js so this script, the
+ * upload/delete/rename API functions and the client all agree on one shape.
+ *
+ * Idempotent by construction — a second run reports no changes.
+ */
+
 const fs   = require('fs');
 const path = require('path');
+
+const lib = require('./playlist-lib.js');
 
 // ── Paths ─────────────────────────────────────────────────────────────────────
 
 const REPO_ROOT     = path.resolve(__dirname, '..');
-const SCRIPTS_JS    = path.join(REPO_ROOT, 'scripts.js');
 const SCHEDULE_JSON = path.join(REPO_ROOT, 'assets', 'songs', 'schedule.json');
+const PRODUCED_JSON = path.join(REPO_ROOT, 'assets', 'songs', 'produced.json');
 const PRODUCED_DIR  = path.join(REPO_ROOT, 'assets', 'audio', 'produced');
 const FAVORITES_DIR = path.join(REPO_ROOT, 'assets', 'audio', 'favorites');
 
-const AUDIO_EXTS = new Set(['.mp3', '.wav', '.m4a']);
+// ── Sync one playlist file against one audio folder ──────────────────────────
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+function syncPlaylist(opts) {
+    const { label, jsonPath, listKey, audioDir, dirPrefix, titleFn } = opts;
 
-function readAudioFiles(dir) {
-  return fs.readdirSync(dir)
-    .filter(f => AUDIO_EXTS.has(path.extname(f).toLowerCase()))
-    .sort();
-}
+    const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+    if (!Array.isArray(data[listKey])) {
+        throw new Error(`${path.basename(jsonPath)}: expected "${listKey}" to be an array`);
+    }
 
-// Derive a human-readable title from a produced filename.
-// Strategy (conservative — when uncertain, keep text rather than silently drop):
-//   1. Strip file extension
-//   2. Strip @mention tokens  (e.g. "@lifecrzy", "@jlitt @fggy")
-//   3. Strip standalone version tags  (v2, v3, v10)
-//   4. Strip standalone BPM annotations  (87 bpm, 120bpm)
-//   5. Strip "pitched up / down"
-//   6. Collapse whitespace, trim, lowercase
-//   7. Strip trailing orphaned " -" or " –"
-//
-// Titles auto-derived here can always be manually cleaned up in scripts.js
-// after the auto-commit — the script matches by src path, never re-processes
-// existing entries.
-function deriveTitle(filename) {
-  let name = path.basename(filename, path.extname(filename));
+    const diskFiles = lib.readAudioFiles(fs, audioDir);
+    const before    = JSON.stringify(data[listKey]);
 
-  name = name.replace(/@\S+/g, '');                       // @mentions
-  name = name.replace(/\bv\d+\b/gi, '');                  // v2, v3, v10
-  name = name.replace(/\b\d+\s*bpm\b/gi, '');             // 87 bpm
-  name = name.replace(/\bpitched\s+(?:up|down)\b/gi, ''); // pitched up/down
-  name = name.replace(/\s+/g, ' ').trim().toLowerCase();
-  name = name.replace(/\s[-–]+\s*$/, '').trim();          // trailing " -"
-
-  return name;
-}
-
-// ── produced: read existing src values from mcTracks ─────────────────────────
-//
-// Safe strategy: targeted regex on raw file text — no eval, no AST parser.
-// Matches every mcTracks entry object and captures the src string.
-function getRegisteredSrcs(fileText) {
-  const srcRegex = /\{\s*title\s*:\s*'[^']*'\s*,\s*src\s*:\s*'([^']*)'\s*\}/g;
-  const srcs = new Set();
-  let match;
-  while ((match = srcRegex.exec(fileText)) !== null) {
-    srcs.add(match[1]);
-  }
-  return srcs;
-}
-
-// Append new entries to the mcTracks array in scripts.js.
-// Uses lastIndexOf('\n    ];') to anchor on the unique closing bracket
-// of the mcTracks array (4-space indent + ];). Throws if not found
-// rather than silently corrupting the file.
-function appendToMcTracks(fileText, newEntries) {
-  if (newEntries.length === 0) return fileText;
-
-  const newLines = newEntries
-    .map(e => `        { title: '${e.title}', src: '${e.src}' }`)
-    .join(',\n');
-
-  const CLOSING = '\n    ];';
-  const closingIndex = fileText.lastIndexOf(CLOSING);
-
-  if (closingIndex === -1) {
-    throw new Error(
-      'Could not locate mcTracks closing bracket "\\n    ];" in scripts.js. ' +
-      'The file may have been reformatted. Aborting to avoid corruption.'
+    const { list, added, removed, deduped } = lib.reconcile(
+        data[listKey], diskFiles, dirPrefix, titleFn
     );
-  }
 
-  const before = fileText.slice(0, closingIndex);
-  const after  = fileText.slice(closingIndex); // starts with "\n    ];"
-
-  return before + ',\n' + newLines + after;
-}
-
-// ── Sync favorites → schedule.json ───────────────────────────────────────────
-
-function syncFavorites() {
-  const raw      = fs.readFileSync(SCHEDULE_JSON, 'utf8');
-  const data     = JSON.parse(raw);
-  const existing = new Set(data.favorites);
-
-  const diskFiles = readAudioFiles(FAVORITES_DIR);
-  const added = [];
-
-  for (const filename of diskFiles) {
-    const filePath = `assets/audio/favorites/${filename}`;
-    if (!existing.has(filePath)) {
-      data.favorites.push(filePath);
-      added.push(filePath);
+    if (JSON.stringify(list) === before) {
+        console.log(`${label}: already in sync (${list.length} tracks).`);
+        return false;
     }
-  }
 
-  if (added.length > 0) {
-    fs.writeFileSync(SCHEDULE_JSON, JSON.stringify(data, null, 2) + '\n', 'utf8');
-    console.log(`schedule.json: added ${added.length} favorite(s):`);
-    added.forEach(p => console.log(`  + ${p}`));
-  } else {
-    console.log('schedule.json: no new favorites to add.');
-  }
-}
+    data[listKey] = list;
+    fs.writeFileSync(jsonPath, JSON.stringify(data, null, 2) + '\n', 'utf8');
 
-// ── Sync produced → mcTracks in scripts.js ───────────────────────────────────
+    console.log(`${label}: now ${list.length} tracks.`);
+    if (added.length)   { console.log(`  + added ${added.length}:`);   added.forEach(p => console.log(`      + ${p}`)); }
+    if (removed.length) { console.log(`  - removed ${removed.length} with no audio file:`); removed.forEach(p => console.log(`      - ${p}`)); }
+    if (deduped)        { console.log(`  ~ collapsed ${deduped} duplicate entr${deduped === 1 ? 'y' : 'ies'}`); }
 
-function syncProduced() {
-  let fileText   = fs.readFileSync(SCRIPTS_JS, 'utf8');
-  const existing = getRegisteredSrcs(fileText);
-
-  const diskFiles = readAudioFiles(PRODUCED_DIR);
-  const toAdd = [];
-
-  for (const filename of diskFiles) {
-    const src = `assets/audio/produced/${filename}`;
-    if (!existing.has(src)) {
-      const title = deriveTitle(filename);
-      toAdd.push({ title, src });
-    }
-  }
-
-  if (toAdd.length > 0) {
-    fileText = appendToMcTracks(fileText, toAdd);
-    fs.writeFileSync(SCRIPTS_JS, fileText, 'utf8');
-    console.log(`scripts.js: added ${toAdd.length} produced track(s):`);
-    toAdd.forEach(e => console.log(`  + "${e.title}" <- ${e.src}`));
-  } else {
-    console.log('scripts.js: no new produced tracks to add.');
-  }
+    return true;
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 try {
-  syncProduced();
-  syncFavorites();
-  console.log('Audio sync complete.');
+    // produced filenames carry studio cruft (@mentions, v2, bpm) → scrub them.
+    const producedChanged = syncPlaylist({
+        label:     'produced.json',
+        jsonPath:  PRODUCED_JSON,
+        listKey:   'produced',
+        audioDir:  PRODUCED_DIR,
+        dirPrefix: 'assets/audio/produced',
+        titleFn:   lib.deriveTitle,
+    });
+
+    // favorites are named by hand — keep the filename verbatim so titles match
+    // exactly what the client showed before these entries became objects.
+    const favoritesChanged = syncPlaylist({
+        label:     'schedule.json',
+        jsonPath:  SCHEDULE_JSON,
+        listKey:   'favorites',
+        audioDir:  FAVORITES_DIR,
+        dirPrefix: 'assets/audio/favorites',
+        titleFn:   lib.deriveTitleSimple,
+    });
+
+    if (!producedChanged && !favoritesChanged) {
+        console.log('Audio sync complete — nothing to do.');
+    } else {
+        console.log('Audio sync complete.');
+    }
 } catch (err) {
-  console.error('Audio sync failed:', err.message);
-  process.exit(1);
+    console.error('Audio sync failed:', err.message);
+    process.exit(1);
 }
