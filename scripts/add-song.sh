@@ -55,6 +55,33 @@ fi
 git commit -m "upload: add ${COUNT} audio file(s) from local folder"
 
 BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+
+# Songs uploaded through the site panel are committed straight to GitHub by the
+# browser, so they never land on this machine. Whenever that has happened this
+# clone is behind, and a plain push would be rejected as non-fast-forward —
+# after we already made a commit. Rebase onto origin first: it makes the push
+# succeed AND pulls those panel-uploaded tracks down into the local folders.
+echo
+echo "Syncing with GitHub…"
+git fetch origin "$BRANCH"
+
+BEHIND="$(git rev-list --count "HEAD..origin/$BRANCH")"
+if [ "$BEHIND" -gt 0 ]; then
+    echo "  $BEHIND commit(s) on GitHub not here yet (site-panel uploads land there directly)."
+    BEFORE_PULL="$(git rev-parse HEAD)"
+    if ! git pull --rebase origin "$BRANCH"; then
+        echo
+        echo "error: rebase hit a conflict. Your commit is safe — resolve, then:" >&2
+        echo "  git rebase --continue && git push origin $BRANCH" >&2
+        echo "  (or 'git rebase --abort' to back out)" >&2
+        exit 1
+    fi
+    NEW_AUDIO="$(git diff --name-only "$BEFORE_PULL" HEAD -- "$FAVORITES" "$PRODUCED" | wc -l | tr -d ' ')"
+    [ "$NEW_AUDIO" -gt 0 ] && echo "  pulled down $NEW_AUDIO audio file(s) that were uploaded via the site."
+else
+    echo "  already up to date."
+fi
+
 git push origin "$BRANCH"
 
 echo

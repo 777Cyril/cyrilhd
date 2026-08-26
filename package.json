@@ -2,6 +2,7 @@
   "private": true,
   "scripts": {
     "add-song": "bash scripts/add-song.sh",
+    "pull-songs": "git pull --rebase origin main",
     "sync-audio": "node scripts/sync-audio.js",
     "test": "node scripts/playlist-lib.test.js"
   },
