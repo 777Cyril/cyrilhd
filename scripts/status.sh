@@ -35,15 +35,33 @@ count_tree() {
 GH_FAV=$(count_tree assets/audio/favorites/)
 GH_PROD=$(count_tree assets/audio/produced/)
 
-json_len() { curl -fsS --max-time 10 "$SITE/$1" 2>/dev/null | grep -o '"src"' | wc -l | tr -d ' '; }
-LIVE_FAV=$(json_len assets/songs/schedule.json)
-LIVE_PROD=$(json_len assets/songs/produced.json)
+# Playlist ENTRY counts, which are not the same thing as file counts — an audio
+# file can sit in the folder without being registered in the playlist, and that
+# is exactly the state you are in between pushing and pulling the bot's
+# auto-register commit. Showing only files hid that.
+count_entries_local()  { python3 -c "import json;print(len(json.load(open('$1'))['$2']))" 2>/dev/null || echo '?'; }
+count_entries_gh()     { git show "origin/$BRANCH:$1" 2>/dev/null | python3 -c "import json,sys;print(len(json.load(sys.stdin)['$2']))" 2>/dev/null || echo '?'; }
+count_entries_live()   { curl -fsS --max-time 10 "$SITE/$1" 2>/dev/null | python3 -c "import json,sys;print(len(json.load(sys.stdin)['$2']))" 2>/dev/null || echo '?'; }
 
-printf '\n                     favorites   produced\n'
-printf '  local folder   %8s   %8s\n' "$LOCAL_FAV"  "$LOCAL_PROD"
-printf '  GitHub         %8s   %8s\n' "$GH_FAV"     "$GH_PROD"
-printf '  live playlist  %8s   %8s\n' "${LIVE_FAV:-?}" "${LIVE_PROD:-?}"
+SCHED=assets/songs/schedule.json
+PROD=assets/songs/produced.json
+
+L_FAV_E=$(count_entries_local  "$SCHED" favorites);  L_PROD_E=$(count_entries_local  "$PROD" produced)
+G_FAV_E=$(count_entries_gh     "$SCHED" favorites);  G_PROD_E=$(count_entries_gh     "$PROD" produced)
+V_FAV_E=$(count_entries_live   "$SCHED" favorites);  V_PROD_E=$(count_entries_live   "$PROD" produced)
+
+printf '\n                 favorites        produced\n'
+printf '                files  playlist   files  playlist\n'
+printf '  local        %5s  %8s   %5s  %8s\n' "$LOCAL_FAV" "$L_FAV_E" "$LOCAL_PROD" "$L_PROD_E"
+printf '  GitHub       %5s  %8s   %5s  %8s\n' "$GH_FAV"    "$G_FAV_E" "$GH_PROD"    "$G_PROD_E"
+printf '  live site    %5s  %8s   %5s  %8s\n' "-"          "$V_FAV_E" "-"           "$V_PROD_E"
 printf '\n'
+
+# A file present locally but absent from the local playlist is the normal state
+# after add-song and before pulling — call it out so the numbers make sense.
+if [ "$LOCAL_FAV" != "$L_FAV_E" ] || [ "$LOCAL_PROD" != "$L_PROD_E" ]; then
+    printf '  note: local files > local playlist — the auto-register commit is still on GitHub\n'
+fi
 
 if [ "$BEHIND" != "0" ] && [ "$BEHIND" != "?" ]; then
     printf '  ⬇  %s commit(s) on GitHub not here yet — run: npm run pull-songs\n' "$BEHIND"
