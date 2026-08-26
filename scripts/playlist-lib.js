@@ -168,8 +168,38 @@ function reconcile(list, diskFiles, dirPrefix, titleFn) {
     return { list: result, added, removed, deduped };
 }
 
+/*
+ * Serialize a playlist file with one track per line.
+ *
+ * JSON.stringify(data, null, 2) spreads every entry across four lines, so
+ * adding a single track rewrites the entire file and buries the real change in
+ * a hundred lines of reformatting. One line per track keeps a new track to a
+ * one-line diff, which is what makes "what changed in my playlist" reviewable
+ * at a glance on GitHub.
+ *
+ * Any other top-level keys are preserved as-is.
+ */
+function stringify(data, listKey) {
+    const parts = Object.keys(data).map(function(key) {
+        if (key !== listKey || !Array.isArray(data[key])) {
+            return '  ' + JSON.stringify(key) + ': ' + JSON.stringify(data[key]);
+        }
+        if (data[key].length === 0) {
+            return '  ' + JSON.stringify(key) + ': []';
+        }
+        const entries = data[key].map(function(e) {
+            const n = normalize(e);
+            return '    { "title": ' + JSON.stringify(n.title) +
+                   ', "src": '      + JSON.stringify(n.src) + ' }';
+        }).join(',\n');
+        return '  ' + JSON.stringify(key) + ': [\n' + entries + '\n  ]';
+    });
+    return '{\n' + parts.join(',\n') + '\n}\n';
+}
+
 module.exports = {
     AUDIO_EXTS,
+    stringify,
     srcOf,
     deriveTitle,
     deriveTitleSimple,

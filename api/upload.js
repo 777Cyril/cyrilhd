@@ -167,7 +167,7 @@ async function addToPlaylist(cfg, newAudioPath, title, ghHeaders) {
     if (after.length === before.length) return;
 
     current[cfg.listKey] = after;
-    const updatedContent = Buffer.from(JSON.stringify(current, null, 2) + '\n').toString('base64');
+    const updatedContent = Buffer.from(lib.stringify(current, cfg.listKey)).toString('base64');
 
     const putRes = await fetch(
         `${GITHUB_API}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${cfg.jsonPath}`,

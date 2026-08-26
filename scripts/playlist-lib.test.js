@@ -74,5 +74,24 @@ check('srcOf handles both shapes',
       lib.srcOf('a/b.mp3') === 'a/b.mp3' && lib.srcOf({ src: 'a/b.mp3' }) === 'a/b.mp3');
 check('srcOf tolerates junk', lib.srcOf(null) === null && lib.srcOf({}) === null);
 
+console.log('\n— Serialization —');
+const doc = { favorites: [
+    { title: 'a "quoted" title', src: `${FAV}/a.mp3` },
+    { title: 'Billi0n - ØN THE ROAD', src: `${FAV}/b.mp3` },
+]};
+const out = lib.stringify(doc, 'favorites');
+check('round-trips through JSON.parse', JSON.stringify(JSON.parse(out)) === JSON.stringify(doc));
+check('one line per track', out.split('\n').filter(l => l.includes('"src"')).length === 2);
+check('ends with a trailing newline', out.endsWith('}\n'));
+check('escapes quotes in titles', JSON.parse(out).favorites[0].title === 'a "quoted" title');
+check('preserves non-ASCII titles', JSON.parse(out).favorites[1].title === 'Billi0n - ØN THE ROAD');
+check('handles an empty list', JSON.parse(lib.stringify({ favorites: [] }, 'favorites')).favorites.length === 0);
+check('preserves other top-level keys',
+      JSON.parse(lib.stringify({ favorites: [], note: 'keep me' }, 'favorites')).note === 'keep me');
+// Adding one track must produce a one-line diff, not a whole-file rewrite.
+const grown = lib.stringify({ favorites: doc.favorites.concat([{ title: 'c', src: `${FAV}/c.mp3` }]) }, 'favorites');
+const added = grown.split('\n').length - out.split('\n').length;
+check('adding a track changes exactly one line', added === 1, `line delta was ${added}`);
+
 console.log(`\n${pass} passed, ${fail} failed\n`);
 process.exit(fail ? 1 : 0);

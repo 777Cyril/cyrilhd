@@ -45,22 +45,24 @@ case "$reply" in
     *) echo "Aborted — nothing committed."; exit 0 ;;
 esac
 
-git add -- "$FAVORITES" "$PRODUCED"
-
-if git diff --cached --quiet; then
-    echo "Nothing staged after all — aborting."
-    exit 0
-fi
-
-git commit -m "upload: add ${COUNT} audio file(s) from local folder"
-
 BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 
-# Songs uploaded through the site panel are committed straight to GitHub by the
-# browser, so they never land on this machine. Whenever that has happened this
-# clone is behind, and a plain push would be rejected as non-fast-forward —
-# after we already made a commit. Rebase onto origin first: it makes the push
-# succeed AND pulls those panel-uploaded tracks down into the local folders.
+# ── Step 1: sync with GitHub BEFORE touching anything ────────────────────────
+#
+# Order matters here, for correctness and not just convenience:
+#
+#   * Songs uploaded through the site panel are committed straight to GitHub by
+#     the browser and never land on this machine, so this clone is often behind.
+#     Pushing without rebasing would be rejected as non-fast-forward.
+#
+#   * More importantly, the reconciler below PRUNES playlist entries whose audio
+#     file is missing from the folder. If we reconciled while still behind, a
+#     panel-uploaded track we haven't pulled yet would look like a dead entry
+#     and get deleted. Rebasing first brings those files down, so the reconciler
+#     always sees the complete picture.
+#
+# New audio files are untracked at this point, and untracked files don't block
+# a rebase — so this is safe to do before staging.
 echo
 echo "Syncing with GitHub…"
 git fetch origin "$BRANCH"
@@ -71,9 +73,8 @@ if [ "$BEHIND" -gt 0 ]; then
     BEFORE_PULL="$(git rev-parse HEAD)"
     if ! git pull --rebase origin "$BRANCH"; then
         echo
-        echo "error: rebase hit a conflict. Your commit is safe — resolve, then:" >&2
-        echo "  git rebase --continue && git push origin $BRANCH" >&2
-        echo "  (or 'git rebase --abort' to back out)" >&2
+        echo "error: rebase hit a conflict. Nothing has been committed. Resolve, then:" >&2
+        echo "  git rebase --continue   (or 'git rebase --abort' to back out)" >&2
         exit 1
     fi
     NEW_AUDIO="$(git diff --name-only "$BEFORE_PULL" HEAD -- "$FAVORITES" "$PRODUCED" | wc -l | tr -d ' ')"
@@ -81,6 +82,34 @@ if [ "$BEHIND" -gt 0 ]; then
 else
     echo "  already up to date."
 fi
+
+# ── Step 2: register the tracks locally ──────────────────────────────────────
+#
+# Run the same reconciler the GitHub Action runs, but here, now. This is what
+# keeps the local folder and the local playlist mirrored: the mp3 and the
+# playlist entry that references it go into ONE commit, instead of the entry
+# being added later by the bot and leaving this clone stale until it pulls.
+#
+# The Action still runs afterwards as a safety net (it's what catches panel
+# uploads), but because reconcile is idempotent it will find nothing to do and
+# make no commit — so there is nothing left to pull.
+echo
+echo "Registering track(s) in the playlists…"
+if ! node "$REPO_ROOT/scripts/sync-audio.js"; then
+    echo "error: playlist registration failed — nothing committed." >&2
+    exit 1
+fi
+
+# ── Step 3: commit the audio and its registration together ───────────────────
+git add -- "$FAVORITES" "$PRODUCED" \
+           "assets/songs/schedule.json" "assets/songs/produced.json"
+
+if git diff --cached --quiet; then
+    echo "Nothing staged after all — aborting."
+    exit 0
+fi
+
+git commit -m "upload: add ${COUNT} audio file(s) from local folder"
 
 git push origin "$BRANCH"
 

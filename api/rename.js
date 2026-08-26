@@ -74,7 +74,7 @@ module.exports = async function handler(req, res) {
 
     if (!updated) return res.status(404).json({ error: 'Track not found in ' + jsonPath });
 
-    const updatedContent = Buffer.from(JSON.stringify(current, null, 2) + '\n').toString('base64');
+    const updatedContent = Buffer.from(lib.stringify(current, listKey)).toString('base64');
     const filename = src.split('/').pop();
 
     const putRes = await fetch(

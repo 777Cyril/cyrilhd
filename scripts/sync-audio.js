@@ -51,7 +51,7 @@ function syncPlaylist(opts) {
     }
 
     data[listKey] = list;
-    fs.writeFileSync(jsonPath, JSON.stringify(data, null, 2) + '\n', 'utf8');
+    fs.writeFileSync(jsonPath, lib.stringify(data, listKey), 'utf8');
 
     console.log(`${label}: now ${list.length} tracks.`);
     if (added.length)   { console.log(`  + added ${added.length}:`);   added.forEach(p => console.log(`      + ${p}`)); }
